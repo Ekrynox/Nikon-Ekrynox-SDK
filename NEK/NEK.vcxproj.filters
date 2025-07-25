@@ -18,4 +18,14 @@
     <None Include="vcpkg.json" />
     <None Include="vcpkg-configuration.json" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Nikon.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Nikon.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+  </ItemGroup>
 </Project>

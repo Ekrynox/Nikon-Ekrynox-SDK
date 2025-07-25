@@ -14,6 +14,12 @@
     <None Include="vcpkg-configuration.json" />
     <None Include="vcpkg.json" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Nikon.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Nikon.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
