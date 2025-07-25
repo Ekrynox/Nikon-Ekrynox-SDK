@@ -5,10 +5,7 @@ VisualStudioVersion = 17.14.36310.24
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NEK", "NEK\NEK.vcxproj", "{E1CC8AEC-407C-4B6B-9550-FC71611411BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEK.C#", "NEK.C#\NEK.C#.csproj", "{E746ACBE-5505-4424-B2EC-0BD6BFC4AEE7}"
-	ProjectSection(ProjectDependencies) = postProject
-		{E1CC8AEC-407C-4B6B-9550-FC71611411BF} = {E1CC8AEC-407C-4B6B-9550-FC71611411BF}
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEK.CSWrapper", "NEK.CSWrapper\NEK.CSWrapper.csproj", "{E746ACBE-5505-4424-B2EC-0BD6BFC4AEE7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
