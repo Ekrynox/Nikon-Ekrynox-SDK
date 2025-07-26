@@ -11,8 +11,11 @@ namespace nek {
 				UsbManager();
 				~UsbManager();
 				ssize_t countDevices();
+				ssize_t countNikonCameras();
 
 			private:
+				bool isNikonCamera(libusb_device* device);
+
 				libusb_context* context_;
 		};
 
