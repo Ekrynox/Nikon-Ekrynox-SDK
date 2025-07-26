@@ -6,6 +6,11 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NEK", "NEK\NEK.vcxproj", "{E1CC8AEC-407C-4B6B-9550-FC71611411BF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEK.CSWrapper", "NEK.CSWrapper\NEK.CSWrapper.csproj", "{E746ACBE-5505-4424-B2EC-0BD6BFC4AEE7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E1CC8AEC-407C-4B6B-9550-FC71611411BF} = {E1CC8AEC-407C-4B6B-9550-FC71611411BF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NEK.TestApp", "NEK.TestApp\NEK.TestApp.vcxproj", "{BF2C04FE-03DB-4640-B0C5-8A9D5CBCF159}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,8 +22,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E1CC8AEC-407C-4B6B-9550-FC71611411BF}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{E1CC8AEC-407C-4B6B-9550-FC71611411BF}.Debug|Any CPU.Build.0 = Debug|x64
-		{E1CC8AEC-407C-4B6B-9550-FC71611411BF}.Debug|x64.ActiveCfg = Release|x64
-		{E1CC8AEC-407C-4B6B-9550-FC71611411BF}.Debug|x64.Build.0 = Release|x64
+		{E1CC8AEC-407C-4B6B-9550-FC71611411BF}.Debug|x64.ActiveCfg = Debug|x64
+		{E1CC8AEC-407C-4B6B-9550-FC71611411BF}.Debug|x64.Build.0 = Debug|x64
 		{E1CC8AEC-407C-4B6B-9550-FC71611411BF}.Release|Any CPU.ActiveCfg = Release|x64
 		{E1CC8AEC-407C-4B6B-9550-FC71611411BF}.Release|Any CPU.Build.0 = Release|x64
 		{E1CC8AEC-407C-4B6B-9550-FC71611411BF}.Release|x64.ActiveCfg = Release|x64
@@ -31,6 +36,14 @@ Global
 		{E746ACBE-5505-4424-B2EC-0BD6BFC4AEE7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E746ACBE-5505-4424-B2EC-0BD6BFC4AEE7}.Release|x64.ActiveCfg = Release|Any CPU
 		{E746ACBE-5505-4424-B2EC-0BD6BFC4AEE7}.Release|x64.Build.0 = Release|Any CPU
+		{BF2C04FE-03DB-4640-B0C5-8A9D5CBCF159}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{BF2C04FE-03DB-4640-B0C5-8A9D5CBCF159}.Debug|Any CPU.Build.0 = Debug|x64
+		{BF2C04FE-03DB-4640-B0C5-8A9D5CBCF159}.Debug|x64.ActiveCfg = Debug|x64
+		{BF2C04FE-03DB-4640-B0C5-8A9D5CBCF159}.Debug|x64.Build.0 = Debug|x64
+		{BF2C04FE-03DB-4640-B0C5-8A9D5CBCF159}.Release|Any CPU.ActiveCfg = Release|x64
+		{BF2C04FE-03DB-4640-B0C5-8A9D5CBCF159}.Release|Any CPU.Build.0 = Release|x64
+		{BF2C04FE-03DB-4640-B0C5-8A9D5CBCF159}.Release|x64.ActiveCfg = Release|x64
+		{BF2C04FE-03DB-4640-B0C5-8A9D5CBCF159}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
