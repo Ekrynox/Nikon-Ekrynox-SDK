@@ -15,10 +15,13 @@
     <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Nikon.hpp" />
+    <ClInclude Include="nek.hpp" />
+    <ClInclude Include="nek_usb.hpp" />
+    <ClInclude Include="nikon.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Nikon.cpp" />
+    <ClCompile Include="nek_usb.cpp" />
+    <ClCompile Include="nikon.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
