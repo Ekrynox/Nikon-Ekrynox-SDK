@@ -3,3 +3,4 @@
 
 
 NEK_API int countUsbDevices();
+NEK_API int countNikonCameras();

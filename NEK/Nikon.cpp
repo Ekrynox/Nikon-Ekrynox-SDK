@@ -6,3 +6,8 @@ int countUsbDevices() {
 	nek::usb::UsbManager usbManager;
 	return usbManager.countDevices();
 }
+
+int countNikonCameras() {
+	nek::usb::UsbManager usbManager;
+	return usbManager.countNikonCameras();
+}
