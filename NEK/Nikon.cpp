@@ -1,13 +1,15 @@
 #include "nikon.hpp"
-#include "nek_usb.hpp"
+#include "nek_mtp.hpp"
+
+#include <stdexcept>
 
 
-int countUsbDevices() {
-	nek::usb::UsbManager usbManager;
-	return usbManager.countDevices();
-}
 
 int countNikonCameras() {
-	nek::usb::UsbManager usbManager;
-	return usbManager.countNikonCameras();
+	return nek::mtp::MtpDevice::Instance().countNikonCameras();
+}
+
+
+std::string test() {
+	return "";
 }
