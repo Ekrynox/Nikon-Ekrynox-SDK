@@ -19,22 +19,22 @@
 namespace nek {
 	namespace mtp {
 
-		class MtpDevice {
+		class MtpManager {
 		public:
-			static MtpDevice& Instance();
+			static MtpManager& Instance();
 
 			std::vector<std::wstring> listNikonCameras();
 			int countNikonCameras();
 
 		private:
-			MtpDevice& operator= (const MtpDevice&) = delete;
-			MtpDevice(const MtpDevice&) = delete;
+			MtpManager& operator= (const MtpManager&) = delete;
+			MtpManager(const MtpManager&) = delete;
 
 			CComPtr<IPortableDeviceManager> deviceManager_;
 			CComPtr<IPortableDeviceValues> deviceClient_;
 
-			MtpDevice();
-			~MtpDevice();
+			MtpManager();
+			~MtpManager();
 		};
 
 	}

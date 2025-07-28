@@ -6,7 +6,7 @@
 
 
 int countNikonCameras() {
-	return nek::mtp::MtpDevice::Instance().countNikonCameras();
+	return nek::mtp::MtpManager::Instance().countNikonCameras();
 }
 
 
