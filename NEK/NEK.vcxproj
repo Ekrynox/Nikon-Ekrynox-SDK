@@ -11,10 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vcpkg-configuration.json" />
-    <None Include="vcpkg.json" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="nek.hpp" />
     <ClInclude Include="nikon.hpp" />
     <ClInclude Include="nek_mtp.hpp" />
