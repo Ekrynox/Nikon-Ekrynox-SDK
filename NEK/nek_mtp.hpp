@@ -6,6 +6,7 @@
 #include <atlbase.h>
 #include <PortableDeviceApi.h>
 #include <PortableDevice.h>
+#include <WpdMtpExtensions.h>
 
 
 
@@ -25,16 +26,29 @@ namespace nek {
 
 			std::vector<std::wstring> listNikonCameras();
 			int countNikonCameras();
+			CComPtr<IPortableDevice> openDevice(PWSTR deviceId);
 
 		private:
-			MtpManager& operator= (const MtpManager&) = delete;
-			MtpManager(const MtpManager&) = delete;
-
 			CComPtr<IPortableDeviceManager> deviceManager_;
 			CComPtr<IPortableDeviceValues> deviceClient_;
 
+			MtpManager& operator= (const MtpManager&) = delete;
+			MtpManager(const MtpManager&) = delete;
 			MtpManager();
 			~MtpManager();
+		};
+
+
+		class MtpDevice {
+		public:
+			MtpDevice(PWSTR deviceId);
+
+			HRESULT SendCommand(WORD operationCode, IPortableDevicePropVariantCollection* operationParams, CComPtr<IPortableDeviceValues>& results);
+			HRESULT GetIUnknownValue(IPortableDeviceValues& results, PROPVARIANT& responseCode, CComPtr<IPortableDevicePropVariantCollection>& responseParams);
+
+		private:
+			MtpManager *deviceManager_;
+			CComPtr<IPortableDevice> device_;
 		};
 
 	}
