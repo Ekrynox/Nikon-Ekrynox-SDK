@@ -31,6 +31,7 @@ namespace nek {
 			MtpDevice(const MtpDevice&) = delete;
 
 			CComPtr<IPortableDeviceManager> deviceManager_;
+			CComPtr<IPortableDeviceValues> deviceClient_;
 
 			MtpDevice();
 			~MtpDevice();
