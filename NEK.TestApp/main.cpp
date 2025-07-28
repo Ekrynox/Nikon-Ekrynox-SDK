@@ -3,8 +3,8 @@
 
 
 int main() {
-	std::cout << "USB devices found: " << countUsbDevices() << std::endl;
 	std::cout << "Nikon cameras found: " << countNikonCameras() << std::endl;
 
+	std::cout << test() << std::endl;
 	return 0;
 }

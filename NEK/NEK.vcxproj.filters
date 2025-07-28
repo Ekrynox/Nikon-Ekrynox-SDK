@@ -22,16 +22,16 @@
     <ClInclude Include="nikon.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nek_usb.hpp">
+    <ClInclude Include="nek.hpp" />
+    <ClInclude Include="nek_mtp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nek.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nikon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nek_usb.cpp">
+    <ClCompile Include="nek_mtp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
