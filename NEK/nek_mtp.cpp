@@ -8,7 +8,7 @@
 namespace nek {
 	namespace mtp {
 
-		MtpDevice::MtpDevice() {
+		MtpManager::MtpManager() {
 			HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 			if (FAILED(hr)) {
 				throw std::runtime_error("Failed to init COM: " + hr);
@@ -51,18 +51,18 @@ namespace nek {
 			/*hr = (*clientInformation)->SetUnsignedIntegerValue(WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE, SECURITY_IMPERSONATION);*/
 		}
 
-		MtpDevice::~MtpDevice() {
+		MtpManager::~MtpManager() {
 			CoUninitialize();
 		}
 
-		MtpDevice& MtpDevice::Instance() {
-			static MtpDevice instance;
+		MtpManager& MtpManager::Instance() {
+			static MtpManager instance;
 			return instance;
 		}
 
 
 
-		std::vector<std::wstring> MtpDevice::listNikonCameras() {
+		std::vector<std::wstring> MtpManager::listNikonCameras() {
 			std::vector<std::wstring> nikonCameras;
 
 			DWORD devicesNb = 0;
@@ -102,7 +102,7 @@ namespace nek {
 			return nikonCameras;
 		}
 
-		int MtpDevice::countNikonCameras() {
+		int MtpManager::countNikonCameras() {
 			return listNikonCameras().size();
 		}
 
