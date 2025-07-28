@@ -1,72 +1,64 @@
 #include "nek_usb.hpp"
-#include <libusb-1.0/libusb.h>
-#include <system_error>
 
+#include <stdexcept>
+
+
+
+DEFINE_GUID(GUID_DEVINTERFACE_USB_DEVICE, 0xA5DCBF10L, 0x6530, 0x11D2, 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED);
 
 
 namespace nek {
 	namespace usb {
-		UsbManager::UsbManager() {
-			if (libusb_init_context(&context_, nullptr, 0) > 0) {
-				throw std::runtime_error("Failed to initialize libusb context");
-			}
+
+		int UsbManager::countNikonCameras() {
+			return getNikonCameras().size();
 		}
 
-		UsbManager::~UsbManager() {
-			if (context_) {
-				libusb_exit(context_);
-			}
-		}
-
-
-		ssize_t UsbManager::countDevices() {
-			libusb_device **devices;
-
-			ssize_t count = libusb_get_device_list(context_, &devices);
-			if (count < 0) {
-				throw std::system_error(static_cast<int>(count), std::generic_category(), "Failed to get libusb device list");
+		std::vector<std::wstring> UsbManager::getNikonCameras() {
+			HDEVINFO devices = SetupDiGetClassDevs(&GUID_DEVINTERFACE_USB_DEVICE, NULL, 0, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT);
+			if (devices == INVALID_HANDLE_VALUE) {
+				throw std::runtime_error("Failed to get USB devices list.");
 			}
 
-			libusb_free_device_list(devices, 1);
+			std::vector<std::wstring> nikonCameras;
 
-			return count;
-		}
+			SP_DEVINFO_DATA deviceInfoData = {};
+			deviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+			for (DWORD i = 0; SetupDiEnumDeviceInfo(devices, i, &deviceInfoData); ++i) {
+				TCHAR buffer[1024];
+				DWORD buffersize = sizeof(buffer);
 
-		ssize_t UsbManager::countNikonCameras() {
-			libusb_device** devices;
+				//Is vendor Nikon ?
+				if (SetupDiGetDeviceRegistryProperty(devices, &deviceInfoData, SPDRP_HARDWAREID, NULL, (PBYTE)buffer, buffersize, NULL)) {
+					std::wstring hwid(buffer);
+					if (hwid.find(L"VID_04B0") != std::wstring::npos) {
 
-			ssize_t count = libusb_get_device_list(context_, &devices);
-			if (count < 0) {
-				throw std::system_error(static_cast<int>(count), std::generic_category(), "Failed to get libusb device list");
-			}
+						//Is device PTP/MTP
+						if (SetupDiGetDeviceRegistryProperty(devices, &deviceInfoData, SPDRP_CLASSGUID, NULL, (PBYTE)buffer, buffersize, NULL)) {
+							std::wstring guid(buffer);
+							if (guid == L"{eec5ad98-8080-425f-922a-dabf3de3f69a}") {
+								SP_DEVICE_INTERFACE_DATA interfaceData = {};
+								interfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
+								SetupDiEnumDeviceInterfaces(devices, &deviceInfoData, &GUID_DEVINTERFACE_USB_DEVICE, 0, &interfaceData);
 
-			ssize_t countNikon = 0;
-			for (ssize_t i = 0; i < count; ++i) {
-				if (isNikonCamera(devices[i])) {
-					++countNikon;
+								DWORD requiredSize = 0;
+								SetupDiGetDeviceInterfaceDetail(devices, &interfaceData, NULL, 0, &requiredSize, NULL);
+
+								PSP_DEVICE_INTERFACE_DETAIL_DATA detailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(requiredSize);
+								detailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+								if (SetupDiGetDeviceInterfaceDetail(devices, &interfaceData, detailData, requiredSize, NULL, NULL)) {
+									nikonCameras.push_back(detailData->DevicePath);
+								}
+								free(detailData);
+							}
+						}
+					}
 				}
 			}
 
-			libusb_free_device_list(devices, 1);
-
-			return countNikon;
+			SetupDiDestroyDeviceInfoList(devices);
+			return nikonCameras;
 		}
 
-
-		bool UsbManager::isNikonCamera(libusb_device* device) {
-			libusb_device_descriptor desc;
-
-			int res = libusb_get_device_descriptor(device, &desc);
-			if (res != 0) {
-				throw std::system_error(static_cast<int>(res), std::generic_category(), "Failed to get libusb device descriptor");
-			}
-
-			// Nikon vendor ID
-			if (desc.idVendor != 0x04b0) {
-				return false;
-			}
-
-			return true;
-		}
 	}
 }
