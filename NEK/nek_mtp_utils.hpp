@@ -1,10 +1,12 @@
 #pragma once
 
+#include <future>
 #include <vector>
 
 #include <atlbase.h>
 #include <PortableDeviceApi.h>
 #include <PortableDevice.h>
+#include <functional>
 
 
 
@@ -37,6 +39,27 @@ namespace nek {
 			std::vector<BYTE> data;
 		};
 		typedef struct MtpResponse_ MtpResponse;
+
+
+		class MtpEventCallback : public IPortableDeviceEventCallback {
+		public:
+			MtpEventCallback();
+
+			HRESULT STDMETHODCALLTYPE OnEvent(IPortableDeviceValues* pEventParameters);
+			HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv);
+			ULONG STDMETHODCALLTYPE AddRef();
+			ULONG STDMETHODCALLTYPE Release();
+
+			size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
+			void UnregisterCallback(size_t id);
+
+		private:
+			ULONG ref_;
+
+			std::mutex mutex_;
+			size_t nextId;
+			std::vector<std::pair<size_t, std::function<void(IPortableDeviceValues*)>>> callbacks_;
+		};
 
 	}
 }
