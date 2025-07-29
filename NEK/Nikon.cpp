@@ -19,23 +19,8 @@ std::string test() {
 
 	auto device = nek::mtp::MtpDevice((PWSTR)nikonCameras[0].c_str());
 
-	CComPtr<IPortableDevicePropVariantCollection> params;
-	HRESULT hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&params));
-	if (SUCCEEDED(hr)) {
-		PROPVARIANT param;
-		PropVariantInit(&param);
-		param.vt = VT_UI4;
-		param.ulVal = 3;
-		//params->Add(&param);
-
-		CComPtr<IPortableDeviceValues> results;
-		hr = device.SendCommand(0x100E, params, results);
-		
-		PROPVARIANT responseCode;
-		CComPtr<IPortableDevicePropVariantCollection> responseParams;
-		device.GetIUnknownValue(*results, responseCode, responseParams);
-		return "" + std::to_string(responseCode.intVal);
-	}
+	nek::mtp::MtpParams params;
+	nek::mtp::MtpResponse response = device.SendNoData(0x100E, params);
 
 	return "";
 }

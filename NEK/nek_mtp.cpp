@@ -129,40 +129,42 @@ MtpDevice::MtpDevice(PWSTR deviceId) {
 }
 
 
-HRESULT MtpDevice::SendCommand(WORD operationCode, IPortableDevicePropVariantCollection* operationParams, CComPtr<IPortableDeviceValues>& results) {
+MtpResponse MtpDevice::SendNoData(WORD operationCode, MtpParams& params) {
+	MtpResponse result;
+
 	CComPtr<IPortableDeviceValues> command;
-	HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-	if (FAILED(hr)) return hr;
+	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result.hr)) {
+		return result;
+	}
 
 	// Set command category and ID
 	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_EXECUTE_COMMAND_WITHOUT_DATA_PHASE.fmtid);
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_EXECUTE_COMMAND_WITHOUT_DATA_PHASE.pid);
 
 	// Set operation code and parameters
-	PROPVARIANT opCode;
-	PropVariantInit(&opCode);
-	opCode.vt = VT_UI2;
-	opCode.uiVal = operationCode;
-	command->SetValue(WPD_PROPERTY_MTP_EXT_OPERATION_CODE, &opCode);
-	command->SetIUnknownValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, operationParams);
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPERATION_CODE, operationCode);
+	command->SetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, params.GetCollection());
 
 	// Send command
-	hr = device_->SendCommand(0, command, &results);
-	if (FAILED(hr)) return hr;
+	CComPtr<IPortableDeviceValues> commandResult;
+	result.hr = device_->SendCommand(0, command, &commandResult);
+	if (FAILED(result.hr)) {
+		return result;
+	}
 
-	return hr;
-}
+	// Extract response code
+	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(& result.responseCode));
+	if (FAILED(result.hr)) {
+		return result;
+	}
 
-HRESULT MtpDevice::GetIUnknownValue(IPortableDeviceValues& results, PROPVARIANT& responseCode, CComPtr<IPortableDevicePropVariantCollection>& responseParams) {
-    // Extract response code
-    HRESULT hr = results.GetValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, &responseCode);
-    if (FAILED(hr)) return hr;
-
-    // Extract response parameters
-    CComPtr<IUnknown> unk;
-    hr = results.GetIUnknownValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &unk);
-    if (SUCCEEDED(hr) && unk) {
-        hr = unk->QueryInterface(IID_PPV_ARGS(&responseParams));
-    }
-    return hr;
+	// Extract response parameters
+	CComPtr<IUnknown> unk;
+	result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result.responseParams);
+	if (FAILED(result.hr)) {
+		return result;
+	}
+	
+	return result;
 }
