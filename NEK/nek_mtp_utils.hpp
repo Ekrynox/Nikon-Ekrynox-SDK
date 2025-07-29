@@ -13,6 +13,11 @@
 namespace nek {
 	namespace mtp {
 
+		struct MtpDeviceInfo_ {
+			std::wstring devicePath;
+		};
+		typedef struct MtpDeviceInfo_ MtpDeviceInfo;
+
 		class MtpParams {
 		public:
 			MtpParams();
