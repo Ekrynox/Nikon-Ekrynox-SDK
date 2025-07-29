@@ -20,7 +20,14 @@ std::string test() {
 	auto device = nek::mtp::MtpDevice((PWSTR)nikonCameras[0].c_str());
 
 	nek::mtp::MtpParams params;
-	nek::mtp::MtpResponse response = device.SendNoData(0x100E, params);
+	params.addUint32(0x5008);
+	//nek::mtp::MtpResponse response = device.SendNoData(0x100E, params);
+	nek::mtp::MtpResponse response = device.SendOutData(0x1015, params);
+	
+	if (response.responseCode == 0x2001) {
+		return "Yes";
+	}
+
 
 	return "";
 }
