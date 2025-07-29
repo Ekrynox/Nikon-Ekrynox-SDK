@@ -1,4 +1,5 @@
 #pragma once
+#include "nek.hpp"
 #include "nek_mtp_utils.hpp"
 
 #include <string>
@@ -23,11 +24,11 @@ namespace nek {
 
 		class MtpManager {
 		public:
-			static MtpManager& Instance();
+			NEK_API static MtpManager& Instance();
 
-			std::vector<std::wstring> listNikonCameras();
-			size_t countNikonCameras();
-			CComPtr<IPortableDevice> openDevice(PWSTR deviceId);
+			NEK_API std::vector<MtpDeviceInfo> listMtpDevices();
+			NEK_API size_t countMtpDevices();
+			NEK_API CComPtr<IPortableDevice> openDevice(PWSTR deviceId);
 
 		private:
 			CComPtr<IPortableDeviceManager> deviceManager_;
@@ -42,15 +43,15 @@ namespace nek {
 
 		class MtpDevice {
 		public:
-			MtpDevice(PWSTR deviceId);
-			~MtpDevice();
+			NEK_API MtpDevice(PWSTR devicePath);
+			NEK_API ~MtpDevice();
 
-			MtpResponse SendNoData(WORD operationCode, MtpParams& params);
-			MtpResponse SendReadData(WORD operationCode, MtpParams& params);
-			MtpResponse SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
+			NEK_API MtpResponse SendNoData(WORD operationCode, MtpParams& params);
+			NEK_API MtpResponse SendReadData(WORD operationCode, MtpParams& params);
+			NEK_API MtpResponse SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
 
-			size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
-			void UnregisterCallback(size_t id);
+			NEK_API size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
+			NEK_API void UnregisterCallback(size_t id);
 
 		private:
 			CComPtr<IPortableDevice> device_;

@@ -62,8 +62,8 @@ MtpManager& MtpManager::Instance() {
 }
 
 
-std::vector<std::wstring> MtpManager::listNikonCameras() {
-	std::vector<std::wstring> nikonCameras;
+std::vector<MtpDeviceInfo> MtpManager::listMtpDevices() {
+	std::vector<MtpDeviceInfo> nikonCameras;
 
 	DWORD devicesNb = 0;
 	PWSTR* devices = nullptr;
@@ -85,13 +85,10 @@ std::vector<std::wstring> MtpManager::listNikonCameras() {
 
 		for (DWORD i = 0; i < devicesNb; i++) {
 			if (devices[i] != nullptr) {
-				//Check if Nikon
-				std::wstring id(devices[i]);
-				std::transform(id.begin(), id.end(), id.begin(), ::towlower);
-				if (id.find(L"vid_04b0") != std::wstring::npos) {
-					nikonCameras.push_back(devices[i]);
-				}
-						
+				MtpDeviceInfo camera;
+				camera.devicePath = devices[i];
+				nikonCameras.push_back(camera);
+		
 				CoTaskMemFree(devices[i]);
 			}
 		}
@@ -102,8 +99,8 @@ std::vector<std::wstring> MtpManager::listNikonCameras() {
 	return nikonCameras;
 }
 
-size_t MtpManager::countNikonCameras() {
-	return listNikonCameras().size();
+size_t MtpManager::countMtpDevices() {
+	return listMtpDevices().size();
 }
 
 CComPtr<IPortableDevice> MtpManager::openDevice(PWSTR deviceId) {
