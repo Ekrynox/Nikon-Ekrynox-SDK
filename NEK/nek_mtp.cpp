@@ -124,8 +124,15 @@ CComPtr<IPortableDevice> MtpManager::openDevice(PWSTR deviceId) {
 
 //MtpDevice
 MtpDevice::MtpDevice(PWSTR deviceId) {
-	deviceManager_ = &MtpManager::Instance();
-	device_ = deviceManager_->openDevice(deviceId);
+	device_ = MtpManager::Instance().openDevice(deviceId);
+	eventCallback_ = new MtpEventCallback();
+	device_->Advise(0, eventCallback_, nullptr, &eventCookie);
+}
+
+MtpDevice::~MtpDevice() {
+	device_->Unadvise(eventCookie);
+	eventCallback_.Release();
+	device_.Release();
 }
 
 
@@ -369,3 +376,7 @@ MtpResponse MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std:
 	CoTaskMemFree(context);
 	return result;
 }
+
+
+size_t MtpDevice::RegisterCallback(std::function<void(IPortableDeviceValues*)> callback) { return eventCallback_->RegisterCallback(callback); }
+void MtpDevice::UnregisterCallback(size_t id) { return eventCallback_->UnregisterCallback(id); }
