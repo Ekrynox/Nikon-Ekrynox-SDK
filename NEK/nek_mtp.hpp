@@ -26,7 +26,7 @@ namespace nek {
 			static MtpManager& Instance();
 
 			std::vector<std::wstring> listNikonCameras();
-			int countNikonCameras();
+			size_t countNikonCameras();
 			CComPtr<IPortableDevice> openDevice(PWSTR deviceId);
 
 		private:
@@ -45,9 +45,8 @@ namespace nek {
 			MtpDevice(PWSTR deviceId);
 
 			MtpResponse SendNoData(WORD operationCode, MtpParams& params);
-			//MtpResponse SendInData(WORD operationCode, MtpParams& params, std::vector<BYTE> dataIn);
-			MtpResponse SendOutData(WORD operationCode, MtpParams& params);
-			//MtpResponse SendInOutData(WORD operationCode, MtpParams& params, std::vector<BYTE> dataIn);
+			MtpResponse SendReadData(WORD operationCode, MtpParams& params);
+			MtpResponse SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
 
 
 		private:
