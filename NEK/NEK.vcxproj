@@ -12,11 +12,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="nek.hpp" />
+    <ClInclude Include="nek_mtp_utils.hpp" />
     <ClInclude Include="nikon.hpp" />
     <ClInclude Include="nek_mtp.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nek_mtp.cpp" />
+    <ClCompile Include="nek_mtp_utils.cpp" />
     <ClCompile Include="nikon.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -1,4 +1,5 @@
 #pragma once
+#include "nek_mtp_utils.hpp"
 
 #include <string>
 #include <vector>
@@ -43,8 +44,11 @@ namespace nek {
 		public:
 			MtpDevice(PWSTR deviceId);
 
-			HRESULT SendCommand(WORD operationCode, IPortableDevicePropVariantCollection* operationParams, CComPtr<IPortableDeviceValues>& results);
-			HRESULT GetIUnknownValue(IPortableDeviceValues& results, PROPVARIANT& responseCode, CComPtr<IPortableDevicePropVariantCollection>& responseParams);
+			MtpResponse SendNoData(WORD operationCode, MtpParams& params);
+			//Response SendInData(WORD operationCode, MtpParams params, std::vector<BYTE> dataIn);
+			//Response SendOutData(WORD operationCode, MtpParams params);
+			//Response SendInOutData(WORD operationCode, MtpParams params, std::vector<BYTE> dataIn);
+
 
 		private:
 			MtpManager *deviceManager_;
