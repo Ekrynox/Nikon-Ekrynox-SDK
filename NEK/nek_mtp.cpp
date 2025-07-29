@@ -102,7 +102,7 @@ std::vector<std::wstring> MtpManager::listNikonCameras() {
 	return nikonCameras;
 }
 
-int MtpManager::countNikonCameras() {
+size_t MtpManager::countNikonCameras() {
 	return listNikonCameras().size();
 }
 
@@ -170,7 +170,7 @@ MtpResponse MtpDevice::SendNoData(WORD operationCode, MtpParams& params) {
 }
 
 
-MtpResponse MtpDevice::SendOutData(WORD operationCode, MtpParams& params) {
+MtpResponse MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
 	MtpResponse result;
 
 	CComPtr<IPortableDeviceValues> command;
@@ -194,26 +194,34 @@ MtpResponse MtpDevice::SendOutData(WORD operationCode, MtpParams& params) {
 		return result;
 	}
 
-	LPWSTR context = nullptr;
-	commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
+	LPWSTR context;
+	result.hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
 	if (FAILED(result.hr)) {
 		return result;
 	}
 
 	ULONG totalSize;
-	commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, &totalSize);
+	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, &totalSize);
+	if (FAILED(result.hr)) {
+		CoTaskMemFree(context);
+		return result;
+	}
 
 	ULONG optimalSize;
-	commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
+	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
+	if (FAILED(result.hr)) {
+		CoTaskMemFree(context);
+		return result;
+	}
 
 	command.Release();
 	commandResult.Release();
 
 
 	// Start Data Transfert
-	CComPtr<IUnknown> dataIUnk;
 	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
 	if (FAILED(result.hr)) {
+		CoTaskMemFree(context);
 		return result;
 	}
 	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_READ_DATA.fmtid);
@@ -228,6 +236,7 @@ MtpResponse MtpDevice::SendOutData(WORD operationCode, MtpParams& params) {
 	do {
 		result.hr = device_->SendCommand(0, command, &commandResult);
 		if (FAILED(result.hr)) {
+			CoTaskMemFree(context);
 			return result;
 		}
 		commandResult->GetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &b, &bNb);
@@ -235,15 +244,14 @@ MtpResponse MtpDevice::SendOutData(WORD operationCode, MtpParams& params) {
 		commandResult.Release();
 	} while (bNb > 0);
 
-
 	delete[] buffer;
 	command.Release();
-	//commandResult.Release();
 
 
 	// End Data Transfert
 	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
 	if (FAILED(result.hr)) {
+		CoTaskMemFree(context);
 		return result;
 	}
 	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
@@ -251,6 +259,7 @@ MtpResponse MtpDevice::SendOutData(WORD operationCode, MtpParams& params) {
 	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
 	result.hr = device_->SendCommand(0, command, &commandResult);
 	if (FAILED(result.hr)) {
+		CoTaskMemFree(context);
 		return result;
 	}
 
@@ -260,5 +269,103 @@ MtpResponse MtpDevice::SendOutData(WORD operationCode, MtpParams& params) {
 	// Extract response parameters
 	result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result.responseParams);
 
+	CoTaskMemFree(context);
+	return result;
+}
+
+
+MtpResponse MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data) {
+	MtpResponse result;
+
+	CComPtr<IPortableDeviceValues> command;
+	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result.hr)) {
+		return result;
+	}
+
+	// Set command category and ID
+	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_EXECUTE_COMMAND_WITH_DATA_TO_WRITE.fmtid);
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_EXECUTE_COMMAND_WITH_DATA_TO_WRITE.pid);
+
+	// Set operation code and parameters
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPERATION_CODE, operationCode);
+	command->SetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, params.GetCollection());
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, data.size());
+
+	// Send command
+	CComPtr<IPortableDeviceValues> commandResult;
+	result.hr = device_->SendCommand(0, command, &commandResult);
+	if (FAILED(result.hr)) {
+		return result;
+	}
+
+	LPWSTR context;
+	result.hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
+	if (FAILED(result.hr)) {
+		return result;
+	}
+
+	ULONG optimalSize;
+	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
+	if (FAILED(result.hr)) {
+		CoTaskMemFree(context);
+		return result;
+	}
+
+	command.Release();
+	commandResult.Release();
+
+
+	// Start Data Transfert
+	DWORD offset = 0;
+	while (offset < data.size()) {
+		result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+		if (FAILED(result.hr)) {
+			CoTaskMemFree(context);
+			return result;
+		}
+
+		command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_WRITE_DATA.fmtid);
+		command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_WRITE_DATA.pid);
+		command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
+
+		DWORD chunkSize = min(optimalSize, data.size() - offset);
+		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_WRITE, chunkSize);
+		command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &data[offset], chunkSize);
+
+		result.hr = device_->SendCommand(0, command, &commandResult);
+		if (FAILED(result.hr)) {
+			CoTaskMemFree(context);
+			return result;
+		}
+
+		offset += chunkSize;
+		commandResult.Release();
+		command.Release();
+	}
+
+
+	// End Data Transfert
+	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result.hr)) {
+		CoTaskMemFree(context);
+		return result;
+	}
+	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.pid);
+	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
+	result.hr = device_->SendCommand(0, command, &commandResult);
+	if (FAILED(result.hr)) {
+		CoTaskMemFree(context);
+		return result;
+	}
+
+	// Extract response code
+	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+
+	// Extract response parameters
+	result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result.responseParams);
+
+	CoTaskMemFree(context);
 	return result;
 }
