@@ -168,3 +168,97 @@ MtpResponse MtpDevice::SendNoData(WORD operationCode, MtpParams& params) {
 	
 	return result;
 }
+
+
+MtpResponse MtpDevice::SendOutData(WORD operationCode, MtpParams& params) {
+	MtpResponse result;
+
+	CComPtr<IPortableDeviceValues> command;
+	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result.hr)) {
+		return result;
+	}
+
+	// Set command category and ID
+	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_EXECUTE_COMMAND_WITH_DATA_TO_READ.fmtid);
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_EXECUTE_COMMAND_WITH_DATA_TO_READ.pid);
+
+	// Set operation code and parameters
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPERATION_CODE, operationCode);
+	command->SetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, params.GetCollection());
+
+	// Send command
+	CComPtr<IPortableDeviceValues> commandResult;
+	result.hr = device_->SendCommand(0, command, &commandResult);
+	if (FAILED(result.hr)) {
+		return result;
+	}
+
+	LPWSTR context = nullptr;
+	commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
+	if (FAILED(result.hr)) {
+		return result;
+	}
+
+	ULONG totalSize;
+	commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, &totalSize);
+
+	ULONG optimalSize;
+	commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
+
+	command.Release();
+	commandResult.Release();
+
+
+	// Start Data Transfert
+	CComPtr<IUnknown> dataIUnk;
+	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result.hr)) {
+		return result;
+	}
+	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_READ_DATA.fmtid);
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_READ_DATA.pid);
+	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_READ, totalSize);
+	BYTE* buffer = new BYTE[optimalSize];
+	command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, buffer, optimalSize);
+
+	BYTE* b = nullptr;
+	DWORD bNb = 0;
+	do {
+		result.hr = device_->SendCommand(0, command, &commandResult);
+		if (FAILED(result.hr)) {
+			return result;
+		}
+		commandResult->GetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &b, &bNb);
+		result.data.insert(result.data.end(), b, b + bNb);
+		commandResult.Release();
+	} while (bNb > 0);
+
+
+	delete[] buffer;
+	command.Release();
+	//commandResult.Release();
+
+
+	// End Data Transfert
+	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result.hr)) {
+		return result;
+	}
+	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.pid);
+	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
+	result.hr = device_->SendCommand(0, command, &commandResult);
+	if (FAILED(result.hr)) {
+		return result;
+	}
+
+	// Extract response code
+	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+
+	// Extract response parameters
+	result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result.responseParams);
+
+	return result;
+}
