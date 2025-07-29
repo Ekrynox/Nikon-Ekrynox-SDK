@@ -45,9 +45,9 @@ namespace nek {
 			MtpDevice(PWSTR deviceId);
 
 			MtpResponse SendNoData(WORD operationCode, MtpParams& params);
-			//Response SendInData(WORD operationCode, MtpParams params, std::vector<BYTE> dataIn);
-			//Response SendOutData(WORD operationCode, MtpParams params);
-			//Response SendInOutData(WORD operationCode, MtpParams params, std::vector<BYTE> dataIn);
+			//MtpResponse SendInData(WORD operationCode, MtpParams& params, std::vector<BYTE> dataIn);
+			MtpResponse SendOutData(WORD operationCode, MtpParams& params);
+			//MtpResponse SendInOutData(WORD operationCode, MtpParams& params, std::vector<BYTE> dataIn);
 
 
 		private:
