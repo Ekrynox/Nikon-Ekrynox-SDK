@@ -43,15 +43,19 @@ namespace nek {
 		class MtpDevice {
 		public:
 			MtpDevice(PWSTR deviceId);
+			~MtpDevice();
 
 			MtpResponse SendNoData(WORD operationCode, MtpParams& params);
 			MtpResponse SendReadData(WORD operationCode, MtpParams& params);
 			MtpResponse SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
 
+			size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
+			void UnregisterCallback(size_t id);
 
 		private:
-			MtpManager *deviceManager_;
 			CComPtr<IPortableDevice> device_;
+			CComPtr<MtpEventCallback> eventCallback_;
+			PWSTR eventCookie;
 		};
 
 	}

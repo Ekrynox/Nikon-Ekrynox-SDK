@@ -32,7 +32,5 @@ std::string test() {
 	if (response.responseCode == 0x2001) {
 		return "Yes";
 	}
-
-
 	return "";
 }
