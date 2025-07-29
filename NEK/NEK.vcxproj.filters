@@ -22,12 +22,18 @@
     <ClInclude Include="nek_mtp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nek_mtp_utils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nikon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="nek_mtp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nek_mtp_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
