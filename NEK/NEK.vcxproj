@@ -12,19 +12,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="nek.hpp" />
-    <ClInclude Include="nek_mtp_enum.hpp" />
-    <ClInclude Include="nek_mtp_except.hpp" />
-    <ClInclude Include="nek_mtp_struct.hpp" />
-    <ClInclude Include="nek_mtp_utils.hpp" />
+    <ClInclude Include="mtp\nek_mtp_enum.hpp" />
+    <ClInclude Include="mtp\nek_mtp_except.hpp" />
+    <ClInclude Include="mtp\nek_mtp_struct.hpp" />
+    <ClInclude Include="mtp\nek_mtp_utils.hpp" />
     <ClInclude Include="nikon.hpp" />
-    <ClInclude Include="nek_mtp.hpp" />
+    <ClInclude Include="mtp\nek_mtp.hpp" />
     <ClInclude Include="nikon_enum.hpp" />
     <ClInclude Include="nikon_struct.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="nek_mtp.cpp" />
-    <ClCompile Include="nek_mtp_except.cpp" />
-    <ClCompile Include="nek_mtp_utils.cpp" />
+    <ClCompile Include="mtp\nek_mtp.cpp" />
+    <ClCompile Include="mtp\nek_mtp_except.cpp" />
+    <ClCompile Include="mtp\nek_mtp_utils.cpp" />
     <ClCompile Include="nikon.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

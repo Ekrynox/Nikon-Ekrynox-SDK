@@ -1,5 +1,5 @@
 #pragma once
-#include "nek_mtp_struct.hpp"
+#include "mtp/nek_mtp_struct.hpp"
 
 
 

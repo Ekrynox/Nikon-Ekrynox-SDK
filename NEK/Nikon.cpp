@@ -1,5 +1,4 @@
 #include "nikon.hpp"
-#include "nek_mtp.hpp"
 
 #include <stdexcept>
 
