@@ -87,6 +87,34 @@ std::vector<MtpDeviceInfo> MtpManager::listMtpDevices() {
 			if (devices[i] != nullptr) {
 				MtpDeviceInfo camera;
 				camera.devicePath = devices[i];
+
+				DWORD   chlen = 0;
+				PWSTR   ch = nullptr;
+
+				hr = deviceManager_->GetDeviceManufacturer(camera.devicePath.c_str(), nullptr, &chlen);
+				if (SUCCEEDED(hr) && (chlen > 0)) {
+					ch = new WCHAR[chlen];
+					hr = deviceManager_->GetDeviceManufacturer(camera.devicePath.c_str(), ch, &chlen);
+					if (SUCCEEDED(hr)) {
+						camera.manufacturer = ch;
+					}
+							
+					delete[] ch;
+					ch = nullptr;
+				}
+
+				hr = deviceManager_->GetDeviceFriendlyName(camera.devicePath.c_str(), nullptr, &chlen);
+				if (SUCCEEDED(hr) && (chlen > 0)) {
+					ch = new WCHAR[chlen];
+					hr = deviceManager_->GetDeviceFriendlyName(camera.devicePath.c_str(), ch, &chlen);
+					if (SUCCEEDED(hr)) {
+						camera.deviceName = ch;
+					}
+
+					delete[] ch;
+					ch = nullptr;
+				}
+
 				nikonCameras.push_back(camera);
 		
 				CoTaskMemFree(devices[i]);
