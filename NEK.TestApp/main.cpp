@@ -11,7 +11,9 @@ int main() {
 	if (nbNikonCamera == 0) return 0;
 
 	auto nikonCameras = nek::NikonCamera::listNikonCameras();
-	auto camera = nek::NikonCamera(nikonCameras[0]);
+	for (auto& cameraInfo : nikonCameras) {
+		wcout << cameraInfo.second.Manufacture << " " << cameraInfo.second.Model << " " << cameraInfo.second.SerialNumber << endl;
+	}
 
 	return 0;
 }

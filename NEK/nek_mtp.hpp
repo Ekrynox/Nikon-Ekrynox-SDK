@@ -1,7 +1,10 @@
 #pragma once
 #include "nek.hpp"
 #include "nek_mtp_utils.hpp"
+#include "nek_mtp_enum.hpp"
+#include "nek_mtp_struct.hpp"
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -22,13 +25,13 @@
 namespace nek {
 	namespace mtp {
 
-		class MtpManager {
+		class NEK_API MtpManager {
 		public:
-			NEK_API static MtpManager& Instance();
+			static MtpManager& Instance();
 
-			NEK_API std::vector<MtpDeviceInfo> listMtpDevices();
-			NEK_API size_t countMtpDevices();
-			NEK_API CComPtr<IPortableDevice> openDevice(PWSTR deviceId);
+			std::map<std::wstring, MtpDeviceInfoDS> listMtpDevices();
+			size_t countMtpDevices();
+			CComPtr<IPortableDevice> openDevice(PWSTR devicePath);
 
 		private:
 			CComPtr<IPortableDeviceManager> deviceManager_;
@@ -41,17 +44,21 @@ namespace nek {
 		};
 
 
-		class MtpDevice {
+		class NEK_API MtpDevice {
 		public:
-			NEK_API MtpDevice(PWSTR devicePath);
-			NEK_API ~MtpDevice();
+			MtpDevice(PWSTR devicePath);
+			~MtpDevice();
 
-			NEK_API MtpResponse SendNoData(WORD operationCode, MtpParams& params);
-			NEK_API MtpResponse SendReadData(WORD operationCode, MtpParams& params);
-			NEK_API MtpResponse SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
+			MtpResponse SendNoData(WORD operationCode, MtpParams& params);
+			MtpResponse SendReadData(WORD operationCode, MtpParams& params);
+			MtpResponse SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
 
-			NEK_API size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
-			NEK_API void UnregisterCallback(size_t id);
+			size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
+			void UnregisterCallback(size_t id);
+
+
+			MtpDeviceInfoDS GetDeviceInfo();
+
 
 		private:
 			CComPtr<IPortableDevice> device_;
