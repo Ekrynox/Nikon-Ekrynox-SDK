@@ -1,6 +1,6 @@
 #pragma once
 #include "nek.hpp"
-#include "nek_mtp.hpp"
+#include "mtp/nek_mtp.hpp"
 #include "nikon_enum.hpp"
 #include "nikon_struct.hpp"
 

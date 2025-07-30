@@ -13,46 +13,52 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\mtp">
+      <UniqueIdentifier>{4902e9b3-9a14-452c-8fc7-2f1f84f9783e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\mtp">
+      <UniqueIdentifier>{3d860c33-b5a3-4aae-850a-0bab18c4c038}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="nikon.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nek.hpp" />
-    <ClInclude Include="nek_mtp.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="nek_mtp_utils.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="nikon_enum.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nikon_struct.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nek_mtp_struct.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="mtp\nek_mtp.hpp">
+      <Filter>Header Files\mtp</Filter>
     </ClInclude>
-    <ClInclude Include="nek_mtp_enum.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="mtp\nek_mtp_enum.hpp">
+      <Filter>Header Files\mtp</Filter>
     </ClInclude>
-    <ClInclude Include="nek_mtp_except.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="mtp\nek_mtp_except.hpp">
+      <Filter>Header Files\mtp</Filter>
+    </ClInclude>
+    <ClInclude Include="mtp\nek_mtp_struct.hpp">
+      <Filter>Header Files\mtp</Filter>
+    </ClInclude>
+    <ClInclude Include="mtp\nek_mtp_utils.hpp">
+      <Filter>Header Files\mtp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nikon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nek_mtp.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="mtp\nek_mtp.cpp">
+      <Filter>Source Files\mtp</Filter>
     </ClCompile>
-    <ClCompile Include="nek_mtp_utils.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="mtp\nek_mtp_except.cpp">
+      <Filter>Source Files\mtp</Filter>
     </ClCompile>
-    <ClCompile Include="nek_mtp_except.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="mtp\nek_mtp_utils.cpp">
+      <Filter>Source Files\mtp</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

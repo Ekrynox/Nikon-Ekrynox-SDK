@@ -1,5 +1,4 @@
 #include "nek_mtp.hpp"
-#include "nek_mtp_except.hpp"
 
 #include <algorithm>
 #include <stdexcept>
