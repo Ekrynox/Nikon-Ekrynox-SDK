@@ -1,4 +1,5 @@
 #include "nek_mtp.hpp"
+#include "nek_mtp_except.hpp"
 
 #include <algorithm>
 #include <stdexcept>
@@ -62,8 +63,8 @@ MtpManager& MtpManager::Instance() {
 }
 
 
-std::vector<MtpDeviceInfo> MtpManager::listMtpDevices() {
-	std::vector<MtpDeviceInfo> nikonCameras;
+std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
+	std::map<std::wstring, MtpDeviceInfoDS> nikonCameras;
 
 	DWORD devicesNb = 0;
 	PWSTR* devices = nullptr;
@@ -85,38 +86,7 @@ std::vector<MtpDeviceInfo> MtpManager::listMtpDevices() {
 
 		for (DWORD i = 0; i < devicesNb; i++) {
 			if (devices[i] != nullptr) {
-				MtpDeviceInfo camera;
-				camera.devicePath = devices[i];
-
-				DWORD   chlen = 0;
-				PWSTR   ch = nullptr;
-
-				hr = deviceManager_->GetDeviceManufacturer(camera.devicePath.c_str(), nullptr, &chlen);
-				if (SUCCEEDED(hr) && (chlen > 0)) {
-					ch = new WCHAR[chlen];
-					hr = deviceManager_->GetDeviceManufacturer(camera.devicePath.c_str(), ch, &chlen);
-					if (SUCCEEDED(hr)) {
-						camera.manufacturer = ch;
-					}
-							
-					delete[] ch;
-					ch = nullptr;
-				}
-
-				hr = deviceManager_->GetDeviceFriendlyName(camera.devicePath.c_str(), nullptr, &chlen);
-				if (SUCCEEDED(hr) && (chlen > 0)) {
-					ch = new WCHAR[chlen];
-					hr = deviceManager_->GetDeviceFriendlyName(camera.devicePath.c_str(), ch, &chlen);
-					if (SUCCEEDED(hr)) {
-						camera.deviceName = ch;
-					}
-
-					delete[] ch;
-					ch = nullptr;
-				}
-
-				nikonCameras.push_back(camera);
-		
+				nikonCameras.insert(std::pair(std::wstring(devices[i]), MtpDevice(devices[i]).GetDeviceInfo()));
 				CoTaskMemFree(devices[i]);
 			}
 		}
@@ -405,3 +375,102 @@ MtpResponse MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std:
 
 size_t MtpDevice::RegisterCallback(std::function<void(IPortableDeviceValues*)> callback) { return eventCallback_->RegisterCallback(callback); }
 void MtpDevice::UnregisterCallback(size_t id) { return eventCallback_->UnregisterCallback(id); }
+
+
+MtpDeviceInfoDS MtpDevice::GetDeviceInfo() {
+	MtpParams params;
+	MtpResponse response = SendReadData(MtpOperationCode::GetDeviceInfo, params);
+	if (FAILED(response.hr)) {
+		throw std::runtime_error("Failed to execute GetDeviceInfo: " + response.hr);
+	}
+
+	if (response.responseCode != MtpResponseCode::OK) {
+		throw MtpException(MtpOperationCode::GetDeviceInfo, response.responseCode);
+	}
+
+	MtpDeviceInfoDS deviceInfo;
+	size_t offset = 0;
+	uint32_t len;
+
+	deviceInfo.StandardVersion = *(uint16_t *)(response.data.data() + offset);
+	offset += sizeof(uint16_t);
+	deviceInfo.VendorExtensionID = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	deviceInfo.VendorExtensionVersion = *(uint16_t*)(response.data.data() + offset);
+	offset += sizeof(uint16_t);
+
+	len = *(uint8_t*)(response.data.data() + offset);
+	offset += sizeof(uint8_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.VendorExtensionDesc += *(char16_t*)(response.data.data() + offset);
+		offset += sizeof(char16_t);
+	}
+
+	deviceInfo.FunctionalMode = *(uint16_t*)(response.data.data() + offset);
+	offset += sizeof(uint16_t);
+
+	len = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.OperationsSupported.push_back(*(uint16_t*)(response.data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.EventsSupported.push_back(*(uint16_t*)(response.data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.DevicePropertiesSupported.push_back(*(uint16_t*)(response.data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.CaptureFormats.push_back(*(uint16_t*)(response.data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.ImageFormats.push_back(*(uint16_t*)(response.data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint8_t*)(response.data.data() + offset);
+	offset += sizeof(uint8_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.Manufacture += *(char16_t*)(response.data.data() + offset);
+		offset += sizeof(char16_t);
+	}
+
+	len = *(uint8_t*)(response.data.data() + offset);
+	offset += sizeof(uint8_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.Model += *(char16_t*)(response.data.data() + offset);
+		offset += sizeof(char16_t);
+	}
+
+	len = *(uint8_t*)(response.data.data() + offset);
+	offset += sizeof(uint8_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.DeviceVersion += *(char16_t*)(response.data.data() + offset);
+		offset += sizeof(char16_t);
+	}
+
+	len = *(uint8_t*)(response.data.data() + offset);
+	offset += sizeof(uint8_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.SerialNumber += *(char16_t*)(response.data.data() + offset);
+		offset += sizeof(char16_t);
+	}
+
+	return deviceInfo;
+}

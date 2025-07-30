@@ -1,4 +1,5 @@
 #pragma once
+#include "nek.hpp"
 
 #include <future>
 #include <vector>
@@ -13,15 +14,7 @@
 namespace nek {
 	namespace mtp {
 
-		struct MtpDeviceInfo_ {
-			std::wstring devicePath;
-			std::wstring deviceName;
-			std::wstring manufacturer;
-		};
-		typedef struct MtpDeviceInfo_ MtpDeviceInfo;
-
-
-		class MtpParams {
+		class NEK_API MtpParams {
 		public:
 			MtpParams();
 			MtpParams(const MtpParams&) = delete;
