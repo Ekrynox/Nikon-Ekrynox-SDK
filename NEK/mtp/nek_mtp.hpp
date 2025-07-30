@@ -1,8 +1,9 @@
 #pragma once
-#include "nek.hpp"
+#include "../nek.hpp"
 #include "nek_mtp_utils.hpp"
 #include "nek_mtp_enum.hpp"
 #include "nek_mtp_struct.hpp"
+#include "nek_mtp_except.hpp"
 
 #include <map>
 #include <string>

@@ -1,5 +1,5 @@
 #pragma once
-#include "nek.hpp"
+#include "../nek.hpp"
 
 #include <stdlib.h>
 #include <exception>
