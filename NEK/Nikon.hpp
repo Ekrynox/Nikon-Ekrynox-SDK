@@ -2,6 +2,7 @@
 #include "nek.hpp"
 #include "nek_mtp.hpp"
 #include "nikon_enum.hpp"
+#include "nikon_struct.hpp"
 
 #include <string>
 #include <vector>
@@ -10,13 +11,12 @@
 
 namespace nek {
 
-	class NikonCamera {
+	class NEK_API NikonCamera {
 	public:
-		NEK_API static std::vector<nek::mtp::MtpDeviceInfo> listNikonCameras();
-		NEK_API static size_t countNikonCameras();
+		static std::map<std::wstring, NikonDeviceInfoDS> listNikonCameras();
+		static size_t countNikonCameras();
 
-		NEK_API NikonCamera(std::wstring devicePath);
-		NEK_API NikonCamera(nek::mtp::MtpDeviceInfo deviceInfo);
+		NikonCamera(std::wstring devicePath);
 		
 	private:
 		nek::mtp::MtpDevice camera_;

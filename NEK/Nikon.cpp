@@ -9,17 +9,17 @@ using namespace nek;
 
 
 
-std::vector <mtp::MtpDeviceInfo> NikonCamera::listNikonCameras() {
+std::map<std::wstring, NikonDeviceInfoDS> NikonCamera::listNikonCameras() {
 	mtp::MtpManager* deviceManager = &nek::mtp::MtpManager::Instance();
 	auto cameras = deviceManager->listMtpDevices();
-	std::vector<mtp::MtpDeviceInfo> nikonCameras;
+	std::map<std::wstring, NikonDeviceInfoDS> nikonCameras;
 
-	for (auto& camera : cameras) {
+	for (auto &camera : cameras) {
 		//Check if Nikon
-		std::wstring id(camera.devicePath);
+		std::wstring id(camera.first);
 		std::transform(id.begin(), id.end(), id.begin(), ::towlower);
 		if (id.find(L"vid_04b0") != std::wstring::npos) {
-			nikonCameras.push_back(camera);
+			nikonCameras.insert(camera);
 		}
 	}
 
@@ -32,5 +32,3 @@ size_t NikonCamera::countNikonCameras() {
 
 
 NikonCamera::NikonCamera(std::wstring devicePath) : camera_((PWSTR)devicePath.c_str()) {}
-
-NikonCamera::NikonCamera(nek::mtp::MtpDeviceInfo deviceInfo) : NikonCamera(deviceInfo.devicePath) {};
