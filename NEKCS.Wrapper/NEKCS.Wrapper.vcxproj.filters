@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Nikon.h">
+    <ClInclude Include="NEKCS.Wrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
@@ -24,18 +24,24 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Nikon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Nikon_Struct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Nikon.cpp">
+    <ClCompile Include="NEKCS.Wrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AssemblyInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Nikon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Nikon_Struct.cpp">
