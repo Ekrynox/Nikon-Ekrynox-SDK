@@ -10,7 +10,7 @@ using namespace nek::mtp;
 
 //MtpManager
 MtpManager::MtpManager() {
-	HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+	HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 	if (FAILED(hr)) {
 		throw std::runtime_error("Failed to init COM: " + hr);
 	}
@@ -67,9 +67,16 @@ std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
 
 	DWORD devicesNb = 0;
 	PWSTR* devices = nullptr;
+	HRESULT hr;
+
+	//Update WPD devices list
+	hr = deviceManager_->RefreshDeviceList();
+	if (FAILED(hr)) {
+		throw std::runtime_error("Failed to refresh the device list");
+	}
 
 	//Get the number of WPD devices
-	HRESULT hr = deviceManager_->GetDevices(NULL, &devicesNb);
+	hr = deviceManager_->GetDevices(NULL, &devicesNb);
 	if (FAILED(hr)) {
 		throw std::runtime_error("Failed to retreive the number of devices");
 	}
