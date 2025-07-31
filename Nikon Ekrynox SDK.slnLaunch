@@ -1,0 +1,22 @@
+[
+  {
+    "Name": "C++ Test App",
+    "Projects": [
+      {
+        "Path": "NEK.TestApp\\NEK.TestApp.vcxproj",
+        "Action": "Start",
+        "DebugTarget": "Local Windows Debugger"
+      }
+    ]
+  },
+  {
+    "Name": "C# Test App",
+    "Projects": [
+      {
+        "Path": "NEKCS.TestApp\\NEKCS.TestApp.csproj",
+        "Action": "Start",
+        "DebugTarget": "NEKCS.TestApp"
+      }
+    ]
+  }
+]
