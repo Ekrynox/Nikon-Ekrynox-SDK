@@ -9,18 +9,15 @@
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NEKCS.Wrapper\NEKCS.Wrapper.vcxproj">
-      <Private>True</Private>
-      <CopyLocalSatelliteAssemblies>True</CopyLocalSatelliteAssemblies>
-    </ProjectReference>
-  </ItemGroup>
-
 	<ItemGroup>
 		<Content Include="..\x64\$(Configuration)\NEK.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
     </ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\NEKCS.Wrapper\NEKCS.Wrapper.vcxproj" />
+	</ItemGroup>
 
 
 </Project>
