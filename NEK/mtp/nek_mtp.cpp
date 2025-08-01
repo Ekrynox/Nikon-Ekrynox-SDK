@@ -20,11 +20,6 @@ MtpManager::MtpManager() {
 	thread_ = std::thread([this] { this->threadTask(); });
 }
 
-MtpManager::~MtpManager() {
-	running_ = false;
-	thread_.join();
-}
-
 void MtpManager::threadTask() {
 	mutexTasks_.lock();
 	mutexDevice_.lock();
@@ -46,25 +41,7 @@ void MtpManager::threadTask() {
 	mutexDevice_.unlock();
 	mutexTasks_.unlock();
 
-
-	while (running_) {
-		mutexTasks_.lock();
-		while (tasks_.size() > 0) {
-			auto task = tasks_.front();
-			tasks_.pop();
-			mutexTasks_.unlock();
-
-			mutexDevice_.lock();
-			task();
-			mutexDevice_.unlock();
-
-			mutexTasks_.lock();
-		}
-		mutexTasks_.unlock();
-
-		std::unique_lock lk(mutexTasks_);
-		cvTasks_.wait(lk, [this] { return !this->running_ || (this->tasks_.size() > 0); });
-	}
+	nek::utils::ThreadedClass::threadTask();
 
 	mutexTasks_.lock();
 	mutexDevice_.lock();
@@ -76,33 +53,6 @@ void MtpManager::threadTask() {
 
 	mutexDevice_.unlock();
 	mutexTasks_.unlock();
-}
-
-void MtpManager::sendTaskAsync(std::function<void()> task) {
-	mutexTasks_.lock();
-
-	tasks_.push(task);
-
-	mutexTasks_.unlock();
-	cvTasks_.notify_one();
-}
-
-void MtpManager::sendTask(std::function<void()> task) {
-	std::promise<void> p;
-	auto f = p.get_future();
-	
-	sendTaskAsync([&] { p.set_value(); task(); });
-
-	f.get();
-}
-
-template<typename T> T MtpManager::sendTaskWithResult(std::function<T()> task) {
-	std::promise<T> p;
-	auto f = p.get_future();
-
-	sendTaskAsync([&] { p.set_value(task()); });
-
-	return f.get();
 }
 
 std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {

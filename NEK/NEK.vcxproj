@@ -24,12 +24,14 @@
     <ClInclude Include="mtp\nek_mtp.hpp" />
     <ClInclude Include="nikon_enum.hpp" />
     <ClInclude Include="nikon_struct.hpp" />
+    <ClInclude Include="utils\nek_threading.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mtp\nek_mtp.cpp" />
     <ClCompile Include="mtp\nek_mtp_except.cpp" />
     <ClCompile Include="mtp\nek_mtp_utils.cpp" />
     <ClCompile Include="nikon.cpp" />
+    <ClCompile Include="utils\nek_threading.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
