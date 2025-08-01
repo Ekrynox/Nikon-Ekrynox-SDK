@@ -26,9 +26,7 @@ void ThreadedClass::threadTask() {
 			tasks_.pop();
 			mutexTasks_.unlock();
 
-			mutexDevice_.lock();
 			task();
-			mutexDevice_.unlock();
 
 			mutexTasks_.lock();
 		}

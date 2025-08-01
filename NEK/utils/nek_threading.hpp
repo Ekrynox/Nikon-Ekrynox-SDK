@@ -33,7 +33,6 @@ namespace nek::utils {
 		std::queue<std::function<void()>> tasks_;
 		std::thread thread_;
 		std::atomic<bool> running_;
-		std::mutex mutexDevice_;
 		std::mutex mutexTasks_;
 		std::condition_variable cvTasks_;
 	};
