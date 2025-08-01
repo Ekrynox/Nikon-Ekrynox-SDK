@@ -7,20 +7,18 @@
 
 
 
-namespace nek {
-	namespace mtp {
+namespace nek::mtp {
 
-		class NEK_API MtpException : public std::exception {
-		public:
-			MtpException(uint32_t operationCode, uint32_t responseCode);
+	class NEK_API MtpException : public std::exception {
+	public:
+		MtpException(uint32_t operationCode, uint32_t responseCode);
 
-			uint32_t operationCode() const;
-			uint32_t responseCode() const;
+		uint32_t operationCode() const;
+		uint32_t responseCode() const;
 
-		private:
-			uint32_t operationCode_;
-			uint32_t responseCode_;
-		};
+	private:
+		uint32_t operationCode_;
+		uint32_t responseCode_;
+	};
 
-	}
 }
