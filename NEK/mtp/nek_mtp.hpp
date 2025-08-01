@@ -1,5 +1,6 @@
 #pragma once
 #include "../nek.hpp"
+#include "../utils/nek_threading.hpp"
 #include "nek_mtp_utils.hpp"
 #include "nek_mtp_enum.hpp"
 #include "nek_mtp_struct.hpp"
@@ -28,61 +29,49 @@
 
 
 
-namespace nek {
-	namespace mtp {
+namespace nek::mtp {
 
-		class NEK_API MtpManager {
-		public:
-			static MtpManager& Instance();
+	class NEK_API MtpManager : protected nek::utils::ThreadedClass {
+	public:
+		static MtpManager& Instance();
 
-			std::map<std::wstring, MtpDeviceInfoDS> listMtpDevices();
-			size_t countMtpDevices();
+		std::map<std::wstring, MtpDeviceInfoDS> listMtpDevices();
+		size_t countMtpDevices();
 
-		private:
-			MtpManager& operator= (const MtpManager&) = delete;
-			MtpManager(const MtpManager&) = delete;
-			MtpManager();
-			~MtpManager();
-			void threadTask();
+	private:
+		MtpManager& operator= (const MtpManager&) = delete;
+		MtpManager(const MtpManager&) = delete;
+		MtpManager();
+		~MtpManager() {};
+		void threadTask();
 
-			void sendTaskAsync(std::function<void()> task);
-			void sendTask(std::function<void()> task);
-			template<typename T> T sendTaskWithResult(std::function<T()> task);
-
-			CComPtr<IPortableDeviceManager> deviceManager_;
-			std::queue<std::function<void()>> tasks_;
-			std::thread thread_;
-			std::atomic<bool> running_;
-			std::mutex mutexDevice_;
-			std::mutex mutexTasks_;
-			std::condition_variable cvTasks_;
-		};
+		CComPtr<IPortableDeviceManager> deviceManager_;
+	};
 
 
 
 
-		class NEK_API MtpDevice {
-		public:
-			MtpDevice(const PWSTR devicePath);
-			~MtpDevice();
+	class NEK_API MtpDevice {
+	public:
+		MtpDevice(const PWSTR devicePath);
+		~MtpDevice();
 
-			MtpResponse* SendNoData(WORD operationCode, MtpParams& params);
-			MtpResponse* SendReadData(WORD operationCode, MtpParams& params);
-			MtpResponse* SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
+		MtpResponse* SendNoData(WORD operationCode, MtpParams& params);
+		MtpResponse* SendReadData(WORD operationCode, MtpParams& params);
+		MtpResponse* SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
 
-			size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
-			void UnregisterCallback(size_t id);
-
-
-			MtpDeviceInfoDS GetDeviceInfo();
+		size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
+		void UnregisterCallback(size_t id);
 
 
-		private:
-			CComPtr<IPortableDeviceValues> deviceClient_;
-			CComPtr<IPortableDevice> device_;
-			CComPtr<MtpEventCallback> eventCallback_;
-			PWSTR eventCookie;
-		};
+		MtpDeviceInfoDS GetDeviceInfo();
 
-	}
+
+	private:
+		CComPtr<IPortableDeviceValues> deviceClient_;
+		CComPtr<IPortableDevice> device_;
+		CComPtr<MtpEventCallback> eventCallback_;
+		PWSTR eventCookie;
+	};
+
 }
