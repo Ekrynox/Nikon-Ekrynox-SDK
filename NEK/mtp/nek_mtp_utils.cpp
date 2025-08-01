@@ -10,6 +10,17 @@
 using namespace nek::mtp;
 
 
+
+//MtpResponseParams
+MtpReponseParams::MtpReponseParams() {
+	paramsCollection_ = nullptr;
+}
+
+CComPtr<IPortableDevicePropVariantCollection>& MtpReponseParams::GetCollection() {
+	return paramsCollection_;
+}
+
+
 //MtpParams
 MtpParams::MtpParams() {
 	HRESULT hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&paramsCollection_));
@@ -17,11 +28,6 @@ MtpParams::MtpParams() {
 		throw std::runtime_error("Failed to create Prop Variant Collection: " + hr);
 	}
 }
-
-IPortableDevicePropVariantCollection* MtpParams::GetCollection() const {
-	return paramsCollection_;
-}
-
 
 void MtpParams::addUint32(uint32_t value) {
 	PROPVARIANT pv;
@@ -49,6 +55,18 @@ void MtpParams::addInt16(int16_t value) {
 	InitPropVariantFromInt16(value, &pv);
 	paramsCollection_->Add(&pv);
 	PropVariantClear(&pv);
+}
+
+
+
+//MtpResponse
+MtpResponse::MtpResponse() {
+	hr = E_FAIL;
+	responseCode = 0;
+}
+
+MtpReponseParams& MtpResponse::GetParams() {
+	return responseParams_;
 }
 
 

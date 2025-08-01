@@ -10,7 +10,7 @@ using namespace nek::mtp;
 
 //MtpManager
 MtpManager::MtpManager() {
-	HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+	HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 	if (FAILED(hr)) {
 		throw std::runtime_error("Failed to init COM: " + hr);
 	}
@@ -53,6 +53,8 @@ MtpManager::MtpManager() {
 }
 
 MtpManager::~MtpManager() {
+	deviceManager_.Release();
+	deviceClient_.Release();
 	CoUninitialize();
 }
 
@@ -107,15 +109,16 @@ size_t MtpManager::countMtpDevices() {
 	return listMtpDevices().size();
 }
 
-CComPtr<IPortableDevice> MtpManager::openDevice(PWSTR deviceId) {
+CComPtr<IPortableDevice> MtpManager::openDevice(const PWSTR devicePath) {
 	CComPtr<IPortableDevice> device;
 	HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device));
 	if (FAILED(hr)) {
 		throw std::runtime_error("Failed to create device instance: " + hr);
 	}
 
-	hr = device->Open(deviceId, deviceClient_);
+	hr = device->Open(devicePath, deviceClient_);
 	if (FAILED(hr)) {
+		device.Release();
 		throw std::runtime_error("Failed to open device: " + hr);
 	}
 
@@ -124,8 +127,8 @@ CComPtr<IPortableDevice> MtpManager::openDevice(PWSTR deviceId) {
 
 
 //MtpDevice
-MtpDevice::MtpDevice(PWSTR deviceId) {
-	device_ = MtpManager::Instance().openDevice(deviceId);
+MtpDevice::MtpDevice(const PWSTR devicePath) {
+	device_ = MtpManager::Instance().openDevice(devicePath);
 	eventCallback_ = new MtpEventCallback();
 	device_->Advise(0, eventCallback_, nullptr, &eventCookie);
 }
@@ -137,12 +140,12 @@ MtpDevice::~MtpDevice() {
 }
 
 
-MtpResponse MtpDevice::SendNoData(WORD operationCode, MtpParams& params) {
-	MtpResponse result;
+MtpResponse* MtpDevice::SendNoData(WORD operationCode, MtpParams& params) {
+	MtpResponse* result = new MtpResponse();
 
 	CComPtr<IPortableDeviceValues> command;
-	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-	if (FAILED(result.hr)) {
+	result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result->hr)) {
 		return result;
 	}
 
@@ -156,21 +159,21 @@ MtpResponse MtpDevice::SendNoData(WORD operationCode, MtpParams& params) {
 
 	// Send command
 	CComPtr<IPortableDeviceValues> commandResult;
-	result.hr = device_->SendCommand(0, command, &commandResult);
-	if (FAILED(result.hr)) {
+	result->hr = device_->SendCommand(0, command, &commandResult);
+	if (FAILED(result->hr)) {
 		return result;
 	}
 
 	// Extract response code
-	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(& result.responseCode));
-	if (FAILED(result.hr)) {
+	result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(& result->responseCode));
+	if (FAILED(result->hr)) {
 		return result;
 	}
 
 	// Extract response parameters
 	CComPtr<IUnknown> unk;
-	result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result.responseParams);
-	if (FAILED(result.hr)) {
+	result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result->GetParams().GetCollection());
+	if (FAILED(result->hr)) {
 		return result;
 	}
 	
@@ -178,12 +181,12 @@ MtpResponse MtpDevice::SendNoData(WORD operationCode, MtpParams& params) {
 }
 
 
-MtpResponse MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
-	MtpResponse result;
+MtpResponse* MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
+	MtpResponse *result = new MtpResponse();
 
 	CComPtr<IPortableDeviceValues> command;
-	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-	if (FAILED(result.hr)) {
+	result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result->hr)) {
 		return result;
 	}
 
@@ -197,27 +200,27 @@ MtpResponse MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
 
 	// Send command
 	CComPtr<IPortableDeviceValues> commandResult;
-	result.hr = device_->SendCommand(0, command, &commandResult);
-	if (FAILED(result.hr)) {
+	result->hr = device_->SendCommand(0, command, &commandResult);
+	if (FAILED(result->hr)) {
 		return result;
 	}
 
 	LPWSTR context;
-	result.hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
-	if (FAILED(result.hr)) {
+	result->hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
+	if (FAILED(result->hr)) {
 		return result;
 	}
 
 	ULONG totalSize;
-	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, &totalSize);
-	if (FAILED(result.hr)) {
+	result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, &totalSize);
+	if (FAILED(result->hr)) {
 		CoTaskMemFree(context);
 		return result;
 	}
 
 	ULONG optimalSize;
-	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
-	if (FAILED(result.hr)) {
+	result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
+	if (FAILED(result->hr)) {
 		CoTaskMemFree(context);
 		return result;
 	}
@@ -227,8 +230,8 @@ MtpResponse MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
 
 
 	// Start Data Transfert
-	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-	if (FAILED(result.hr)) {
+	result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result->hr)) {
 		CoTaskMemFree(context);
 		return result;
 	}
@@ -242,13 +245,13 @@ MtpResponse MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
 	BYTE* b = nullptr;
 	DWORD bNb = 0;
 	do {
-		result.hr = device_->SendCommand(0, command, &commandResult);
-		if (FAILED(result.hr)) {
+		result->hr = device_->SendCommand(0, command, &commandResult);
+		if (FAILED(result->hr)) {
 			CoTaskMemFree(context);
 			return result;
 		}
 		commandResult->GetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &b, &bNb);
-		result.data.insert(result.data.end(), b, b + bNb);
+		result->data.insert(result->data.end(), b, b + bNb);
 		commandResult.Release();
 	} while (bNb > 0);
 
@@ -257,37 +260,37 @@ MtpResponse MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
 
 
 	// End Data Transfert
-	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-	if (FAILED(result.hr)) {
+	result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result->hr)) {
 		CoTaskMemFree(context);
 		return result;
 	}
 	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.pid);
 	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
-	result.hr = device_->SendCommand(0, command, &commandResult);
-	if (FAILED(result.hr)) {
+	result->hr = device_->SendCommand(0, command, &commandResult);
+	if (FAILED(result->hr)) {
 		CoTaskMemFree(context);
 		return result;
 	}
 
 	// Extract response code
-	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+	result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result->responseCode));
 
 	// Extract response parameters
-	result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result.responseParams);
+	result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result->GetParams().GetCollection());
 
 	CoTaskMemFree(context);
 	return result;
 }
 
 
-MtpResponse MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data) {
-	MtpResponse result;
+MtpResponse* MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data) {
+	MtpResponse* result = new MtpResponse();
 
 	CComPtr<IPortableDeviceValues> command;
-	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-	if (FAILED(result.hr)) {
+	result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result->hr)) {
 		return result;
 	}
 
@@ -302,20 +305,20 @@ MtpResponse MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std:
 
 	// Send command
 	CComPtr<IPortableDeviceValues> commandResult;
-	result.hr = device_->SendCommand(0, command, &commandResult);
-	if (FAILED(result.hr)) {
+	result->hr = device_->SendCommand(0, command, &commandResult);
+	if (FAILED(result->hr)) {
 		return result;
 	}
 
 	LPWSTR context;
-	result.hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
-	if (FAILED(result.hr)) {
+	result->hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
+	if (FAILED(result->hr)) {
 		return result;
 	}
 
 	ULONG optimalSize;
-	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
-	if (FAILED(result.hr)) {
+	result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
+	if (FAILED(result->hr)) {
 		CoTaskMemFree(context);
 		return result;
 	}
@@ -327,8 +330,8 @@ MtpResponse MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std:
 	// Start Data Transfert
 	DWORD offset = 0;
 	while (offset < data.size()) {
-		result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-		if (FAILED(result.hr)) {
+		result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+		if (FAILED(result->hr)) {
 			CoTaskMemFree(context);
 			return result;
 		}
@@ -341,8 +344,8 @@ MtpResponse MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std:
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_WRITE, chunkSize);
 		command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &data[offset], chunkSize);
 
-		result.hr = device_->SendCommand(0, command, &commandResult);
-		if (FAILED(result.hr)) {
+		result->hr = device_->SendCommand(0, command, &commandResult);
+		if (FAILED(result->hr)) {
 			CoTaskMemFree(context);
 			return result;
 		}
@@ -354,25 +357,25 @@ MtpResponse MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std:
 
 
 	// End Data Transfert
-	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-	if (FAILED(result.hr)) {
+	result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(result->hr)) {
 		CoTaskMemFree(context);
 		return result;
 	}
 	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.pid);
 	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
-	result.hr = device_->SendCommand(0, command, &commandResult);
-	if (FAILED(result.hr)) {
+	result->hr = device_->SendCommand(0, command, &commandResult);
+	if (FAILED(result->hr)) {
 		CoTaskMemFree(context);
 		return result;
 	}
 
 	// Extract response code
-	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+	result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result->responseCode));
 
 	// Extract response parameters
-	result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result.responseParams);
+	result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result->GetParams().GetCollection());
 
 	CoTaskMemFree(context);
 	return result;
@@ -385,98 +388,99 @@ void MtpDevice::UnregisterCallback(size_t id) { return eventCallback_->Unregiste
 
 MtpDeviceInfoDS MtpDevice::GetDeviceInfo() {
 	MtpParams params;
-	MtpResponse response = SendReadData(MtpOperationCode::GetDeviceInfo, params);
-	if (FAILED(response.hr)) {
-		throw std::runtime_error("Failed to execute GetDeviceInfo: " + response.hr);
+	MtpResponse* response = SendReadData(MtpOperationCode::GetDeviceInfo, params);
+	if (FAILED(response->hr)) {
+		throw std::runtime_error("Failed to execute GetDeviceInfo: " + response->hr);
 	}
 
-	if (response.responseCode != MtpResponseCode::OK) {
-		throw MtpException(MtpOperationCode::GetDeviceInfo, response.responseCode);
+	if (response->responseCode != MtpResponseCode::OK) {
+		throw MtpException(MtpOperationCode::GetDeviceInfo, response->responseCode);
 	}
 
 	MtpDeviceInfoDS deviceInfo;
 	size_t offset = 0;
 	uint32_t len;
 
-	deviceInfo.StandardVersion = *(uint16_t *)(response.data.data() + offset);
+	deviceInfo.StandardVersion = *(uint16_t *)(response->data.data() + offset);
 	offset += sizeof(uint16_t);
-	deviceInfo.VendorExtensionID = *(uint32_t*)(response.data.data() + offset);
+	deviceInfo.VendorExtensionID = *(uint32_t*)(response->data.data() + offset);
 	offset += sizeof(uint32_t);
-	deviceInfo.VendorExtensionVersion = *(uint16_t*)(response.data.data() + offset);
-	offset += sizeof(uint16_t);
-
-	len = *(uint8_t*)(response.data.data() + offset);
-	offset += sizeof(uint8_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.VendorExtensionDesc += *(char16_t*)(response.data.data() + offset);
-		offset += sizeof(char16_t);
-	}
-
-	deviceInfo.FunctionalMode = *(uint16_t*)(response.data.data() + offset);
+	deviceInfo.VendorExtensionVersion = *(uint16_t*)(response->data.data() + offset);
 	offset += sizeof(uint16_t);
 
-	len = *(uint32_t*)(response.data.data() + offset);
-	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.OperationsSupported.push_back(*(uint16_t*)(response.data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
-
-	len = *(uint32_t*)(response.data.data() + offset);
-	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.EventsSupported.push_back(*(uint16_t*)(response.data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
-
-	len = *(uint32_t*)(response.data.data() + offset);
-	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.DevicePropertiesSupported.push_back(*(uint16_t*)(response.data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
-
-	len = *(uint32_t*)(response.data.data() + offset);
-	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.CaptureFormats.push_back(*(uint16_t*)(response.data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
-
-	len = *(uint32_t*)(response.data.data() + offset);
-	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.ImageFormats.push_back(*(uint16_t*)(response.data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
-
-	len = *(uint8_t*)(response.data.data() + offset);
+	len = *(uint8_t*)(response->data.data() + offset);
 	offset += sizeof(uint8_t);
 	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.Manufacture += *(char16_t*)(response.data.data() + offset);
+		deviceInfo.VendorExtensionDesc += *(char16_t*)(response->data.data() + offset);
 		offset += sizeof(char16_t);
 	}
 
-	len = *(uint8_t*)(response.data.data() + offset);
+	deviceInfo.FunctionalMode = *(uint16_t*)(response->data.data() + offset);
+	offset += sizeof(uint16_t);
+
+	len = *(uint32_t*)(response->data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.OperationsSupported.push_back(*(uint16_t*)(response->data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response->data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.EventsSupported.push_back(*(uint16_t*)(response->data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response->data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.DevicePropertiesSupported.push_back(*(uint16_t*)(response->data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response->data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.CaptureFormats.push_back(*(uint16_t*)(response->data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response->data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.ImageFormats.push_back(*(uint16_t*)(response->data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint8_t*)(response->data.data() + offset);
 	offset += sizeof(uint8_t);
 	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.Model += *(char16_t*)(response.data.data() + offset);
+		deviceInfo.Manufacture += *(char16_t*)(response->data.data() + offset);
 		offset += sizeof(char16_t);
 	}
 
-	len = *(uint8_t*)(response.data.data() + offset);
+	len = *(uint8_t*)(response->data.data() + offset);
 	offset += sizeof(uint8_t);
 	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.DeviceVersion += *(char16_t*)(response.data.data() + offset);
+		deviceInfo.Model += *(char16_t*)(response->data.data() + offset);
 		offset += sizeof(char16_t);
 	}
 
-	len = *(uint8_t*)(response.data.data() + offset);
+	len = *(uint8_t*)(response->data.data() + offset);
 	offset += sizeof(uint8_t);
 	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.SerialNumber += *(char16_t*)(response.data.data() + offset);
+		deviceInfo.DeviceVersion += *(char16_t*)(response->data.data() + offset);
 		offset += sizeof(char16_t);
 	}
 
+	len = *(uint8_t*)(response->data.data() + offset);
+	offset += sizeof(uint8_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.SerialNumber += *(char16_t*)(response->data.data() + offset);
+		offset += sizeof(char16_t);
+	}
+
+	delete response;
 	return deviceInfo;
 }
