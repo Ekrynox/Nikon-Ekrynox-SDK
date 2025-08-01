@@ -11,71 +11,69 @@
 
 
 
-namespace nek {
-	namespace mtp {
+namespace nek::mtp {
 
-		class NEK_API MtpReponseParams {
-		public:
-			MtpReponseParams();
-			MtpReponseParams(const MtpReponseParams&) = delete;
-			MtpReponseParams& operator= (const MtpReponseParams&) = delete;
+			class NEK_API MtpReponseParams {
+			public:
+				MtpReponseParams();
+				MtpReponseParams(const MtpReponseParams&) = delete;
+				MtpReponseParams& operator= (const MtpReponseParams&) = delete;
 
-			CComPtr<IPortableDevicePropVariantCollection> &GetCollection();
+				CComPtr<IPortableDevicePropVariantCollection> &GetCollection();
 
-		protected:
-			CComPtr<IPortableDevicePropVariantCollection> paramsCollection_;
-		};
-
-
-		class NEK_API MtpParams : public MtpReponseParams {
-		public:
-			MtpParams();
-			MtpParams(const MtpParams&) = delete;
-			MtpParams& operator= (const MtpParams&) = delete;
-
-			void addUint32(uint32_t param);
-			void addUint16(uint16_t param);
-			void addInt32(int32_t param);
-			void addInt16(int16_t param);
-		};
+			protected:
+				CComPtr<IPortableDevicePropVariantCollection> paramsCollection_;
+			};
 
 
-		class NEK_API MtpResponse {
-		public:
-			MtpResponse();
-			MtpResponse(const MtpResponse&) = delete;
-			MtpResponse& operator= (const MtpResponse&) = delete;
+			class NEK_API MtpParams : public MtpReponseParams {
+			public:
+				MtpParams();
+				MtpParams(const MtpParams&) = delete;
+				MtpParams& operator= (const MtpParams&) = delete;
 
-			MtpReponseParams& GetParams();
-
-			HRESULT hr;
-			uint32_t responseCode;
-			std::vector<BYTE> data;
-
-		private:
-			MtpReponseParams responseParams_;
-		};
+				void addUint32(uint32_t param);
+				void addUint16(uint16_t param);
+				void addInt32(int32_t param);
+				void addInt16(int16_t param);
+			};
 
 
-		class MtpEventCallback : public IPortableDeviceEventCallback {
-		public:
-			MtpEventCallback();
+			class NEK_API MtpResponse {
+			public:
+				MtpResponse();
+				MtpResponse(const MtpResponse&) = delete;
+				MtpResponse& operator= (const MtpResponse&) = delete;
 
-			HRESULT STDMETHODCALLTYPE OnEvent(IPortableDeviceValues* pEventParameters);
-			HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv);
-			ULONG STDMETHODCALLTYPE AddRef();
-			ULONG STDMETHODCALLTYPE Release();
+				MtpReponseParams& GetParams();
 
-			size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
-			void UnregisterCallback(size_t id);
+				HRESULT hr;
+				uint32_t responseCode;
+				std::vector<BYTE> data;
 
-		private:
-			ULONG ref_;
+			private:
+				MtpReponseParams responseParams_;
+			};
 
-			std::mutex mutex_;
-			size_t nextId;
-			std::vector<std::pair<size_t, std::function<void(IPortableDeviceValues*)>>> callbacks_;
-		};
 
-	}
+			class MtpEventCallback : public IPortableDeviceEventCallback {
+			public:
+				MtpEventCallback();
+
+				HRESULT STDMETHODCALLTYPE OnEvent(IPortableDeviceValues* pEventParameters);
+				HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv);
+				ULONG STDMETHODCALLTYPE AddRef();
+				ULONG STDMETHODCALLTYPE Release();
+
+				size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
+				void UnregisterCallback(size_t id);
+
+			private:
+				ULONG ref_;
+
+				std::mutex mutex_;
+				size_t nextId;
+				std::vector<std::pair<size_t, std::function<void(IPortableDeviceValues*)>>> callbacks_;
+			};
+
 }
