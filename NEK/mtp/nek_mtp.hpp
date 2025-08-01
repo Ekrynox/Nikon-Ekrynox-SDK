@@ -32,7 +32,7 @@ namespace nek {
 
 			std::map<std::wstring, MtpDeviceInfoDS> listMtpDevices();
 			size_t countMtpDevices();
-			CComPtr<IPortableDevice> openDevice(PWSTR devicePath);
+			CComPtr<IPortableDevice> openDevice(const PWSTR devicePath);
 
 		private:
 			CComPtr<IPortableDeviceManager> deviceManager_;
@@ -47,12 +47,12 @@ namespace nek {
 
 		class NEK_API MtpDevice {
 		public:
-			MtpDevice(PWSTR devicePath);
+			MtpDevice(const PWSTR devicePath);
 			~MtpDevice();
 
-			MtpResponse SendNoData(WORD operationCode, MtpParams& params);
-			MtpResponse SendReadData(WORD operationCode, MtpParams& params);
-			MtpResponse SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
+			MtpResponse* SendNoData(WORD operationCode, MtpParams& params);
+			MtpResponse* SendReadData(WORD operationCode, MtpParams& params);
+			MtpResponse* SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
 
 			size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
 			void UnregisterCallback(size_t id);

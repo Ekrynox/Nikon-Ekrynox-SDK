@@ -14,32 +14,47 @@
 namespace nek {
 	namespace mtp {
 
-		class NEK_API MtpParams {
+		class NEK_API MtpReponseParams {
+		public:
+			MtpReponseParams();
+			MtpReponseParams(const MtpReponseParams&) = delete;
+			MtpReponseParams& operator= (const MtpReponseParams&) = delete;
+
+			CComPtr<IPortableDevicePropVariantCollection> &GetCollection();
+
+		protected:
+			CComPtr<IPortableDevicePropVariantCollection> paramsCollection_;
+		};
+
+
+		class NEK_API MtpParams : public MtpReponseParams {
 		public:
 			MtpParams();
 			MtpParams(const MtpParams&) = delete;
 			MtpParams& operator= (const MtpParams&) = delete;
 
-			IPortableDevicePropVariantCollection* GetCollection() const;
-
 			void addUint32(uint32_t param);
 			void addUint16(uint16_t param);
 			void addInt32(int32_t param);
 			void addInt16(int16_t param);
+		};
 
+
+		class NEK_API MtpResponse {
+		public:
+			MtpResponse();
+			MtpResponse(const MtpResponse&) = delete;
+			MtpResponse& operator= (const MtpResponse&) = delete;
+
+			MtpReponseParams& GetParams();
+
+			HRESULT hr;
+			uint32_t responseCode;
+			std::vector<BYTE> data;
 
 		private:
-			CComPtr<IPortableDevicePropVariantCollection> paramsCollection_;
+			MtpReponseParams responseParams_;
 		};
-
-
-		struct MtpResponse_ {
-			HRESULT hr = E_FAIL;
-			uint32_t responseCode = 0;
-			CComPtr<IPortableDevicePropVariantCollection> responseParams;
-			std::vector<BYTE> data;
-		};
-		typedef struct MtpResponse_ MtpResponse;
 
 
 		class MtpEventCallback : public IPortableDeviceEventCallback {
