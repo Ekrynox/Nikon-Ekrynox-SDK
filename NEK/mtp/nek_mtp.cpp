@@ -9,9 +9,29 @@ using namespace nek::mtp;
 
 
 //MtpManager
+MtpManager& MtpManager::Instance() {
+	static MtpManager instance = MtpManager();
+	return instance;
+}
+
 MtpManager::MtpManager() {
-	HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-	if (FAILED(hr)) {
+	running_ = true;
+	deviceManager_.p = nullptr;
+	thread_ = std::thread([this] { this->threadTask(); });
+}
+
+MtpManager::~MtpManager() {
+	running_ = false;
+	thread_.join();
+}
+
+void MtpManager::threadTask() {
+	mutexTasks_.lock();
+	mutexDevice_.lock();
+
+	//Com context
+	HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+	if (hr == RPC_E_CHANGED_MODE) {
 		throw std::runtime_error("Failed to init COM: " + hr);
 	}
 
@@ -19,116 +39,150 @@ MtpManager::MtpManager() {
 	hr = CoCreateInstance(CLSID_PortableDeviceManager, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceManager_));
 	if (FAILED(hr)) {
 		CoUninitialize();
+		mutexDevice_.unlock();
 		throw std::runtime_error("Impossible to create the Portable Device Manager: " + hr);
 	}
 
-	//Device Client
-	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
-	if (FAILED(hr)) {
-		CoUninitialize();
-		throw std::runtime_error("Impossible to create the Portable Device Client: " + hr);
+	mutexDevice_.unlock();
+	mutexTasks_.unlock();
+
+
+	while (running_) {
+		mutexTasks_.lock();
+		while (tasks_.size() > 0) {
+			auto task = tasks_.front();
+			tasks_.pop();
+			mutexTasks_.unlock();
+
+			mutexDevice_.lock();
+			task();
+			mutexDevice_.unlock();
+
+			mutexTasks_.lock();
+		}
+		mutexTasks_.unlock();
+
+		std::unique_lock lk(mutexTasks_);
+		cvTasks_.wait(lk, [this] { return !this->running_ || (this->tasks_.size() > 0); });
 	}
 
-	hr = deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
-	if (FAILED(hr)) {
-		throw std::runtime_error("Failed to set Client Name" + hr);
-	}
+	mutexTasks_.lock();
+	mutexDevice_.lock();
+	cvTasks_.notify_one();
 
-	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
-	if (FAILED(hr)) {
-		throw std::runtime_error("Failed to set Client Major Version" + hr);
-	}
-
-	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
-	if (FAILED(hr)) {
-		throw std::runtime_error("Failed to set Client Minor Version" + hr);
-	}
-
-	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
-	if (FAILED(hr)) {
-		throw std::runtime_error("Failed to set Client Revision" + hr);
-	}
-
-	/*hr = (*clientInformation)->SetUnsignedIntegerValue(WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE, SECURITY_IMPERSONATION);*/
-}
-
-MtpManager::~MtpManager() {
 	deviceManager_.Release();
-	deviceClient_.Release();
+	deviceManager_.p = nullptr;
 	CoUninitialize();
+
+	mutexDevice_.unlock();
+	mutexTasks_.unlock();
 }
 
-MtpManager& MtpManager::Instance() {
-	static MtpManager instance;
-	return instance;
+void MtpManager::sendTaskAsync(std::function<void()> task) {
+	mutexTasks_.lock();
+
+	tasks_.push(task);
+
+	mutexTasks_.unlock();
+	cvTasks_.notify_one();
 }
 
+void MtpManager::sendTask(std::function<void()> task) {
+	std::promise<void> p;
+	auto f = p.get_future();
+	
+	sendTaskAsync([&] { p.set_value(); task(); });
+
+	f.get();
+}
+
+template<typename T> T MtpManager::sendTaskWithResult(std::function<T()> task) {
+	std::promise<T> p;
+	auto f = p.get_future();
+
+	sendTaskAsync([&] { p.set_value(task()); });
+
+	return f.get();
+}
 
 std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
-	std::map<std::wstring, MtpDeviceInfoDS> nikonCameras;
+	return sendTaskWithResult<std::map<std::wstring, MtpDeviceInfoDS>>([this] {
+		std::map<std::wstring, MtpDeviceInfoDS> nikonCameras;
 
-	DWORD devicesNb = 0;
-	PWSTR* devices = nullptr;
-	HRESULT hr;
+		DWORD devicesNb = 0;
+		PWSTR* devices = nullptr;
+		HRESULT hr;
 
-	//Update WPD devices list
-	hr = deviceManager_->RefreshDeviceList();
-	if (FAILED(hr)) {
-		throw std::runtime_error("Failed to refresh the device list");
-	}
-
-	//Get the number of WPD devices
-	hr = deviceManager_->GetDevices(NULL, &devicesNb);
-	if (FAILED(hr)) {
-		throw std::runtime_error("Failed to retreive the number of devices");
-	}
-
-	//At least one device
-	if (devicesNb > 0) {
-		devices = new PWSTR[devicesNb] ();
-		HRESULT hr = deviceManager_->GetDevices(devices, &devicesNb);
+		//Update WPD devices list
+		hr = deviceManager_->RefreshDeviceList();
 		if (FAILED(hr)) {
-			delete [] devices;
-			throw std::runtime_error("Failed to retreive the list of devices");
+			throw std::runtime_error("Failed to refresh the device list");
 		}
 
-		for (DWORD i = 0; i < devicesNb; i++) {
-			if (devices[i] != nullptr) {
-				nikonCameras.insert(std::pair(std::wstring(devices[i]), MtpDevice(devices[i]).GetDeviceInfo()));
-				CoTaskMemFree(devices[i]);
+		//Get the number of WPD devices
+		hr = deviceManager_->GetDevices(NULL, &devicesNb);
+		if (FAILED(hr)) {
+			throw std::runtime_error("Failed to retreive the number of devices");
+		}
+
+		//At least one device
+		if (devicesNb > 0) {
+			devices = new PWSTR[devicesNb]();
+			HRESULT hr = deviceManager_->GetDevices(devices, &devicesNb);
+			if (FAILED(hr)) {
+				delete[] devices;
+				throw std::runtime_error("Failed to retreive the list of devices");
 			}
+
+			for (DWORD i = 0; i < devicesNb; i++) {
+				if (devices[i] != nullptr) {
+					nikonCameras.insert(std::pair(std::wstring(devices[i]), MtpDevice(devices[i]).GetDeviceInfo()));
+					CoTaskMemFree(devices[i]);
+				}
+			}
+
+			delete[] devices;
 		}
 
-		delete[] devices;
-	}
-
-	return nikonCameras;
+		return nikonCameras;
+		});
 }
 
 size_t MtpManager::countMtpDevices() {
 	return listMtpDevices().size();
 }
 
-CComPtr<IPortableDevice> MtpManager::openDevice(const PWSTR devicePath) {
-	CComPtr<IPortableDevice> device;
-	HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device));
-	if (FAILED(hr)) {
-		throw std::runtime_error("Failed to create device instance: " + hr);
-	}
 
-	hr = device->Open(devicePath, deviceClient_);
-	if (FAILED(hr)) {
-		device.Release();
-		throw std::runtime_error("Failed to open device: " + hr);
-	}
-
-	return device;
-}
 
 
 //MtpDevice
 MtpDevice::MtpDevice(const PWSTR devicePath) {
-	device_ = MtpManager::Instance().openDevice(devicePath);
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED); //TMP wainting threading
+
+	//Device Client
+	HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
+	if (FAILED(hr)) throw std::runtime_error("Impossible to create the Portable Device Client: " + hr);
+	hr = deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
+	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Name" + hr);
+	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
+	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Major Version" + hr);
+	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
+	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Minor Version" + hr);
+	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
+	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Revision" + hr);
+
+	//Device
+	hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device_));
+	if (FAILED(hr)) {
+		throw std::runtime_error("Failed to create device instance: " + hr);
+	}
+
+	hr = device_->Open(devicePath, deviceClient_);
+	if (FAILED(hr)) {
+		device_.Release();
+		throw std::runtime_error("Failed to open device: " + hr);
+	}
+
 	eventCallback_ = new MtpEventCallback();
 	device_->Advise(0, eventCallback_, nullptr, &eventCookie);
 }
