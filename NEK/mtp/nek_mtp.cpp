@@ -63,15 +63,19 @@ std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
 		PWSTR* devices = nullptr;
 		HRESULT hr;
 
+		mutexDevice_.lock();
+
 		//Update WPD devices list
 		hr = deviceManager_->RefreshDeviceList();
 		if (FAILED(hr)) {
+			mutexDevice_.unlock();
 			throw std::runtime_error("Failed to refresh the device list");
 		}
 
 		//Get the number of WPD devices
 		hr = deviceManager_->GetDevices(NULL, &devicesNb);
 		if (FAILED(hr)) {
+			mutexDevice_.unlock();
 			throw std::runtime_error("Failed to retreive the number of devices");
 		}
 
@@ -80,9 +84,12 @@ std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
 			devices = new PWSTR[devicesNb]();
 			HRESULT hr = deviceManager_->GetDevices(devices, &devicesNb);
 			if (FAILED(hr)) {
+				mutexDevice_.unlock();
 				delete[] devices;
 				throw std::runtime_error("Failed to retreive the list of devices");
 			}
+
+			mutexDevice_.unlock();
 
 			for (DWORD i = 0; i < devicesNb; i++) {
 				if (devices[i] != nullptr) {
@@ -92,6 +99,9 @@ std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
 			}
 
 			delete[] devices;
+		}
+		else {
+			mutexDevice_.unlock();
 		}
 
 		return nikonCameras;

@@ -46,6 +46,7 @@ namespace nek::mtp {
 		void threadTask();
 
 		CComPtr<IPortableDeviceManager> deviceManager_;
+		std::mutex mutexDevice_;
 	};
 
 
