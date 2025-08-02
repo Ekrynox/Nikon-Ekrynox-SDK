@@ -125,12 +125,12 @@ MtpDevice::MtpDevice(const PWSTR devicePath) {
 	devicePath_ = devicePath;
 	eventCookie_ = nullptr;
 
-	thread_ = std::thread([this] { this->threadTask(); });
+	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
 	std::unique_lock lk(mutexTasks_);
 	cvTasks_.wait(lk, [this] { return eventCookie_ != nullptr; });
 }
 
-void MtpDevice::threadTask() {
+void MtpDevice::mainThreadTask() {
 	mutexTasks_.lock();
 	mutexDevice_.lock();
 
@@ -172,7 +172,7 @@ void MtpDevice::threadTask() {
 	cvTasks_.notify_all();
 
 	//Thread Loop
-	nek::utils::ThreadedClass::threadTask();
+	threadTask();
 
 	//Uninit
 	mutexTasks_.lock();
