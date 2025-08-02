@@ -18,8 +18,6 @@ namespace nek::mtp {
 				MtpReponseParams() {};
 				MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
 				~MtpReponseParams();
-				MtpReponseParams(const MtpReponseParams&) = delete;
-				MtpReponseParams& operator= (const MtpReponseParams&) = delete;
 
 				void SetCollection(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
 
@@ -33,12 +31,12 @@ namespace nek::mtp {
 			};
 
 
+
+
 			class NEK_API MtpParams : protected MtpReponseParams {
 			public:
 				MtpParams() {};
 				~MtpParams() {};
-				MtpParams(const MtpParams&) = delete;
-				MtpParams& operator= (const MtpParams&) = delete;
 
 				CComPtr<IPortableDevicePropVariantCollection> GetCollection();
 
@@ -49,11 +47,11 @@ namespace nek::mtp {
 			};
 
 
+
+
 			class NEK_API MtpResponse {
 			public:
 				MtpResponse();
-				MtpResponse(const MtpResponse&) = delete;
-				MtpResponse& operator= (const MtpResponse&) = delete;
 
 				MtpReponseParams& GetParams();
 
@@ -64,6 +62,8 @@ namespace nek::mtp {
 			private:
 				MtpReponseParams responseParams_;
 			};
+
+
 
 
 			class MtpEventCallback : public IPortableDeviceEventCallback {

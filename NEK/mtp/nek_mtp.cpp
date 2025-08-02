@@ -126,7 +126,7 @@ void MtpDevice::threadTask() {
 	mutexDevice_.lock();
 
 	//Com context
-	HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	if (hr == RPC_E_CHANGED_MODE) {
 		throw std::runtime_error("Failed to init COM: " + hr);
 	}
@@ -180,13 +180,13 @@ void MtpDevice::threadTask() {
 }
 
 
-MtpResponse* MtpDevice::SendCommand(WORD operationCode, MtpParams& params) {
-	return sendTaskWithResult<MtpResponse*>([this, operationCode, &params] {
-		MtpResponse* result = new MtpResponse();
+MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
+	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
+		MtpResponse result = MtpResponse();
 
 		CComPtr<IPortableDeviceValues> command;
-		result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-		if (FAILED(result->hr)) {
+		result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+		if (FAILED(result.hr)) {
 			return result;
 		}
 
@@ -201,26 +201,26 @@ MtpResponse* MtpDevice::SendCommand(WORD operationCode, MtpParams& params) {
 		// Send command
 		CComPtr<IPortableDeviceValues> commandResult;
 		mutexDevice_.lock();
-		result->hr = device_->SendCommand(0, command, &commandResult);
-		if (FAILED(result->hr)) {
+		result.hr = device_->SendCommand(0, command, &commandResult);
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			return result;
 		}
 		mutexDevice_.unlock();
 
 		// Extract response code
-		result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result->responseCode));
-		if (FAILED(result->hr)) {
+		result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+		if (FAILED(result.hr)) {
 			return result;
 		}
 
 		// Extract response parameters
 		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
-		result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
-		if (FAILED(result->hr)) {
+		result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
+		if (FAILED(result.hr)) {
 			return result;
 		}
-		result->GetParams().SetCollection(parametersCollection);
+		result.GetParams().SetCollection(parametersCollection);
 		parametersCollection.Release();
 
 		return result;
@@ -228,13 +228,13 @@ MtpResponse* MtpDevice::SendCommand(WORD operationCode, MtpParams& params) {
 }
 
 
-MtpResponse* MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams& params) {
-	return sendTaskWithResult<MtpResponse*>([this, operationCode, &params] {
-		MtpResponse* result = new MtpResponse();
+MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) {
+	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
+		MtpResponse result = MtpResponse();
 
 		CComPtr<IPortableDeviceValues> command;
-		result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-		if (FAILED(result->hr)) {
+		result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+		if (FAILED(result.hr)) {
 			return result;
 		}
 
@@ -249,30 +249,30 @@ MtpResponse* MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams& params
 		// Send command
 		CComPtr<IPortableDeviceValues> commandResult;
 		mutexDevice_.lock();
-		result->hr = device_->SendCommand(0, command, &commandResult);
-		if (FAILED(result->hr)) {
+		result.hr = device_->SendCommand(0, command, &commandResult);
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			return result;
 		}
 
 		LPWSTR context;
-		result->hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
-		if (FAILED(result->hr)) {
+		result.hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			return result;
 		}
 
 		ULONG totalSize;
-		result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, &totalSize);
-		if (FAILED(result->hr)) {
+		result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, &totalSize);
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			CoTaskMemFree(context);
 			return result;
 		}
 
 		ULONG optimalSize;
-		result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
-		if (FAILED(result->hr)) {
+		result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			CoTaskMemFree(context);
 			return result;
@@ -283,8 +283,8 @@ MtpResponse* MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams& params
 
 
 		// Start Data Transfert
-		result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-		if (FAILED(result->hr)) {
+		result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			CoTaskMemFree(context);
 			return result;
@@ -300,14 +300,14 @@ MtpResponse* MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams& params
 		BYTE* b = nullptr;
 		DWORD bNb = 0;
 		do {
-			result->hr = device_->SendCommand(0, command, &commandResult);
-			if (FAILED(result->hr)) {
+			result.hr = device_->SendCommand(0, command, &commandResult);
+			if (FAILED(result.hr)) {
 				mutexDevice_.unlock();
 				CoTaskMemFree(context);
 				return result;
 			}
 			commandResult->GetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &b, &bNb);
-			result->data.insert(result->data.end(), b, b + bNb);
+			result.data.insert(result.data.end(), b, b + bNb);
 			commandResult.Release();
 		} while (bNb > 0);
 
@@ -316,8 +316,8 @@ MtpResponse* MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams& params
 
 
 		// End Data Transfert
-		result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-		if (FAILED(result->hr)) {
+		result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			CoTaskMemFree(context);
 			return result;
@@ -325,8 +325,8 @@ MtpResponse* MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams& params
 		command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.pid);
 		command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
-		result->hr = device_->SendCommand(0, command, &commandResult);
-		if (FAILED(result->hr)) {
+		result.hr = device_->SendCommand(0, command, &commandResult);
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			CoTaskMemFree(context);
 			return result;
@@ -334,15 +334,15 @@ MtpResponse* MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams& params
 		mutexDevice_.unlock();
 
 		// Extract response code
-		result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result->responseCode));
+		result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
 
 		// Extract response parameters
 		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
-		result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
-		if (FAILED(result->hr)) {
+		result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
+		if (FAILED(result.hr)) {
 			return result;
 		}
-		result->GetParams().SetCollection(parametersCollection);
+		result.GetParams().SetCollection(parametersCollection);
 		parametersCollection.Release();
 
 		CoTaskMemFree(context);
@@ -351,13 +351,13 @@ MtpResponse* MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams& params
 }
 
 
-MtpResponse* MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams& params, std::vector<BYTE> data) {
-	return sendTaskWithResult<MtpResponse*>([this, operationCode, &params, &data] {
-		MtpResponse* result = new MtpResponse();
+MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<BYTE> data) {
+	return sendTaskWithResult<MtpResponse>([this, operationCode, &params, &data] {
+		MtpResponse result = MtpResponse();
 
 		CComPtr<IPortableDeviceValues> command;
-		result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-		if (FAILED(result->hr)) {
+		result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+		if (FAILED(result.hr)) {
 			return result;
 		}
 
@@ -373,22 +373,22 @@ MtpResponse* MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams& param
 		// Send command
 		CComPtr<IPortableDeviceValues> commandResult;
 		mutexDevice_.lock();
-		result->hr = device_->SendCommand(0, command, &commandResult);
-		if (FAILED(result->hr)) {
+		result.hr = device_->SendCommand(0, command, &commandResult);
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			return result;
 		}
 
 		LPWSTR context;
-		result->hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
-		if (FAILED(result->hr)) {
+		result.hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			return result;
 		}
 
 		ULONG optimalSize;
-		result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
-		if (FAILED(result->hr)) {
+		result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			CoTaskMemFree(context);
 			return result;
@@ -401,8 +401,8 @@ MtpResponse* MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams& param
 		// Start Data Transfert
 		DWORD offset = 0;
 		while (offset < data.size()) {
-			result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-			if (FAILED(result->hr)) {
+			result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+			if (FAILED(result.hr)) {
 				mutexDevice_.unlock();
 				CoTaskMemFree(context);
 				return result;
@@ -416,8 +416,8 @@ MtpResponse* MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams& param
 			command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_WRITE, optimalSize);
 			command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &data[offset], optimalSize);
 
-			result->hr = device_->SendCommand(0, command, &commandResult);
-			if (FAILED(result->hr)) {
+			result.hr = device_->SendCommand(0, command, &commandResult);
+			if (FAILED(result.hr)) {
 				mutexDevice_.unlock();
 				CoTaskMemFree(context);
 				return result;
@@ -430,8 +430,8 @@ MtpResponse* MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams& param
 
 
 		// End Data Transfert
-		result->hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-		if (FAILED(result->hr)) {
+		result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			CoTaskMemFree(context);
 			return result;
@@ -439,8 +439,8 @@ MtpResponse* MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams& param
 		command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.pid);
 		command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
-		result->hr = device_->SendCommand(0, command, &commandResult);
-		if (FAILED(result->hr)) {
+		result.hr = device_->SendCommand(0, command, &commandResult);
+		if (FAILED(result.hr)) {
 			mutexDevice_.unlock();
 			CoTaskMemFree(context);
 			return result;
@@ -448,15 +448,15 @@ MtpResponse* MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams& param
 		mutexDevice_.unlock();
 
 		// Extract response code
-		result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result->responseCode));
+		result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
 
 		// Extract response parameters
 		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
-		result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
-		if (FAILED(result->hr)) {
+		result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
+		if (FAILED(result.hr)) {
 			return result;
 		}
-		result->GetParams().SetCollection(parametersCollection);
+		result.GetParams().SetCollection(parametersCollection);
 		parametersCollection.Release();
 
 		CoTaskMemFree(context);
@@ -471,99 +471,98 @@ void MtpDevice::UnregisterCallback(size_t id) { return eventCallback_->Unregiste
 
 MtpDeviceInfoDS MtpDevice::GetDeviceInfo() {
 	MtpParams params;
-	MtpResponse* response = SendCommandAndRead(MtpOperationCode::GetDeviceInfo, params);
-	if (FAILED(response->hr)) {
-		throw std::runtime_error("Failed to execute GetDeviceInfo: " + response->hr);
+	MtpResponse response = SendCommandAndRead(MtpOperationCode::GetDeviceInfo, params);
+	if (FAILED(response.hr)) {
+		throw std::runtime_error("Failed to execute GetDeviceInfo: " + response.hr);
 	}
 
-	if (response->responseCode != MtpResponseCode::OK) {
-		throw MtpException(MtpOperationCode::GetDeviceInfo, response->responseCode);
+	if (response.responseCode != MtpResponseCode::OK) {
+		throw MtpException(MtpOperationCode::GetDeviceInfo, response.responseCode);
 	}
 
 	MtpDeviceInfoDS deviceInfo;
 	size_t offset = 0;
 	uint32_t len;
 
-	deviceInfo.StandardVersion = *(uint16_t *)(response->data.data() + offset);
+	deviceInfo.StandardVersion = *(uint16_t *)(response.data.data() + offset);
 	offset += sizeof(uint16_t);
-	deviceInfo.VendorExtensionID = *(uint32_t*)(response->data.data() + offset);
+	deviceInfo.VendorExtensionID = *(uint32_t*)(response.data.data() + offset);
 	offset += sizeof(uint32_t);
-	deviceInfo.VendorExtensionVersion = *(uint16_t*)(response->data.data() + offset);
-	offset += sizeof(uint16_t);
-
-	len = *(uint8_t*)(response->data.data() + offset);
-	offset += sizeof(uint8_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.VendorExtensionDesc += *(char16_t*)(response->data.data() + offset);
-		offset += sizeof(char16_t);
-	}
-
-	deviceInfo.FunctionalMode = *(uint16_t*)(response->data.data() + offset);
+	deviceInfo.VendorExtensionVersion = *(uint16_t*)(response.data.data() + offset);
 	offset += sizeof(uint16_t);
 
-	len = *(uint32_t*)(response->data.data() + offset);
-	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.OperationsSupported.push_back(*(uint16_t*)(response->data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
-
-	len = *(uint32_t*)(response->data.data() + offset);
-	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.EventsSupported.push_back(*(uint16_t*)(response->data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
-
-	len = *(uint32_t*)(response->data.data() + offset);
-	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.DevicePropertiesSupported.push_back(*(uint16_t*)(response->data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
-
-	len = *(uint32_t*)(response->data.data() + offset);
-	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.CaptureFormats.push_back(*(uint16_t*)(response->data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
-
-	len = *(uint32_t*)(response->data.data() + offset);
-	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.ImageFormats.push_back(*(uint16_t*)(response->data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
-
-	len = *(uint8_t*)(response->data.data() + offset);
+	len = *(uint8_t*)(response.data.data() + offset);
 	offset += sizeof(uint8_t);
 	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.Manufacture += *(char16_t*)(response->data.data() + offset);
+		deviceInfo.VendorExtensionDesc += *(char16_t*)(response.data.data() + offset);
 		offset += sizeof(char16_t);
 	}
 
-	len = *(uint8_t*)(response->data.data() + offset);
+	deviceInfo.FunctionalMode = *(uint16_t*)(response.data.data() + offset);
+	offset += sizeof(uint16_t);
+
+	len = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.OperationsSupported.push_back(*(uint16_t*)(response.data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.EventsSupported.push_back(*(uint16_t*)(response.data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.DevicePropertiesSupported.push_back(*(uint16_t*)(response.data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.CaptureFormats.push_back(*(uint16_t*)(response.data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint32_t*)(response.data.data() + offset);
+	offset += sizeof(uint32_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.ImageFormats.push_back(*(uint16_t*)(response.data.data() + offset));
+		offset += sizeof(uint16_t);
+	}
+
+	len = *(uint8_t*)(response.data.data() + offset);
 	offset += sizeof(uint8_t);
 	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.Model += *(char16_t*)(response->data.data() + offset);
+		deviceInfo.Manufacture += *(char16_t*)(response.data.data() + offset);
 		offset += sizeof(char16_t);
 	}
 
-	len = *(uint8_t*)(response->data.data() + offset);
+	len = *(uint8_t*)(response.data.data() + offset);
 	offset += sizeof(uint8_t);
 	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.DeviceVersion += *(char16_t*)(response->data.data() + offset);
+		deviceInfo.Model += *(char16_t*)(response.data.data() + offset);
 		offset += sizeof(char16_t);
 	}
 
-	len = *(uint8_t*)(response->data.data() + offset);
+	len = *(uint8_t*)(response.data.data() + offset);
 	offset += sizeof(uint8_t);
 	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.SerialNumber += *(char16_t*)(response->data.data() + offset);
+		deviceInfo.DeviceVersion += *(char16_t*)(response.data.data() + offset);
 		offset += sizeof(char16_t);
 	}
 
-	delete response;
+	len = *(uint8_t*)(response.data.data() + offset);
+	offset += sizeof(uint8_t);
+	for (uint32_t i = 0; i < len; i++) {
+		deviceInfo.SerialNumber += *(char16_t*)(response.data.data() + offset);
+		offset += sizeof(char16_t);
+	}
+
 	return deviceInfo;
 }
