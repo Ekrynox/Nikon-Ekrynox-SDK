@@ -11,12 +11,11 @@
 
 namespace nek::utils {
 
-	class NEK_API ThreadedClass {
+	class NEK_API ThreadedClassBase {
 	public:
-		ThreadedClass();
-		~ThreadedClass();
+		ThreadedClassBase();
 
-		void startThread();
+		virtual void startThread() = 0;
 
 		void sendTaskAsync(std::function<void()> task);
 		void sendTask(std::function<void()> task);
@@ -33,10 +32,35 @@ namespace nek::utils {
 		void threadTask();
 
 		std::queue<std::function<void()>> tasks_;
-		std::thread thread_;
 		std::atomic<bool> running_;
 		std::mutex mutexTasks_;
 		std::condition_variable cvTasks_;
+	};
+
+
+
+	class NEK_API ThreadedClass : public ThreadedClassBase {
+	public:
+		ThreadedClass() {};
+		~ThreadedClass();
+
+		void startThread() override;
+
+	protected:
+		std::thread thread_;
+	};
+
+
+
+	class NEK_API MultiThreadedClass : public ThreadedClassBase {
+	public:
+		MultiThreadedClass() {};
+		~MultiThreadedClass();
+
+		void startThread() override;
+
+	protected:
+		std::vector<std::thread> threads_;
 	};
 
 }
