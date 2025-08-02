@@ -7,6 +7,7 @@
 #include <atlbase.h>
 #include <PortableDeviceApi.h>
 #include <PortableDevice.h>
+#include <WpdMtpExtensions.h>
 #include <functional>
 
 
@@ -17,9 +18,11 @@ namespace nek::mtp {
 			public:
 				MtpReponseParams() {};
 				MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
+				MtpReponseParams(CComPtr<IPortableDeviceValues> eventParameters);
 				~MtpReponseParams();
 
 				void SetCollection(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
+				void SetCollection(CComPtr<IPortableDeviceValues> eventParameters);
 
 				/*uint32_t getUint32(size_t pos);
 				uint16_t getUint16(size_t param);
@@ -29,8 +32,6 @@ namespace nek::mtp {
 			protected:
 				std::vector<PROPVARIANT> pv_;
 			};
-
-
 
 
 			class NEK_API MtpParams : protected MtpReponseParams {
@@ -45,8 +46,6 @@ namespace nek::mtp {
 				void addInt32(int32_t param);
 				void addInt16(int16_t param);
 			};
-
-
 
 
 			class NEK_API MtpResponse {
@@ -64,6 +63,12 @@ namespace nek::mtp {
 			};
 
 
+			class NEK_API MtpEvent {
+			public:
+				MtpEvent(uint32_t eventCode);
+
+				uint32_t eventCode;
+			};
 
 
 			class MtpEventCallback : public IPortableDeviceEventCallback {
@@ -75,7 +80,7 @@ namespace nek::mtp {
 				ULONG STDMETHODCALLTYPE AddRef();
 				ULONG STDMETHODCALLTYPE Release();
 
-				size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
+				size_t RegisterCallback(std::function<void(MtpEvent)> callback);
 				void UnregisterCallback(size_t id);
 
 			private:
@@ -83,7 +88,7 @@ namespace nek::mtp {
 
 				std::mutex mutex_;
 				size_t nextId;
-				std::vector<std::pair<size_t, std::function<void(IPortableDeviceValues*)>>> callbacks_;
+				std::vector<std::pair<size_t, std::function<void(MtpEvent)>>> callbacks_;
 			};
 
 }
