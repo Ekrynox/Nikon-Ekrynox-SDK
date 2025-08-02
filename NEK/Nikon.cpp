@@ -30,4 +30,4 @@ size_t NikonCamera::countNikonCameras() {
 }
 
 
-NikonCamera::NikonCamera(std::wstring devicePath) : camera_((PWSTR)devicePath.c_str()) {}
+NikonCamera::NikonCamera(std::wstring devicePath) : nek::mtp::MtpDevice((PWSTR)devicePath.c_str()) {}

@@ -11,22 +11,12 @@
 
 namespace nek {
 
-	class NEK_API NikonCamera {
+	class NEK_API NikonCamera : public nek::mtp::MtpDevice {
 	public:
 		static std::map<std::wstring, NikonDeviceInfoDS> listNikonCameras();
 		static size_t countNikonCameras();
 
 		NikonCamera(std::wstring devicePath);
-
-		nek::mtp::MtpResponse SendCommand(WORD operationCode, nek::mtp::MtpParams params) { return camera_.SendCommand(operationCode, params); };
-		nek::mtp::MtpResponse SendCommandAndRead(WORD operationCode, nek::mtp::MtpParams params) { return camera_.SendCommandAndRead(operationCode, params); };
-		nek::mtp::MtpResponse SendCommandAndWrite(WORD operationCode, nek::mtp::MtpParams params, std::vector<BYTE> data) { return camera_.SendCommandAndWrite(operationCode, params, data); };
-		
-		size_t RegisterCallback(std::function<void(nek::mtp::MtpEvent)> callback) { return camera_.RegisterCallback(callback); };
-		void UnregisterCallback(size_t id) { return camera_.UnregisterCallback(id); };
-
-	private:
-		nek::mtp::MtpDevice camera_;
 	};
 
 }
