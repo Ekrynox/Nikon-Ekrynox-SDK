@@ -6,7 +6,7 @@ using namespace std;
 
 
 
-void test (IPortableDeviceValues* event) {
+void eventFunc (nek::mtp::MtpEvent event) {
 	int a;
 	cout << "event" << std::endl;
 	return;
@@ -24,12 +24,16 @@ int main() {
 	}
 
 	auto camera = nek::mtp::MtpDevice((PWSTR)nikonCameras.begin()->first.c_str());
-	auto params = nek::mtp::MtpParams();
-	params.addUint32(0xFFFFFFFF);
-	nek::mtp::MtpResponse result = camera.SendCommand(nek::NikonMtpOperationCode::InitiateCaptureRecInSdram, params);
-	camera.RegisterCallback(test);
+	camera.RegisterCallback(eventFunc);
 
-	while (true) {}
+
+	int wait = 1;
+	while (wait > 0) {
+		auto params = nek::mtp::MtpParams();
+		params.addUint32(0xFFFFFFFF);
+		nek::mtp::MtpResponse result = camera.SendCommand(nek::NikonMtpOperationCode::InitiateCaptureRecInSdram, params);
+		cin >> wait;
+	} 
 
 	return 0;
 }
