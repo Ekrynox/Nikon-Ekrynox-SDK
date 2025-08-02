@@ -1,7 +1,6 @@
 #include "nek_mtp_utils.hpp"
 
 #include <stdexcept>
-#include <iostream>
 
 #include <propvarutil.h>
 
