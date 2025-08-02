@@ -8,6 +8,7 @@
 using namespace nek::mtp;
 
 
+
 //MtpManager
 MtpManager& MtpManager::Instance() {
 	static MtpManager instance = MtpManager();
@@ -16,7 +17,10 @@ MtpManager& MtpManager::Instance() {
 
 MtpManager::MtpManager() {
 	deviceManager_.p = nullptr;
+
 	thread_ = std::thread([this] { this->threadTask(); });
+	std::unique_lock lk(mutexTasks_);
+	cvTasks_.wait(lk);
 }
 
 void MtpManager::threadTask() {
@@ -39,9 +43,12 @@ void MtpManager::threadTask() {
 
 	mutexDevice_.unlock();
 	mutexTasks_.unlock();
+	cvTasks_.notify_all();
 
+	//Thread Loop
 	nek::utils::ThreadedClass::threadTask();
 
+	//Uninit
 	mutexTasks_.lock();
 	mutexDevice_.lock();
 	cvTasks_.notify_one();
@@ -113,12 +120,14 @@ size_t MtpManager::countMtpDevices() {
 
 
 
-
 //MtpDevice
 MtpDevice::MtpDevice(const PWSTR devicePath) {
 	devicePath_ = devicePath;
 	eventCookie_ = nullptr;
+
 	thread_ = std::thread([this] { this->threadTask(); });
+	std::unique_lock lk(mutexTasks_);
+	cvTasks_.wait(lk, [this] { return eventCookie_ != nullptr; });
 }
 
 void MtpDevice::threadTask() {
@@ -160,6 +169,7 @@ void MtpDevice::threadTask() {
 
 	mutexDevice_.unlock();
 	mutexTasks_.unlock();
+	cvTasks_.notify_all();
 
 	//Thread Loop
 	nek::utils::ThreadedClass::threadTask();
@@ -178,7 +188,6 @@ void MtpDevice::threadTask() {
 	mutexTasks_.unlock();
 	cvTasks_.notify_all();
 }
-
 
 MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
 	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
@@ -226,7 +235,6 @@ MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
 		return result;
 		});
 }
-
 
 MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) {
 	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
@@ -350,7 +358,6 @@ MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) 
 		});
 }
 
-
 MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<BYTE> data) {
 	return sendTaskWithResult<MtpResponse>([this, operationCode, &params, &data] {
 		MtpResponse result = MtpResponse();
@@ -465,7 +472,7 @@ MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params,
 }
 
 
-size_t MtpDevice::RegisterCallback(std::function<void(IPortableDeviceValues*)> callback) { return eventCallback_->RegisterCallback(callback); }
+size_t MtpDevice::RegisterCallback(std::function<void(MtpEvent)> callback) { return eventCallback_->RegisterCallback(callback); }
 void MtpDevice::UnregisterCallback(size_t id) { return eventCallback_->UnregisterCallback(id); }
 
 
