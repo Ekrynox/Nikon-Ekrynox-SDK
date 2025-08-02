@@ -12,50 +12,69 @@ using namespace nek::mtp;
 
 
 //MtpResponseParams
-MtpReponseParams::MtpReponseParams() {
-	paramsCollection_ = nullptr;
+MtpReponseParams::MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection> paramsCollection) {
+	SetCollection(paramsCollection);
 }
 
-CComPtr<IPortableDevicePropVariantCollection>& MtpReponseParams::GetCollection() {
-	return paramsCollection_;
+MtpReponseParams::~MtpReponseParams() {
+	for (auto& pv : pv_) {
+		PropVariantClear(&pv);
+	}
+	pv_.clear();
 }
+
+void MtpReponseParams::SetCollection(CComPtr<IPortableDevicePropVariantCollection> paramsCollection) {
+	pv_.clear();
+	DWORD size = 0;
+	paramsCollection->GetCount(&size);
+	for (DWORD i = 0; i < size; i++) {
+		PROPVARIANT pv;
+		paramsCollection->GetAt(i, &pv);
+		pv_.push_back(pv);
+	}
+}
+
+
 
 
 //MtpParams
-MtpParams::MtpParams() {
-	HRESULT hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&paramsCollection_));
+CComPtr<IPortableDevicePropVariantCollection> MtpParams::GetCollection() {
+	CComPtr<IPortableDevicePropVariantCollection> paramsCollection;
+	HRESULT hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&paramsCollection));
 	if (FAILED(hr)) {
 		throw std::runtime_error("Failed to create Prop Variant Collection: " + hr);
 	}
+	for (auto pv : pv_) {
+		paramsCollection->Add(&pv);
+	}
+
+	return paramsCollection;
 }
 
 void MtpParams::addUint32(uint32_t value) {
 	PROPVARIANT pv;
 	InitPropVariantFromUInt32(value, &pv);
-	paramsCollection_->Add(&pv);
-	PropVariantClear(&pv);
+	pv_.push_back(pv);
 }
 
 void MtpParams::addUint16(uint16_t value) {
 	PROPVARIANT pv;
 	InitPropVariantFromUInt16(value, &pv);
-	paramsCollection_->Add(&pv);
-	PropVariantClear(&pv);
+	pv_.push_back(pv);
 }
 
 void MtpParams::addInt32(int32_t value) {
 	PROPVARIANT pv;
 	InitPropVariantFromInt32(value, &pv);
-	paramsCollection_->Add(&pv);
-	PropVariantClear(&pv);
+	pv_.push_back(pv);
 }
 
 void MtpParams::addInt16(int16_t value) {
 	PROPVARIANT pv;
 	InitPropVariantFromInt16(value, &pv);
-	paramsCollection_->Add(&pv);
-	PropVariantClear(&pv);
+	pv_.push_back(pv);
 }
+
 
 
 
@@ -68,6 +87,7 @@ MtpResponse::MtpResponse() {
 MtpReponseParams& MtpResponse::GetParams() {
 	return responseParams_;
 }
+
 
 
 

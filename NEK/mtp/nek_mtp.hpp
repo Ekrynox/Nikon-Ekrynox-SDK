@@ -57,9 +57,9 @@ namespace nek::mtp {
 		MtpDevice(const PWSTR devicePath);
 		~MtpDevice() { nek::utils::ThreadedClass::~ThreadedClass(); };
 
-		MtpResponse* SendNoData(WORD operationCode, MtpParams& params);
-		MtpResponse* SendReadData(WORD operationCode, MtpParams& params);
-		MtpResponse* SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
+		MtpResponse* SendCommand(WORD operationCode, MtpParams& params);
+		MtpResponse* SendCommandAndRead(WORD operationCode, MtpParams& params);
+		MtpResponse* SendCommandAndWrite(WORD operationCode, MtpParams& params, std::vector<BYTE> data);
 
 		size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
 		void UnregisterCallback(size_t id);
