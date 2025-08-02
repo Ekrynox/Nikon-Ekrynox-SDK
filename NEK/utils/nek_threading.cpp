@@ -18,6 +18,10 @@ ThreadedClass::~ThreadedClass() {
 	}
 }
 
+void ThreadedClass::startThread() {
+	thread_ = std::thread([this] { this->threadTask(); });
+}
+
 void ThreadedClass::threadTask() {
 	while (running_) {
 		mutexTasks_.lock();

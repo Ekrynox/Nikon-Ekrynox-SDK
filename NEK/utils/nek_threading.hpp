@@ -16,6 +16,8 @@ namespace nek::utils {
 		ThreadedClass();
 		~ThreadedClass();
 
+		void startThread();
+
 		void sendTaskAsync(std::function<void()> task);
 		void sendTask(std::function<void()> task);
 		template<typename T> T sendTaskWithResult(std::function<T()> task) {

@@ -42,7 +42,7 @@ namespace nek::mtp {
 		MtpManager& operator= (const MtpManager&) = delete;
 		MtpManager(const MtpManager&) = delete;
 		MtpManager();
-		~MtpManager() {};
+		~MtpManager() { nek::utils::ThreadedClass::~ThreadedClass(); };
 		void threadTask();
 
 		CComPtr<IPortableDeviceManager> deviceManager_;
@@ -52,10 +52,10 @@ namespace nek::mtp {
 
 
 
-	class NEK_API MtpDevice {
+	class NEK_API MtpDevice : protected nek::utils::ThreadedClass {
 	public:
 		MtpDevice(const PWSTR devicePath);
-		~MtpDevice();
+		~MtpDevice() { nek::utils::ThreadedClass::~ThreadedClass(); };
 
 		MtpResponse* SendNoData(WORD operationCode, MtpParams& params);
 		MtpResponse* SendReadData(WORD operationCode, MtpParams& params);
@@ -69,10 +69,14 @@ namespace nek::mtp {
 
 
 	private:
+		void threadTask();
+
+		PWSTR devicePath_;
 		CComPtr<IPortableDeviceValues> deviceClient_;
 		CComPtr<IPortableDevice> device_;
 		CComPtr<MtpEventCallback> eventCallback_;
-		PWSTR eventCookie;
+		PWSTR eventCookie_;
+		std::mutex mutexDevice_;
 	};
 
 }
