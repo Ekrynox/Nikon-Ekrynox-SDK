@@ -15,22 +15,32 @@ namespace nek::mtp {
 
 			class NEK_API MtpReponseParams {
 			public:
-				MtpReponseParams();
+				MtpReponseParams() {};
+				MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
+				~MtpReponseParams();
 				MtpReponseParams(const MtpReponseParams&) = delete;
 				MtpReponseParams& operator= (const MtpReponseParams&) = delete;
 
-				CComPtr<IPortableDevicePropVariantCollection> &GetCollection();
+				void SetCollection(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
+
+				/*uint32_t getUint32(size_t pos);
+				uint16_t getUint16(size_t param);
+				int32_t getInt32(size_t pos);
+				int16_t getInt16(size_t pos);*/
 
 			protected:
-				CComPtr<IPortableDevicePropVariantCollection> paramsCollection_;
+				std::vector<PROPVARIANT> pv_;
 			};
 
 
-			class NEK_API MtpParams : public MtpReponseParams {
+			class NEK_API MtpParams : protected MtpReponseParams {
 			public:
-				MtpParams();
+				MtpParams() {};
+				~MtpParams() {};
 				MtpParams(const MtpParams&) = delete;
 				MtpParams& operator= (const MtpParams&) = delete;
+
+				CComPtr<IPortableDevicePropVariantCollection> GetCollection();
 
 				void addUint32(uint32_t param);
 				void addUint16(uint16_t param);
