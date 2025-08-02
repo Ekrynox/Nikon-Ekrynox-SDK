@@ -67,9 +67,8 @@ namespace nek::mtp {
 		MtpDeviceInfoDS GetDeviceInfo();
 
 
-	private:
+	protected:
 		void mainThreadTask();
-		//void eventThreadTask();
 
 		PWSTR devicePath_;
 		CComPtr<IPortableDeviceValues> deviceClient_;
