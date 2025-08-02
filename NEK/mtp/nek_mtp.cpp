@@ -180,7 +180,7 @@ void MtpDevice::threadTask() {
 }
 
 
-MtpResponse* MtpDevice::SendNoData(WORD operationCode, MtpParams& params) {
+MtpResponse* MtpDevice::SendCommand(WORD operationCode, MtpParams& params) {
 	return sendTaskWithResult<MtpResponse*>([this, operationCode, &params] {
 		MtpResponse* result = new MtpResponse();
 
@@ -215,18 +215,20 @@ MtpResponse* MtpDevice::SendNoData(WORD operationCode, MtpParams& params) {
 		}
 
 		// Extract response parameters
-		CComPtr<IUnknown> unk;
-		result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result->GetParams().GetCollection());
+		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
+		result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
 		if (FAILED(result->hr)) {
 			return result;
 		}
+		result->GetParams().SetCollection(parametersCollection);
+		parametersCollection.Release();
 
 		return result;
 		});
 }
 
 
-MtpResponse* MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
+MtpResponse* MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams& params) {
 	return sendTaskWithResult<MtpResponse*>([this, operationCode, &params] {
 		MtpResponse* result = new MtpResponse();
 
@@ -291,6 +293,7 @@ MtpResponse* MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_READ_DATA.pid);
 		command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_READ, totalSize);
+		optimalSize = min(optimalSize, totalSize);
 		BYTE* buffer = new BYTE[optimalSize];
 		command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, buffer, optimalSize);
 
@@ -334,7 +337,13 @@ MtpResponse* MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
 		result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result->responseCode));
 
 		// Extract response parameters
-		result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result->GetParams().GetCollection());
+		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
+		result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
+		if (FAILED(result->hr)) {
+			return result;
+		}
+		result->GetParams().SetCollection(parametersCollection);
+		parametersCollection.Release();
 
 		CoTaskMemFree(context);
 		return result;
@@ -342,7 +351,7 @@ MtpResponse* MtpDevice::SendReadData(WORD operationCode, MtpParams& params) {
 }
 
 
-MtpResponse* MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std::vector<BYTE> data) {
+MtpResponse* MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams& params, std::vector<BYTE> data) {
 	return sendTaskWithResult<MtpResponse*>([this, operationCode, &params, &data] {
 		MtpResponse* result = new MtpResponse();
 
@@ -403,9 +412,9 @@ MtpResponse* MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std
 			command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_WRITE_DATA.pid);
 			command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
 
-			DWORD chunkSize = min(optimalSize, data.size() - offset);
-			command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_WRITE, chunkSize);
-			command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &data[offset], chunkSize);
+			optimalSize = min(optimalSize, data.size() - offset);
+			command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_WRITE, optimalSize);
+			command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &data[offset], optimalSize);
 
 			result->hr = device_->SendCommand(0, command, &commandResult);
 			if (FAILED(result->hr)) {
@@ -414,7 +423,7 @@ MtpResponse* MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std
 				return result;
 			}
 
-			offset += chunkSize;
+			offset += optimalSize;
 			commandResult.Release();
 			command.Release();
 		}
@@ -442,7 +451,13 @@ MtpResponse* MtpDevice::SendWriteData(WORD operationCode, MtpParams& params, std
 		result->hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result->responseCode));
 
 		// Extract response parameters
-		result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &result->GetParams().GetCollection());
+		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
+		result->hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
+		if (FAILED(result->hr)) {
+			return result;
+		}
+		result->GetParams().SetCollection(parametersCollection);
+		parametersCollection.Release();
 
 		CoTaskMemFree(context);
 		return result;
@@ -456,7 +471,7 @@ void MtpDevice::UnregisterCallback(size_t id) { return eventCallback_->Unregiste
 
 MtpDeviceInfoDS MtpDevice::GetDeviceInfo() {
 	MtpParams params;
-	MtpResponse* response = SendReadData(MtpOperationCode::GetDeviceInfo, params);
+	MtpResponse* response = SendCommandAndRead(MtpOperationCode::GetDeviceInfo, params);
 	if (FAILED(response->hr)) {
 		throw std::runtime_error("Failed to execute GetDeviceInfo: " + response->hr);
 	}
