@@ -15,6 +15,10 @@ MtpReponseParams::MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection>
 	SetCollection(paramsCollection);
 }
 
+MtpReponseParams::MtpReponseParams(CComPtr<IPortableDeviceValues> eventParameters) {
+	SetCollection(eventParameters);
+}
+
 MtpReponseParams::~MtpReponseParams() {
 	for (auto& pv : pv_) {
 		PropVariantClear(&pv);
@@ -33,6 +37,17 @@ void MtpReponseParams::SetCollection(CComPtr<IPortableDevicePropVariantCollectio
 	}
 }
 
+void MtpReponseParams::SetCollection(CComPtr<IPortableDeviceValues> eventParameters) {
+	pv_.clear();
+	DWORD size = 0;
+	eventParameters->GetCount(&size);
+	for (DWORD i = 0; i < size; i++) {
+		PROPERTYKEY pk;
+		PROPVARIANT pv;
+		eventParameters->GetAt(i, &pk, &pv);
+		pv_.push_back(pv);
+	}
+}
 
 
 
@@ -76,7 +91,6 @@ void MtpParams::addInt16(int16_t value) {
 
 
 
-
 //MtpResponse
 MtpResponse::MtpResponse() {
 	hr = E_FAIL;
@@ -89,15 +103,21 @@ MtpReponseParams& MtpResponse::GetParams() {
 
 
 
+//MtpEvent
+MtpEvent::MtpEvent(uint32_t eventCode) {
+	this->eventCode = eventCode;
+}
+
+
 
 //MtpEventCallback
 MtpEventCallback::MtpEventCallback() : ref_(0), nextId(0) {}
 
 HRESULT MtpEventCallback::OnEvent(IPortableDeviceValues* pEventParameters) {
 	std::lock_guard<std::mutex> lock(mutex_);
-
+	MtpEvent event = MtpEvent(0);
 	for (auto& [id, callback] : callbacks_) {
-		callback(pEventParameters);
+		callback(event);
 	}
 	return HRESULT(0);
 }
@@ -121,7 +141,7 @@ ULONG MtpEventCallback::Release() {
 }
 
 
-size_t MtpEventCallback::RegisterCallback(std::function<void(IPortableDeviceValues*)> callback) {
+size_t MtpEventCallback::RegisterCallback(std::function<void(MtpEvent)> callback) {
 	std::lock_guard<std::mutex> lock(mutex_);
 
 	size_t id = nextId++;

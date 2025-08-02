@@ -51,7 +51,6 @@ namespace nek::mtp {
 
 
 
-
 	class NEK_API MtpDevice : protected nek::utils::ThreadedClass {
 	public:
 		MtpDevice(const PWSTR devicePath);
@@ -61,7 +60,7 @@ namespace nek::mtp {
 		MtpResponse SendCommandAndRead(WORD operationCode, MtpParams params);
 		MtpResponse SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<BYTE> data);
 
-		size_t RegisterCallback(std::function<void(IPortableDeviceValues*)> callback);
+		size_t RegisterCallback(std::function<void(MtpEvent)> callback);
 		void UnregisterCallback(size_t id);
 
 

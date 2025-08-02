@@ -22,6 +22,9 @@ namespace nek {
 		nek::mtp::MtpResponse SendCommandAndRead(WORD operationCode, nek::mtp::MtpParams params) { return camera_.SendCommandAndRead(operationCode, params); };
 		nek::mtp::MtpResponse SendCommandAndWrite(WORD operationCode, nek::mtp::MtpParams params, std::vector<BYTE> data) { return camera_.SendCommandAndWrite(operationCode, params, data); };
 		
+		size_t RegisterCallback(std::function<void(nek::mtp::MtpEvent)> callback) { return camera_.RegisterCallback(callback); };
+		void UnregisterCallback(size_t id) { return camera_.UnregisterCallback(id); };
+
 	private:
 		nek::mtp::MtpDevice camera_;
 	};
