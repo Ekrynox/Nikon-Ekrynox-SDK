@@ -47,21 +47,20 @@
             // 
             cameraList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             cameraList.FormattingEnabled = true;
-            cameraList.ItemHeight = 15;
             cameraList.Location = new Point(12, 41);
             cameraList.Name = "cameraList";
             cameraList.Size = new Size(776, 394);
             cameraList.TabIndex = 1;
             // 
-            // Form1
+            // CameraListForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
             Controls.Add(cameraList);
             Controls.Add(refreshCameraList);
-            Name = "Form1";
-            Text = "Form1";
+            Name = "CameraListForm";
+            Text = "Camera List";
             Shown += Form1_Shown;
             ResumeLayout(false);
         }

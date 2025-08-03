@@ -112,6 +112,7 @@
     <ClInclude Include="Nikon.h" />
     <ClInclude Include="Nikon_Enum.h" />
     <ClInclude Include="Nikon_Struct.h" />
+    <ClInclude Include="Nikon_Utils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
@@ -120,6 +121,7 @@
     <ClCompile Include="NEKCS.Wrapper.cpp" />
     <ClCompile Include="Nikon.cpp" />
     <ClCompile Include="Nikon_Struct.cpp" />
+    <ClCompile Include="Nikon_Utils.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

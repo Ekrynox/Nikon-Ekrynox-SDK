@@ -52,6 +52,13 @@ void MtpReponseParams::SetCollection(CComPtr<IPortableDeviceValues> eventParamet
 
 
 //MtpParams
+MtpParams::~MtpParams() {
+	for (auto& pv : pv_) {
+		PropVariantClear(&pv);
+	}
+	pv_.clear();
+}
+
 CComPtr<IPortableDevicePropVariantCollection> MtpParams::GetCollection() {
 	CComPtr<IPortableDevicePropVariantCollection> paramsCollection;
 	HRESULT hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&paramsCollection));
@@ -109,11 +116,11 @@ MtpEvent::MtpEvent(uint16_t eventCode) {
 }
 MtpEvent::MtpEvent(uint16_t eventCode, uint32_t param) {
 	this->eventCode = eventCode;
-	this->params.push_back(param);
+	this->eventParams.push_back(param);
 }
 MtpEvent::MtpEvent(uint16_t eventCode, std::vector<uint32_t> params) {
 	this->eventCode = eventCode;
-	this->params = params;
+	this->eventParams = params;
 }
 
 
