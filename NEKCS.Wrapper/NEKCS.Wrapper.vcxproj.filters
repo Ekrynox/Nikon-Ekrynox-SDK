@@ -30,6 +30,9 @@
     <ClInclude Include="Nikon_Struct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Nikon_Enum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NEKCS.Wrapper.cpp">
