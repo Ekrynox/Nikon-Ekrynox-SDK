@@ -1,16 +1,39 @@
 #include <nikon.hpp>
 #include <iostream>
+#include <fstream>
 
 
 using namespace std;
 
 
+static nek::NikonCamera *camera;
+
 
 void eventFunc (nek::mtp::MtpEvent event) {
-	cout << "event: " << std::hex << event.eventCode << std::endl;
-	for (uint32_t p : event.params) {
-		cout << "\t: " << std::hex << p << std::endl;
+	cout << "event: " << std::hex << event.eventCode << " [ ";
+	for (uint32_t p : event.eventParams) {
+		cout << std::hex << p << " ";
 	}
+	cout << "]" << std::endl;
+
+	if (event.eventCode == nek::NikonMtpEventCode::ObjectAddedInSdram) {
+		auto params = nek::mtp::MtpParams();
+		if (event.eventParams.size() > 0 && event.eventParams[0] != 0) {
+			params.addUint32(event.eventParams[0]);
+		}
+		else {
+			params.addUint32(0xFFFF0001);
+		}
+		//nek::mtp::MtpResponse result = camera->SendCommandAndRead(nek::NikonMtpOperationCode::GetObjectInfo, params);
+		//result = camera->SendCommandAndRead(nek::NikonMtpOperationCode::GetThumb, params);
+		nek::mtp::MtpResponse result = camera->SendCommandAndRead(nek::NikonMtpOperationCode::GetObject, params);
+		if (result.responseCode == nek::NikonMtpResponseCode::OK) {
+			ofstream MyFile("image.NEF", ios::out | ios::binary);
+			MyFile.write((char*)result.data.data(), result.data.size());
+			MyFile.close();
+		}
+	}
+
 	return;
 }
 
@@ -25,8 +48,8 @@ int main() {
 		wcout << cameraInfo.second.Manufacture << " " << cameraInfo.second.Model << " " << cameraInfo.second.SerialNumber << endl;
 	}
 
-	auto camera = nek::NikonCamera(nikonCameras.begin()->first);
-	camera.RegisterCallback(eventFunc);
+	camera = new nek::NikonCamera(nikonCameras.begin()->first);
+	camera->RegisterCallback(eventFunc);
 
 
 	int wait = 1;
@@ -34,8 +57,10 @@ int main() {
 		cin >> wait;
 		auto params = nek::mtp::MtpParams();
 		params.addUint32(0xFFFFFFFF);
-		nek::mtp::MtpResponse result = camera.SendCommand(nek::NikonMtpOperationCode::InitiateCaptureRecInSdram, params);
-	} 
+		nek::mtp::MtpResponse result = camera->SendCommand(nek::NikonMtpOperationCode::InitiateCaptureRecInSdram, params);
+	}
+
+	delete camera;
 
 	return 0;
 }
