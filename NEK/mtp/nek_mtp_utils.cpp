@@ -104,8 +104,16 @@ MtpReponseParams& MtpResponse::GetParams() {
 
 
 //MtpEvent
-MtpEvent::MtpEvent(uint32_t eventCode) {
+MtpEvent::MtpEvent(uint16_t eventCode) {
 	this->eventCode = eventCode;
+}
+MtpEvent::MtpEvent(uint16_t eventCode, uint32_t param) {
+	this->eventCode = eventCode;
+	this->params.push_back(param);
+}
+MtpEvent::MtpEvent(uint16_t eventCode, std::vector<uint32_t> params) {
+	this->eventCode = eventCode;
+	this->params = params;
 }
 
 
@@ -114,8 +122,12 @@ MtpEvent::MtpEvent(uint32_t eventCode) {
 MtpEventCallback::MtpEventCallback() : ref_(0), nextId(0) {}
 
 HRESULT MtpEventCallback::OnEvent(IPortableDeviceValues* pEventParameters) {
+	MtpEvent event = MtpEvent(0); //TO UPDATE TO EXTRACT DATA
+	return OnEvent(event);
+}
+
+HRESULT MtpEventCallback::OnEvent(MtpEvent event) {
 	std::lock_guard<std::mutex> lock(mutex_);
-	MtpEvent event = MtpEvent(0);
 	for (auto& [id, callback] : callbacks_) {
 		callback(event);
 	}
