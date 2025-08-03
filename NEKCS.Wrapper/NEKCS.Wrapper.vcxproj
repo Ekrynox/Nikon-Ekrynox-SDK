@@ -110,6 +110,7 @@
   <ItemGroup>
     <ClInclude Include="NEKCS.Wrapper.h" />
     <ClInclude Include="Nikon.h" />
+    <ClInclude Include="Nikon_Enum.h" />
     <ClInclude Include="Nikon_Struct.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
