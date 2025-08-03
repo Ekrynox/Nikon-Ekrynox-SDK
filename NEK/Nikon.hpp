@@ -17,6 +17,10 @@ namespace nek {
 		static size_t countNikonCameras();
 
 		NikonCamera(std::wstring devicePath);
+
+	private:
+		void mainThreadTask();
+		void eventThreadTask();
 	};
 
 }

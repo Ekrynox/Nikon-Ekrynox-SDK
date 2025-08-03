@@ -68,11 +68,12 @@ namespace nek::mtp {
 
 
 	protected:
+		MtpDevice();
 		void mainThreadTask();
 
-		MtpResponse SendCommand_(WORD operationCode, MtpParams params);
-		MtpResponse SendCommandAndRead_(WORD operationCode, MtpParams params);
-		MtpResponse SendCommandAndWrite_(WORD operationCode, MtpParams params, std::vector<BYTE> data);
+		MtpResponse SendCommand_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
+		MtpResponse SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
+		MtpResponse SendCommandAndWrite_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params, std::vector<BYTE> data);
 
 		PWSTR devicePath_;
 		CComPtr<IPortableDeviceValues> deviceClient_;

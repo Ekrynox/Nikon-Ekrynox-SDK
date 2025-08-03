@@ -130,6 +130,10 @@ MtpDevice::MtpDevice(const PWSTR devicePath) {
 	cvTasks_.wait(lk, [this] { return eventCookie_ != nullptr; });
 }
 
+MtpDevice::MtpDevice() {
+	eventCookie_ = nullptr;
+}
+
 void MtpDevice::mainThreadTask() {
 	mutexTasks_.lock();
 	mutexDevice_.lock();
@@ -189,7 +193,7 @@ void MtpDevice::mainThreadTask() {
 	cvTasks_.notify_all();
 }
 
-MtpResponse MtpDevice::SendCommand_(WORD operationCode, MtpParams params) {
+MtpResponse MtpDevice::SendCommand_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params) {
 	MtpResponse result = MtpResponse();
 
 	CComPtr<IPortableDeviceValues> command;
@@ -208,7 +212,7 @@ MtpResponse MtpDevice::SendCommand_(WORD operationCode, MtpParams params) {
 
 	// Send command
 	CComPtr<IPortableDeviceValues> commandResult;
-	result.hr = device_->SendCommand(0, command, &commandResult);
+	result.hr = device->SendCommand(0, command, &commandResult);
 	if (FAILED(result.hr)) {
 		return result;
 	}
@@ -230,7 +234,7 @@ MtpResponse MtpDevice::SendCommand_(WORD operationCode, MtpParams params) {
 
 	return result;
 }
-MtpResponse MtpDevice::SendCommandAndRead_(WORD operationCode, MtpParams params) {
+MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params) {
 	MtpResponse result = MtpResponse();
 
 	CComPtr<IPortableDeviceValues> command;
@@ -249,7 +253,7 @@ MtpResponse MtpDevice::SendCommandAndRead_(WORD operationCode, MtpParams params)
 
 	// Send command
 	CComPtr<IPortableDeviceValues> commandResult;
-	result.hr = device_->SendCommand(0, command, &commandResult);
+	result.hr = device->SendCommand(0, command, &commandResult);
 	if (FAILED(result.hr)) {
 		return result;
 	}
@@ -295,7 +299,7 @@ MtpResponse MtpDevice::SendCommandAndRead_(WORD operationCode, MtpParams params)
 	BYTE* b = nullptr;
 	DWORD bNb = 0;
 	do {
-		result.hr = device_->SendCommand(0, command, &commandResult);
+		result.hr = device->SendCommand(0, command, &commandResult);
 		if (FAILED(result.hr)) {
 			CoTaskMemFree(context);
 			return result;
@@ -318,7 +322,7 @@ MtpResponse MtpDevice::SendCommandAndRead_(WORD operationCode, MtpParams params)
 	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.pid);
 	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
-	result.hr = device_->SendCommand(0, command, &commandResult);
+	result.hr = device->SendCommand(0, command, &commandResult);
 	if (FAILED(result.hr)) {
 		CoTaskMemFree(context);
 		return result;
@@ -339,7 +343,7 @@ MtpResponse MtpDevice::SendCommandAndRead_(WORD operationCode, MtpParams params)
 	CoTaskMemFree(context);
 	return result;
 }
-MtpResponse MtpDevice::SendCommandAndWrite_(WORD operationCode, MtpParams params, std::vector<BYTE> data) {
+MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params, std::vector<BYTE> data) {
 	MtpResponse result = MtpResponse();
 
 	CComPtr<IPortableDeviceValues> command;
@@ -359,7 +363,7 @@ MtpResponse MtpDevice::SendCommandAndWrite_(WORD operationCode, MtpParams params
 
 	// Send command
 	CComPtr<IPortableDeviceValues> commandResult;
-	result.hr = device_->SendCommand(0, command, &commandResult);
+	result.hr = device->SendCommand(0, command, &commandResult);
 	if (FAILED(result.hr)) {
 		return result;
 	}
@@ -398,7 +402,7 @@ MtpResponse MtpDevice::SendCommandAndWrite_(WORD operationCode, MtpParams params
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_WRITE, optimalSize);
 		command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &data[offset], optimalSize);
 
-		result.hr = device_->SendCommand(0, command, &commandResult);
+		result.hr = device->SendCommand(0, command, &commandResult);
 		if (FAILED(result.hr)) {
 			CoTaskMemFree(context);
 			return result;
@@ -419,7 +423,7 @@ MtpResponse MtpDevice::SendCommandAndWrite_(WORD operationCode, MtpParams params
 	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.pid);
 	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
-	result.hr = device_->SendCommand(0, command, &commandResult);
+	result.hr = device->SendCommand(0, command, &commandResult);
 	if (FAILED(result.hr)) {
 		CoTaskMemFree(context);
 		return result;
@@ -444,7 +448,7 @@ MtpResponse MtpDevice::SendCommandAndWrite_(WORD operationCode, MtpParams params
 MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
 	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
 		this->mutexDevice_.lock();
-		MtpResponse result =  this->SendCommand_(operationCode, params);
+		MtpResponse result =  this->SendCommand_(this->device_, operationCode, params);
 		this->mutexDevice_.unlock();
 		return result;
 		});
@@ -452,7 +456,7 @@ MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
 MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) {
 	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
 		this->mutexDevice_.lock();
-		MtpResponse result = this->SendCommandAndRead_(operationCode, params);
+		MtpResponse result = this->SendCommandAndRead_(this->device_, operationCode, params);
 		this->mutexDevice_.unlock();
 		return result;
 		});
@@ -460,7 +464,7 @@ MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) 
 MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<BYTE> data) {
 	return sendTaskWithResult<MtpResponse>([this, operationCode, &params, &data] {
 		this->mutexDevice_.lock();
-		MtpResponse result = this->SendCommandAndWrite_(operationCode, params, data);
+		MtpResponse result = this->SendCommandAndWrite_(this->device_, operationCode, params, data);
 		this->mutexDevice_.unlock();
 		return result;
 		});

@@ -65,9 +65,12 @@ namespace nek::mtp {
 
 			class NEK_API MtpEvent {
 			public:
-				MtpEvent(uint32_t eventCode);
+				MtpEvent(uint16_t eventCode);
+				MtpEvent(uint16_t eventCode, uint32_t param);
+				MtpEvent(uint16_t eventCode, std::vector<uint32_t> params);
 
-				uint32_t eventCode;
+				uint16_t eventCode;
+				std::vector<uint32_t> params;
 			};
 
 
@@ -76,6 +79,7 @@ namespace nek::mtp {
 				MtpEventCallback();
 
 				HRESULT STDMETHODCALLTYPE OnEvent(IPortableDeviceValues* pEventParameters);
+				HRESULT STDMETHODCALLTYPE OnEvent(MtpEvent event);
 				HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv);
 				ULONG STDMETHODCALLTYPE AddRef();
 				ULONG STDMETHODCALLTYPE Release();
