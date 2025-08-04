@@ -14,6 +14,7 @@ namespace nek::mtp {
 	enum MtpExPhase {
 		COM_INIT = 0,
 		MANAGER_INIT = 1,
+		MANAGER_DEVICELIST = 1,
 	};
 
 	enum MtpExCode {

@@ -29,36 +29,37 @@ void MtpManager::threadTask() {
 
 	//Com context
 	HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-	if (FAILED(hr)) {
-		throw MtpDeviceException(MtpExPhase::COM_INIT, hr);
-	}
+	if (SUCCEEDED(hr)) {
 
-	//Device Manager
-	hr = CoCreateInstance(CLSID_PortableDeviceManager, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceManager_));
-	if (FAILED(hr)) {
-		CoUninitialize();
+		//Device Manager
+		hr = CoCreateInstance(CLSID_PortableDeviceManager, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceManager_));
 		mutexDevice_.unlock();
+		mutexTasks_.unlock();
+		if (SUCCEEDED(hr)) {
+			cvTasks_.notify_all();
+
+			//Thread Loop
+			nek::utils::ThreadedClass::threadTask();
+
+			//Uninit
+			mutexTasks_.lock();
+			mutexDevice_.lock();
+			cvTasks_.notify_one();
+
+			deviceManager_.Release();
+			CoUninitialize();
+
+			mutexDevice_.unlock();
+			mutexTasks_.unlock();
+
+			return;
+		}
 		throw MtpDeviceException(MtpExPhase::MANAGER_INIT, hr);
 	}
 
 	mutexDevice_.unlock();
 	mutexTasks_.unlock();
-	cvTasks_.notify_all();
-
-	//Thread Loop
-	nek::utils::ThreadedClass::threadTask();
-
-	//Uninit
-	mutexTasks_.lock();
-	mutexDevice_.lock();
-	cvTasks_.notify_one();
-
-	deviceManager_.Release();
-	deviceManager_.p = nullptr;
-	CoUninitialize();
-
-	mutexDevice_.unlock();
-	mutexTasks_.unlock();
+	throw MtpDeviceException(MtpExPhase::COM_INIT, hr);
 }
 
 std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
@@ -72,17 +73,13 @@ std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
 		mutexDevice_.lock();
 
 		//Update WPD devices list
-		hr = deviceManager_->RefreshDeviceList();
-		if (FAILED(hr)) {
-			mutexDevice_.unlock();
-			throw std::runtime_error("Failed to refresh the device list");
-		}
+		deviceManager_->RefreshDeviceList();
 
 		//Get the number of WPD devices
 		hr = deviceManager_->GetDevices(NULL, &devicesNb);
 		if (FAILED(hr)) {
 			mutexDevice_.unlock();
-			throw std::runtime_error("Failed to retreive the number of devices");
+			throw MtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr);
 		}
 
 		//At least one device
@@ -92,7 +89,7 @@ std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
 			if (FAILED(hr)) {
 				mutexDevice_.unlock();
 				delete[] devices;
-				throw std::runtime_error("Failed to retreive the list of devices");
+				throw MtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr);
 			}
 
 			mutexDevice_.unlock();
