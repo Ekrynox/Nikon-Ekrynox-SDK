@@ -16,6 +16,7 @@ MtpExCode MtpDeviceException::computeCode(MtpExPhase phase, HRESULT hr) {
 	if (hr == E_OUTOFMEMORY) return MEMORY;
 	if (hr == E_UNEXPECTED) return UNEXPECTED;
 	if (hr == E_INVALIDARG) return INVALIDARG;
+	if (hr == E_POINTER) return INVALIDARG;
 
 	switch (phase) {
 	case COM_INIT:
@@ -29,7 +30,6 @@ MtpExCode MtpDeviceException::computeCode(MtpExPhase phase, HRESULT hr) {
 
 	case MANAGER_INIT:
 		switch (hr) {
-		case E_POINTER:
 		case E_NOINTERFACE:
 		case CLASS_E_NOAGGREGATION:
 		case REGDB_E_CLASSNOTREG:
