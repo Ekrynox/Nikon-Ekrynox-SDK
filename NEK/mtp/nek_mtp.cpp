@@ -29,8 +29,8 @@ void MtpManager::threadTask() {
 
 	//Com context
 	HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-	if (hr == RPC_E_CHANGED_MODE) {
-		throw std::runtime_error("Failed to init COM: " + hr);
+	if (FAILED(hr)) {
+		throw MtpDeviceException(MtpExPhase::COM_INIT, hr);
 	}
 
 	//Device Manager
@@ -38,7 +38,7 @@ void MtpManager::threadTask() {
 	if (FAILED(hr)) {
 		CoUninitialize();
 		mutexDevice_.unlock();
-		throw std::runtime_error("Impossible to create the Portable Device Manager: " + hr);
+		throw MtpDeviceException(MtpExPhase::MANAGER_INIT, hr);
 	}
 
 	mutexDevice_.unlock();
@@ -483,7 +483,7 @@ MtpDeviceInfoDS MtpDevice::GetDeviceInfo() {
 	}
 
 	if (response.responseCode != MtpResponseCode::OK) {
-		throw MtpException(MtpOperationCode::GetDeviceInfo, response.responseCode);
+		throw new MtpException(MtpOperationCode::GetDeviceInfo, response.responseCode);
 	}
 
 	MtpDeviceInfoDS deviceInfo;

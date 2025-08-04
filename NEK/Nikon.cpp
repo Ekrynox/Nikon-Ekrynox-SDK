@@ -110,7 +110,7 @@ void NikonCamera::eventThreadTask() {
 
 	//Event Handler Detection
 	NikonDeviceInfoDS info = GetDeviceInfo();
-	if (std::find(info.OperationsSupported.begin(), info.OperationsSupported.end(), NikonMtpOperationCode::GetEventEx) != info.OperationsSupported.end()) {
+	if (std::find(info.OperationsSupported.begin(), info.OperationsSupported.end(), NikonMtpOperationCode::GetEventEx) != info.OperationsSupported.end()) { //GetEventEX
 		//Device
 		CComPtr<IPortableDevice> device;
 		hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device));
@@ -159,7 +159,7 @@ void NikonCamera::eventThreadTask() {
 		eventCallback_.Release();
 		device.Release();
 	}
-	else if (std::find(info.OperationsSupported.begin(), info.OperationsSupported.end(), NikonMtpOperationCode::GetEvent) != info.OperationsSupported.end()) {
+	else if (std::find(info.OperationsSupported.begin(), info.OperationsSupported.end(), NikonMtpOperationCode::GetEvent) != info.OperationsSupported.end()) { //GetEvent
 		//Device
 		CComPtr<IPortableDevice> device;
 		hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device));
@@ -198,7 +198,7 @@ void NikonCamera::eventThreadTask() {
 		eventCallback_.Release();
 		device.Release();
 	}
-	else {
+	else { //Default Mtp event system (Incomplete: missing event code, ...)
 		sendTask([this] {
 			this->eventCallback_ = new nek::mtp::MtpEventCallback();
 			this->device_->Advise(0, this->eventCallback_, nullptr, &this->eventCookie_);
