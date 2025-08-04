@@ -2,6 +2,8 @@ namespace NEKCS.TestApp
 {
     public partial class CameraListForm : Form
     {
+        System.Collections.Generic.Dictionary<string, NEKCS.NikonDeviceInfoDS> cameras;
+
         public CameraListForm()
         {
             InitializeComponent();
@@ -9,9 +11,10 @@ namespace NEKCS.TestApp
 
         private void refreshCameraList_Click(object sender, EventArgs e)
         {
-            var cameraList = NEKCS.NikonCamera.listNikonCameras();
+            cameras = NEKCS.NikonCamera.listNikonCameras();
             this.cameraList.Items.Clear();
-            foreach (var camera in cameraList) {
+            foreach (var camera in cameras)
+            {
                 this.cameraList.Items.Add(camera.Value.Manufacture + " " + camera.Value.Model + " " + camera.Value.SerialNumber);
             }
         }
@@ -19,6 +22,12 @@ namespace NEKCS.TestApp
         private void Form1_Shown(object sender, EventArgs e)
         {
             refreshCameraList_Click(sender, e);
+        }
+
+        private void cameraList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CameraEventListener form = new CameraEventListener(cameras.ToList()[this.cameraList.SelectedIndex].Key);
+            form.ShowDialog();
         }
     }
 }

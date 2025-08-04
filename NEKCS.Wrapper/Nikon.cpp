@@ -8,6 +8,7 @@ using namespace NEKCS;
 
 
 
+//NikonCamera
 System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ NikonCamera::listNikonCameras() {
 	System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ result = gcnew System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>();
 	for (auto& camera : nek::NikonCamera::listNikonCameras()) {
@@ -18,7 +19,15 @@ System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ N
 
 size_t NikonCamera::countNikonCameras() { return nek::NikonCamera::countNikonCameras(); }
 
-NikonCamera::NikonCamera(std::wstring devicePath) { m_nativeClass = new nek::NikonCamera(devicePath); };
+
+
+NikonCamera::NikonCamera(System::String^ devicePath) {
+	std::wstring str;
+	for each (auto c in devicePath) {
+		str += c;
+	}
+	m_nativeClass = new nek::NikonCamera(str);
+};
 NikonCamera::~NikonCamera() { this->!NikonCamera(); };
 NikonCamera::!NikonCamera() { delete m_nativeClass; };
 
@@ -32,8 +41,6 @@ MtpResponse^ NikonCamera::SendCommandAndWrite(System::UInt16 operationCode, MtpP
 	return gcnew MtpResponse(m_nativeClass->SendCommandAndWrite(operationCode, *params.m_nativeClass, datac));
 }
 
-/*size_t RegisterCallback(std::function<void(MtpEvent)> callback);
-void UnregisterCallback(size_t id);*/
 
 
-NikonDeviceInfoDS NikonCamera::GetDeviceInfo() { return NikonDeviceInfoDS(m_nativeClass->GetDeviceInfo()); }
+NikonDeviceInfoDS^ NikonCamera::GetDeviceInfo() { return gcnew NikonDeviceInfoDS(m_nativeClass->GetDeviceInfo()); }
