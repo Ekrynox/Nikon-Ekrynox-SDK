@@ -15,29 +15,20 @@ NikonDeviceInfoDS::NikonDeviceInfoDS(const nek::NikonDeviceInfoDS& native) {
 	VendorExtensionDesc = gcnew System::String(native.VendorExtensionDesc.c_str());
 	FunctionalMode = native.FunctionalMode;
 
-	OperationsSupported = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.OperationsSupported) {
-		OperationsSupported->Add(el);
+		OperationsSupported.Add(el);
 	}
-
-	EventsSupported = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.EventsSupported) {
-		EventsSupported->Add(el);
+		EventsSupported.Add(el);
 	}
-
-	DevicePropertiesSupported = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.DevicePropertiesSupported) {
-		DevicePropertiesSupported->Add(el);
+		DevicePropertiesSupported.Add(el);
 	}
-
-	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.CaptureFormats) {
-		CaptureFormats->Add(el);
+		CaptureFormats.Add(el);
 	}
-
-	ImageFormats = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.ImageFormats) {
-		ImageFormats->Add(el);
+		ImageFormats.Add(el);
 	}
 
 	Manufacture = gcnew System::String(native.Manufacture.c_str());

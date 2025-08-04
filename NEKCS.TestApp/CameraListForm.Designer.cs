@@ -51,6 +51,7 @@
             cameraList.Name = "cameraList";
             cameraList.Size = new Size(776, 394);
             cameraList.TabIndex = 1;
+            cameraList.SelectedIndexChanged += cameraList_SelectedIndexChanged;
             // 
             // CameraListForm
             // 
