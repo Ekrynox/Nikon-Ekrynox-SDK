@@ -1,6 +1,8 @@
 #pragma once
 #include "mtp/nek_mtp_utils.hpp"
 
+#include <vcclr.h>
+
 
 
 namespace NEKCS {
@@ -60,6 +62,19 @@ namespace NEKCS {
 	public:
 		System::UInt16 eventCode;
 		System::Collections::Generic::List<System::UInt32> eventParams;
+	};
+
+
+	ref class NikonCamera;
+	public delegate void MtpEventHandler(NikonCamera^ camera, MtpEvent^ e);
+	private ref class MtpEventHandlerHelper {
+	private:
+		MtpEventHandler^ handler;
+		NikonCamera^ camera;
+	public:
+		MtpEventHandlerHelper(NikonCamera^ cam, MtpEventHandler^ del) { handler = del; camera = cam; };
+		void Dispatch(nek::mtp::MtpEvent nativeEvent) { handler(camera, gcnew MtpEvent(nativeEvent)); };
+		static std::function<void(nek::mtp::MtpEvent)> createCallback(gcroot<MtpEventHandlerHelper^>* dispatcher) { return [dispatcher](nek::mtp::MtpEvent evt) { (*dispatcher)->Dispatch(evt); }; };
 	};
 
 }
