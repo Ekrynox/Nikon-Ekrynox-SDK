@@ -138,31 +138,31 @@ void MtpDevice::mainThreadTask() {
 	//Com context
 	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	if (hr == RPC_E_CHANGED_MODE) {
-		throw std::runtime_error("Failed to init COM: " + hr);
+		throw MtpDeviceException(MtpExPhase::COM_INIT, hr);
 	}
 
 	//Device Client
 	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
-	if (FAILED(hr)) throw std::runtime_error("Impossible to create the Portable Device Client: " + hr);
-	hr = deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
-	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Name" + hr);
-	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
-	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Major Version" + hr);
-	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
-	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Minor Version" + hr);
-	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
-	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Revision" + hr);
+	if (FAILED(hr)) throw MtpDeviceException(MtpExPhase::DEVICECLIENT_INIT, hr);
+	deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
+	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
+	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
+	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
 
 	//Device
 	hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device_));
 	if (FAILED(hr)) {
-		throw std::runtime_error("Failed to create device instance: " + hr);
+		mutexDevice_.unlock();
+		mutexTasks_.unlock();
+		throw MtpDeviceException(MtpExPhase::DEVICE_INIT, hr);
 	}
 
 	hr = device_->Open(devicePath_, deviceClient_);
 	if (FAILED(hr)) {
 		device_.Release();
-		throw std::runtime_error("Failed to open device: " + hr);
+		mutexDevice_.unlock();
+		mutexTasks_.unlock();
+		throw MtpDeviceException(MtpExPhase::DEVICE_INIT, hr);
 	}
 
 	eventCallback_ = new MtpEventCallback();
@@ -190,13 +190,16 @@ void MtpDevice::mainThreadTask() {
 	cvTasks_.notify_all();
 }
 
+
+
 MtpResponse MtpDevice::SendCommand_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params) {
 	MtpResponse result = MtpResponse();
+	HRESULT hr;
 
 	CComPtr<IPortableDeviceValues> command;
-	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-	if (FAILED(result.hr)) {
-		return result;
+	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(hr)) {
+		throw MtpDeviceException(MtpExPhase::OPERATION_INIT, hr);
 	}
 
 	// Set command category and ID
@@ -209,28 +212,37 @@ MtpResponse MtpDevice::SendCommand_(CComPtr<IPortableDevice> device, WORD operat
 
 	// Send command
 	CComPtr<IPortableDeviceValues> commandResult;
-	result.hr = device->SendCommand(0, command, &commandResult);
-	if (FAILED(result.hr)) {
-		return result;
+	hr = device->SendCommand(0, command, &commandResult);
+	if (FAILED(hr)) {
+		command.Release();
+		throw MtpDeviceException(MtpExPhase::OPERATION_SEND, hr);
 	}
 
 	// Extract response code
-	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
-	if (FAILED(result.hr)) {
-		return result;
+	hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+	if (FAILED(hr)) {
+		command.Release();
+		commandResult.Release();
+		throw MtpDeviceException(MtpExPhase::OPERATION_RESPONSE, hr);
 	}
 
 	// Extract response parameters
 	CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
-	result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
-	if (FAILED(result.hr)) {
-		return result;
+	hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
+	if (FAILED(hr)) {
+		command.Release();
+		commandResult.Release();
+		throw MtpDeviceException(MtpExPhase::OPERATION_RESPONSE, hr);
 	}
+
 	result.GetParams().SetCollection(parametersCollection);
 	parametersCollection.Release();
+	command.Release();
+	commandResult.Release();
 
 	return result;
 }
+
 MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params) {
 	MtpResponse result = MtpResponse();
 
@@ -340,6 +352,7 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 	CoTaskMemFree(context);
 	return result;
 }
+
 MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params, std::vector<BYTE> data) {
 	MtpResponse result = MtpResponse();
 
@@ -441,6 +454,8 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 	CoTaskMemFree(context);
 	return result;
 }
+
+
 
 MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
 	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
