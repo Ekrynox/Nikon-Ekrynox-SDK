@@ -100,7 +100,6 @@ void MtpParams::addInt16(int16_t value) {
 
 //MtpResponse
 MtpResponse::MtpResponse() {
-	hr = E_FAIL;
 	responseCode = 0;
 }
 

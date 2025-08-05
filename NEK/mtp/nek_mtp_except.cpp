@@ -26,6 +26,14 @@ std::string MtpExPhaseToString(MtpExPhase phase) {
 	case ENDREAD_INIT: return "End Read Initialization";
 	case ENDREAD_SEND: return "End Read Send";
 	case ENDREAD_RESPONSE: return "End Read Response";
+	case OPERATIONWRITE_INIT: return "Operation Write Initialization";
+	case OPERATIONWRITE_SEND: return "Operation Write Send";
+	case OPERATIONWRITE_RESPONSE: return "Operation Write Response";
+	case DATAWRITE_INIT: return "Data Write Initialization";
+	case DATAWRITE_SEND: return "Data Write Send";
+	case ENDWRITE_INIT: return "End Write Initialization";
+	case ENDWRITE_SEND: return "End Write Send";
+	case ENDWRITE_RESPONSE: return "End Write Response";
 	default: return "Unknown Phase";
 	}
 }
