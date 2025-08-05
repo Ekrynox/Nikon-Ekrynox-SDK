@@ -53,11 +53,13 @@ int main() {
 
 
 	int wait = 1;
-	while (wait > 0) {
+	while (true) {
 		cin >> wait;
+		if (wait == 0) break;
+
 		auto params = nek::mtp::MtpParams();
-		params.addUint32(0xFFFFFFFF);
-		nek::mtp::MtpResponse result = camera->SendCommand(nek::NikonMtpOperationCode::InitiateCaptureRecInSdram, params);
+		//params.addUint32(0xFFFFFFFF);
+		nek::mtp::MtpResponse result = camera->SendCommand(nek::NikonMtpOperationCode::GetDeviceInfo, params);
 	}
 
 	delete camera;

@@ -8,6 +8,36 @@ using namespace nek::mtp;
 
 
 
+std::string MtpExPhaseToString(MtpExPhase phase) {
+	switch (phase) {
+	case COM_INIT: return "COM Initialization";
+	case MANAGER_INIT: return "Manager Initialization";
+	case MANAGER_DEVICELIST: return "Manager Device List";
+	case DEVICECLIENT_INIT: return "Device Client Initialization";
+	case DEVICE_INIT: return "Device Initialization";
+	case OPERATION_INIT: return "Operation Initialization";
+	case OPERATION_SEND: return "Operation Send";
+	case OPERATION_RESPONSE: return "Operation Response";
+	default: return "Unknown Phase";
+	}
+}
+
+std::string MtpExCodeToString(MtpExCode code) {
+	switch (code) {
+	case NO_ERR: return "No Error";
+	case UNKNOW_ERR: return "Unknown Error";
+	case UNEXPECTED: return "Unexpected Error";
+	case MEMORY: return "Memory Error";
+	case ALREADY_INITIALIZED: return "Already Initialized";
+	case INVALID_ARG: return "Invalid Argument";
+	case INVALID_TYPE: return "Invalid Type";
+	case MISSING: return "Missing Parameter";
+	default: return "Unknown Code";
+	}
+}
+
+
+
 //MtpDeviceException
 MtpDeviceException::MtpDeviceException(MtpExPhase phase, HRESULT hr) : phase(phase), code(computeCode(phase, hr)) {};
 
@@ -15,8 +45,8 @@ MtpExCode MtpDeviceException::computeCode(MtpExPhase phase, HRESULT hr) {
 	if (hr == S_OK) return NO_ERR;
 	if (hr == E_OUTOFMEMORY) return MEMORY;
 	if (hr == E_UNEXPECTED) return UNEXPECTED;
-	if (hr == E_INVALIDARG) return INVALIDARG;
-	if (hr == E_POINTER) return INVALIDARG;
+	if (hr == E_INVALIDARG) return INVALID_ARG;
+	if (hr == E_POINTER) return INVALID_ARG;
 
 	switch (phase) {
 	case COM_INIT:
@@ -33,7 +63,25 @@ MtpExCode MtpDeviceException::computeCode(MtpExPhase phase, HRESULT hr) {
 		case E_NOINTERFACE:
 		case CLASS_E_NOAGGREGATION:
 		case REGDB_E_CLASSNOTREG:
-			return INVALIDARG;
+			return INVALID_ARG;
+		default:
+			return UNKNOW_ERR;
+		}
+
+	case DEVICE_INIT:
+		switch (hr) {
+		case E_WPD_DEVICE_ALREADY_OPENED:
+			return ALREADY_INITIALIZED;
+		default:
+			return UNKNOW_ERR;
+		}
+
+	case OPERATION_SEND:
+		switch (hr) {
+		case DISP_E_TYPEMISMATCH:
+			return INVALID_TYPE;
+		case HRESULT_FROM_WIN32(ERROR_NOT_FOUND):
+			return MISSING;
 		default:
 			return UNKNOW_ERR;
 		}
@@ -41,6 +89,12 @@ MtpExCode MtpDeviceException::computeCode(MtpExPhase phase, HRESULT hr) {
 	default:
 		return UNKNOW_ERR;
 	}
+}
+
+const char* MtpDeviceException::what() const noexcept {
+	std::ostringstream message;
+	message << "MTP Device Exception - Phase: " << MtpExPhaseToString(phase) << ", Code: " << MtpExCodeToString(code);
+	return message.str().c_str();
 }
 
 
