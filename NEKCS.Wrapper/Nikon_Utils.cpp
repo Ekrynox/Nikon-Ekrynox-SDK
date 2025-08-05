@@ -35,7 +35,6 @@ MtpResponse::MtpResponse() {
 	responseParams_ = gcnew MtpReponseParams();
 }
 MtpResponse::MtpResponse(nek::mtp::MtpResponse response) {
-	hr = response.hr;
 	responseCode = response.responseCode;
 	responseParams_ = gcnew MtpReponseParams(response.GetParams());
 	for (auto d : response.data) {

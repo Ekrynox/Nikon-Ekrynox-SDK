@@ -375,11 +375,12 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 
 MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params, std::vector<BYTE> data) {
 	MtpResponse result = MtpResponse();
+	HRESULT hr;
 
 	CComPtr<IPortableDeviceValues> command;
-	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-	if (FAILED(result.hr)) {
-		return result;
+	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(hr)) {
+		throw MtpDeviceException(MtpExPhase::OPERATIONWRITE_INIT, hr);
 	}
 
 	// Set command category and ID
@@ -393,22 +394,28 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 
 	// Send command
 	CComPtr<IPortableDeviceValues> commandResult;
-	result.hr = device->SendCommand(0, command, &commandResult);
-	if (FAILED(result.hr)) {
-		return result;
+	hr = device->SendCommand(0, command, &commandResult);
+	if (FAILED(hr)) {
+		command.Release();
+		commandResult.Release();
+		throw MtpDeviceException(MtpExPhase::OPERATIONWRITE_SEND, hr);
 	}
 
 	LPWSTR context;
-	result.hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
-	if (FAILED(result.hr)) {
-		return result;
+	hr = commandResult->GetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, &context);
+	if (FAILED(hr)) {
+		command.Release();
+		commandResult.Release();
+		throw MtpDeviceException(MtpExPhase::OPERATIONWRITE_RESPONSE, hr);
 	}
 
 	ULONG optimalSize;
-	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
-	if (FAILED(result.hr)) {
+	hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPTIMAL_TRANSFER_BUFFER_SIZE, &optimalSize);
+	if (FAILED(hr)) {
+		command.Release();
+		commandResult.Release();
 		CoTaskMemFree(context);
-		return result;
+		throw MtpDeviceException(MtpExPhase::OPERATIONWRITE_RESPONSE, hr);
 	}
 
 	command.Release();
@@ -418,10 +425,10 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 	// Start Data Transfert
 	DWORD offset = 0;
 	while (offset < data.size()) {
-		result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-		if (FAILED(result.hr)) {
+		hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+		if (FAILED(hr)) {
 			CoTaskMemFree(context);
-			return result;
+			throw MtpDeviceException(MtpExPhase::DATAWRITE_INIT, hr);
 		}
 
 		command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_WRITE_DATA.fmtid);
@@ -432,10 +439,12 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_WRITE, optimalSize);
 		command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &data[offset], optimalSize);
 
-		result.hr = device->SendCommand(0, command, &commandResult);
-		if (FAILED(result.hr)) {
+		hr = device->SendCommand(0, command, &commandResult);
+		if (FAILED(hr)) {
+			command.Release();
+			commandResult.Release();
 			CoTaskMemFree(context);
-			return result;
+			throw MtpDeviceException(MtpExPhase::DATAWRITE_SEND, hr);
 		}
 
 		offset += optimalSize;
@@ -445,32 +454,47 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 
 
 	// End Data Transfert
-	result.hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
-	if (FAILED(result.hr)) {
+	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
+	if (FAILED(hr)) {
+		command.Release();
+		commandResult.Release();
 		CoTaskMemFree(context);
-		return result;
+		throw MtpDeviceException(MtpExPhase::ENDWRITE_INIT, hr);
 	}
+
 	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.pid);
 	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
-	result.hr = device->SendCommand(0, command, &commandResult);
-	if (FAILED(result.hr)) {
+	hr = device->SendCommand(0, command, &commandResult);
+	if (FAILED(hr)) {
+		command.Release();
 		CoTaskMemFree(context);
-		return result;
+		throw MtpDeviceException(MtpExPhase::ENDWRITE_SEND, hr);
 	}
 
 	// Extract response code
-	result.hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+	hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+	if (FAILED(hr)) {
+		command.Release();
+		commandResult.Release();
+		CoTaskMemFree(context);
+		throw MtpDeviceException(MtpExPhase::ENDWRITE_RESPONSE, hr);
+	}
 
 	// Extract response parameters
 	CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
-	result.hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
-	if (FAILED(result.hr)) {
-		return result;
+	hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
+	if (FAILED(hr)) {
+		command.Release();
+		commandResult.Release();
+		CoTaskMemFree(context);
+		throw MtpDeviceException(MtpExPhase::ENDWRITE_RESPONSE, hr);
 	}
 	result.GetParams().SetCollection(parametersCollection);
-	parametersCollection.Release();
 
+	parametersCollection.Release();
+	command.Release();
+	commandResult.Release();
 	CoTaskMemFree(context);
 	return result;
 }
