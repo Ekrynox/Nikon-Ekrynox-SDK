@@ -18,6 +18,14 @@ std::string MtpExPhaseToString(MtpExPhase phase) {
 	case OPERATION_INIT: return "Operation Initialization";
 	case OPERATION_SEND: return "Operation Send";
 	case OPERATION_RESPONSE: return "Operation Response";
+	case OPERATIONREAD_INIT: return "Operation Read Initialization";
+	case OPERATIONREAD_SEND: return "Operation Read Send";
+	case OPERATIONREAD_RESPONSE: return "Operation Read Response";
+	case DATAREAD_INIT: return "Data Read Initialization";
+	case DATAREAD_SEND: return "Data Read Send";
+	case ENDREAD_INIT: return "End Read Initialization";
+	case ENDREAD_SEND: return "End Read Send";
+	case ENDREAD_RESPONSE: return "End Read Response";
 	default: return "Unknown Phase";
 	}
 }
@@ -77,6 +85,7 @@ MtpExCode MtpDeviceException::computeCode(MtpExPhase phase, HRESULT hr) {
 		}
 
 	case OPERATION_SEND:
+	case DATAREAD_SEND:
 		switch (hr) {
 		case DISP_E_TYPEMISMATCH:
 			return INVALID_TYPE;
