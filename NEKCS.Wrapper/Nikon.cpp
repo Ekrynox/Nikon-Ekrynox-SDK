@@ -29,16 +29,19 @@ NikonCamera::NikonCamera(System::String^ devicePath) {
 	m_nativeClass = new nek::NikonCamera(str);
 };
 NikonCamera::~NikonCamera() { this->!NikonCamera(); };
-NikonCamera::!NikonCamera() { delete m_nativeClass; };
+NikonCamera::!NikonCamera() {
+	delete m_nativeClass;
+	m_nativeClass = nullptr;
+};
 
-MtpResponse^ NikonCamera::SendCommand(System::UInt16 operationCode, MtpParams params) { return gcnew MtpResponse(m_nativeClass->SendCommand(operationCode, *params.m_nativeClass)); }
-MtpResponse^ NikonCamera::SendCommandAndRead(System::UInt16 operationCode, MtpParams params) { return gcnew MtpResponse(m_nativeClass->SendCommandAndRead(operationCode, *params.m_nativeClass)); }
-MtpResponse^ NikonCamera::SendCommandAndWrite(System::UInt16 operationCode, MtpParams params, System::Collections::Generic::List<System::Byte> data) { 
+MtpResponse^ NikonCamera::SendCommand(System::UInt16 operationCode, MtpParams^ params) { return gcnew MtpResponse(m_nativeClass->SendCommand(operationCode, *params->m_nativeClass)); }
+MtpResponse^ NikonCamera::SendCommandAndRead(System::UInt16 operationCode, MtpParams^ params) { return gcnew MtpResponse(m_nativeClass->SendCommandAndRead(operationCode, *params->m_nativeClass)); }
+MtpResponse^ NikonCamera::SendCommandAndWrite(System::UInt16 operationCode, MtpParams^ params, System::Collections::Generic::List<System::Byte>^ data) { 
 	std::vector<BYTE> datac = std::vector<BYTE>();
 	for each (auto item in data) {
 		datac.push_back(item);
 	}
-	return gcnew MtpResponse(m_nativeClass->SendCommandAndWrite(operationCode, *params.m_nativeClass, datac));
+	return gcnew MtpResponse(m_nativeClass->SendCommandAndWrite(operationCode, *params->m_nativeClass, datac));
 }
 
 

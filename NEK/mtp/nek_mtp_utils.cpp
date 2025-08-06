@@ -11,12 +11,44 @@ using namespace nek::mtp;
 
 
 //MtpResponseParams
+MtpReponseParams::MtpReponseParams() {
+	pv_ = std::vector<PROPVARIANT>();
+}
+
 MtpReponseParams::MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection> paramsCollection) {
+	pv_ = std::vector<PROPVARIANT>();
 	SetCollection(paramsCollection);
 }
 
 MtpReponseParams::MtpReponseParams(CComPtr<IPortableDeviceValues> eventParameters) {
+	pv_ = std::vector<PROPVARIANT>();
 	SetCollection(eventParameters);
+}
+
+MtpReponseParams::MtpReponseParams(const MtpReponseParams& other) {
+	pv_ = std::vector<PROPVARIANT>();
+	for (const auto& pv : other.pv_) {
+		PROPVARIANT newPv;
+		PropVariantInit(&newPv);
+		PropVariantCopy(&newPv, &pv);
+		pv_.push_back(newPv);
+	}
+}
+
+MtpReponseParams& MtpReponseParams::operator=(const MtpReponseParams& other) {
+	if (this != &other) {
+		for (auto& pv : pv_) {
+			PropVariantClear(&pv);
+		}
+		pv_.clear();
+		for (const auto& pv : other.pv_) {
+			PROPVARIANT newPv;
+			PropVariantInit(&newPv);
+			PropVariantCopy(&newPv, &pv);
+			this->pv_.push_back(newPv);
+		}
+	}
+	return *this;
 }
 
 MtpReponseParams::~MtpReponseParams() {
@@ -32,7 +64,8 @@ void MtpReponseParams::SetCollection(CComPtr<IPortableDevicePropVariantCollectio
 	paramsCollection->GetCount(&size);
 	for (DWORD i = 0; i < size; i++) {
 		PROPVARIANT pv;
-		paramsCollection->GetAt(i, &pv);
+		PropVariantInit(&pv);
+		paramsCollection->GetAt(i, &pv_.back());
 		pv_.push_back(pv);
 	}
 }
@@ -44,7 +77,8 @@ void MtpReponseParams::SetCollection(CComPtr<IPortableDeviceValues> eventParamet
 	for (DWORD i = 0; i < size; i++) {
 		PROPERTYKEY pk;
 		PROPVARIANT pv;
-		eventParameters->GetAt(i, &pk, &pv);
+		PropVariantInit(&pv);
+		eventParameters->GetAt(i, &pk, &pv_.back());
 		pv_.push_back(pv);
 	}
 }
@@ -65,7 +99,7 @@ CComPtr<IPortableDevicePropVariantCollection> MtpParams::GetCollection() {
 	if (FAILED(hr)) {
 		throw std::runtime_error("Failed to create Prop Variant Collection: " + hr);
 	}
-	for (auto pv : pv_) {
+	for (const auto pv : pv_) {
 		paramsCollection->Add(&pv);
 	}
 
