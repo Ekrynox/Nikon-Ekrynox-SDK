@@ -51,7 +51,8 @@ MtpReponseParams^ MtpResponse::GetParams() { return responseParams_; }
 //MtpEvent
 MtpEvent::MtpEvent(nek::mtp::MtpEvent event) {
 	eventCode = event.eventCode;
+	eventParams = gcnew System::Collections::Generic::List<System::UInt32>();
 	for (auto p : event.eventParams) {
-		eventParams.Add(p);
+		eventParams->Add(p);
 	}
 }

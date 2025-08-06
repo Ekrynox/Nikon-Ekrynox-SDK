@@ -61,7 +61,7 @@ namespace NEKCS {
 
 	public:
 		System::UInt16 eventCode;
-		System::Collections::Generic::List<System::UInt32> eventParams;
+		System::Collections::Generic::List<System::UInt32>^ eventParams;
 	};
 
 
