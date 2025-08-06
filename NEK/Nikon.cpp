@@ -1,4 +1,5 @@
 #include "nikon.hpp"
+#include "mtp/nek_mtp_except.hpp"
 
 #include <chrono>
 #include <time.h>
@@ -35,12 +36,14 @@ size_t NikonCamera::countNikonCameras() {
 NikonCamera::NikonCamera(std::wstring devicePath) : nek::mtp::MtpDevice::MtpDevice() {
 	devicePath_ = (PWSTR)devicePath.c_str();
 
+	//Start main thread
 	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
 	std::unique_lock lk(mutexTasks_);
 	cvTasks_.wait(lk);
 
+	//Event Thread
 	threads_.push_back(std::thread([this] { this->eventThreadTask(); }));
-	cvTasks_.wait(lk, [this] { return this->eventCallback_ != nullptr; });
+	cvTasks_.wait(lk);
 }
 
 
@@ -51,31 +54,37 @@ void NikonCamera::mainThreadTask() {
 	//Com context
 	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	if (hr == RPC_E_CHANGED_MODE) {
-		throw std::runtime_error("Failed to init COM: " + hr);
+		mutexDevice_.unlock();
+		mutexTasks_.unlock();
+		throw nek::mtp::MtpDeviceException(nek::mtp::MtpExPhase::COM_INIT, hr);
 	}
 
 	//Device Client
 	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
-	if (FAILED(hr)) throw std::runtime_error("Impossible to create the Portable Device Client: " + hr);
-	hr = deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
-	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Name" + hr);
-	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
-	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Major Version" + hr);
-	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
-	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Minor Version" + hr);
-	hr = deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
-	if (FAILED(hr)) throw std::runtime_error("Failed to set Client Revision" + hr);
+	if (FAILED(hr)) {
+		mutexDevice_.unlock();
+		mutexTasks_.unlock();
+		throw nek::mtp::MtpDeviceException(nek::mtp::MtpExPhase::DEVICECLIENT_INIT, hr);
+	}
+	deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
+	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
+	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
+	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
 
 	//Device
 	hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device_));
 	if (FAILED(hr)) {
-		throw std::runtime_error("Failed to create device instance: " + hr);
+		mutexDevice_.unlock();
+		mutexTasks_.unlock();
+		throw nek::mtp::MtpDeviceException(nek::mtp::MtpExPhase::DEVICE_INIT, hr);
 	}
 
 	hr = device_->Open(devicePath_, deviceClient_);
 	if (FAILED(hr)) {
 		device_.Release();
-		throw std::runtime_error("Failed to open device: " + hr);
+		mutexDevice_.unlock();
+		mutexTasks_.unlock();
+		throw nek::mtp::MtpDeviceException(nek::mtp::MtpExPhase::DEVICE_INIT, hr);
 	}
 
 	mutexDevice_.unlock();
@@ -111,20 +120,6 @@ void NikonCamera::eventThreadTask() {
 	//Event Handler Detection
 	NikonDeviceInfoDS info = GetDeviceInfo();
 	if (std::find(info.OperationsSupported.begin(), info.OperationsSupported.end(), NikonMtpOperationCode::GetEventEx) != info.OperationsSupported.end()) { //GetEventEX
-		//Device
-		CComPtr<IPortableDevice> device;
-		hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device));
-		if (FAILED(hr)) {
-			throw std::runtime_error("Failed to create device instance: " + hr);
-		}
-
-		hr = device->Open(devicePath_, deviceClient_);
-		if (FAILED(hr)) {
-			device.Release();
-			throw std::runtime_error("Failed to open device: " + hr);
-		}
-
-		eventCallback_ = new nek::mtp::MtpEventCallback();
 		cvTasks_.notify_all();
 
 		//Event Loop
@@ -135,7 +130,9 @@ void NikonCamera::eventThreadTask() {
 		uint16_t eventCode;
 		std::vector<uint32_t> eventParams;
 		while (running_) {
-			nek::mtp::MtpResponse result = SendCommandAndRead_(device, NikonMtpOperationCode::GetEventEx, params);
+			mutexDevice_.lock();
+			nek::mtp::MtpResponse result = SendCommandAndRead_(device_, NikonMtpOperationCode::GetEventEx, params);
+			mutexDevice_.unlock();
 			if (result.responseCode == NikonMtpResponseCode::OK) {
 				count = *(uint32_t*)(result.data.data());
 				offset = sizeof(uint32_t);
@@ -154,26 +151,8 @@ void NikonCamera::eventThreadTask() {
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
-
-		//Uninit
-		eventCallback_.Release();
-		device.Release();
 	}
 	else if (std::find(info.OperationsSupported.begin(), info.OperationsSupported.end(), NikonMtpOperationCode::GetEvent) != info.OperationsSupported.end()) { //GetEvent
-		//Device
-		CComPtr<IPortableDevice> device;
-		hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device));
-		if (FAILED(hr)) {
-			throw std::runtime_error("Failed to create device instance: " + hr);
-		}
-
-		hr = device->Open(devicePath_, deviceClient_);
-		if (FAILED(hr)) {
-			device.Release();
-			throw std::runtime_error("Failed to open device: " + hr);
-		}
-
-		eventCallback_ = new nek::mtp::MtpEventCallback();
 		cvTasks_.notify_all();
 
 		//Event Loop
@@ -182,7 +161,9 @@ void NikonCamera::eventThreadTask() {
 		uint16_t eventCode;
 		uint32_t eventParam;
 		while (running_) {
-			nek::mtp::MtpResponse result = SendCommandAndRead_(device, NikonMtpOperationCode::GetEvent, params);
+			mutexDevice_.lock();
+			nek::mtp::MtpResponse result = SendCommandAndRead_(device_, NikonMtpOperationCode::GetEvent, params);
+			mutexDevice_.unlock();
 			if (result.responseCode == NikonMtpResponseCode::OK) {
 				count = *(uint16_t*)(result.data.data());
 				for (uint16_t i = 0; i < count; i++) {
@@ -193,16 +174,14 @@ void NikonCamera::eventThreadTask() {
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
-
-		//Uninit
-		eventCallback_.Release();
-		device.Release();
 	}
 	else { //Default Mtp event system (Incomplete: missing event code, ...)
-		sendTask([this] {
-			this->eventCallback_ = new nek::mtp::MtpEventCallback();
-			this->device_->Advise(0, this->eventCallback_, nullptr, &this->eventCookie_);
-			});
+		mutexDevice_.lock();
+
+		device_->Advise(0, this->eventCallback_, nullptr, &this->eventCookie_);
+
+		mutexDevice_.unlock();
+		cvTasks_.notify_all();
 	}
 
 	CoUninitialize();
