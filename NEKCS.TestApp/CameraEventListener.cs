@@ -29,7 +29,20 @@ namespace NEKCS.TestApp
         void newCamEvent(NEKCS.NikonCamera cam, NEKCS.MtpEvent e)
         {
             _syncContext.Post(_ => {
-                this.EventList.Text += "Event: " + e.eventCode + "\n";
+                NEKCS.NikonMtpEventCode ecode = (NEKCS.NikonMtpEventCode)e.eventCode;
+                this.EventList.Text += "Event: " + Enum.GetName(typeof(NEKCS.NikonMtpEventCode), ecode);
+                foreach (var item in e.eventParams)
+                {
+                    if (ecode == NEKCS.NikonMtpEventCode.DevicePropChanged)
+                    {
+                        this.EventList.Text += " -> " + Enum.GetName(typeof(NEKCS.NikonMtpDevicePropCode), item);
+                    }
+                    else
+                    {
+                        this.EventList.Text += " -> " + item;
+                    }
+                }
+                this.EventList.Text += "\n";
             }, null);
         }
     }

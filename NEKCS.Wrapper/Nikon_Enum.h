@@ -4,7 +4,7 @@
 
 namespace NEKCS {
 
-	public enum class NikonMtpOperationCode {
+	public enum class NikonMtpOperationCode : System::UInt16 {
 		GetDeviceInfo = 0x1001,
 		OpenSession = 0x1002,
 		CloseSession = 0x1003,
@@ -116,7 +116,7 @@ namespace NEKCS {
 		GetObjectPropList = 0x9805
 	};
 
-	public enum class NikonMtpResponseCode {
+	public enum class NikonMtpResponseCode : System::UInt16 {
 		OK = 0x2001,
 		General_Error = 0x2002,
 		Session_Not_Open = 0x2003,
@@ -171,7 +171,7 @@ namespace NEKCS {
 		ObjectProp_Not_Supported = 0xA80A
 	};
 
-	public enum class NikonMtpEventCode {
+	public enum class NikonMtpEventCode : System::UInt16 {
 		CancelTransaction = 0x4001,
 		ObjectAdded = 0x4002,
 		ObjectRemoved = 0x4003,
@@ -204,7 +204,7 @@ namespace NEKCS {
 		PictureControlHlgAdjustChanged = 0xC127
 	};
 
-	public enum class NikonMtpDevicePropCode {
+	public enum class NikonMtpDevicePropCode : System::UInt16 {
 		BatteryLevel = 0x5001,
 		ImageSize = 0x5003,
 		CompressionSetting = 0x5004,
@@ -437,7 +437,7 @@ namespace NEKCS {
 		PerceivedDeviceType = 0xD407
 	};
 
-	public enum class NikonMtpObjectPropCode {
+	public enum class NikonMtpObjectPropCode : System::UInt16 {
 		StorageID = 0xDC01,
 		ObjectFormat = 0xDC02,
 		ProtectionStatus = 0xDC03,

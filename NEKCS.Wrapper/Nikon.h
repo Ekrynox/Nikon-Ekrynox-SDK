@@ -1,6 +1,7 @@
 #pragma once
 #include "nikon.hpp"
 #include "Nikon_Utils.h"
+#include "Nikon_Enum.h"
 #include "Nikon_Struct.h"
 
 #include <vcclr.h>
