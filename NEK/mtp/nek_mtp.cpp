@@ -136,7 +136,7 @@ MtpDevice::MtpDevice() {
 
 MtpDevice::~MtpDevice() {
 	nek::utils::MultiThreadedClass::~MultiThreadedClass();
-	delete eventCallback_;
+	eventCallback_.Release();
 };
 
 void MtpDevice::mainThreadTask() {

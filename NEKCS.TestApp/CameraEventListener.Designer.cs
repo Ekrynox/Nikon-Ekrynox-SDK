@@ -50,6 +50,7 @@
             Controls.Add(EventList);
             Name = "CameraEventListener";
             Text = "Event Listener";
+            FormClosing += CameraEventListener_FormClosing;
             ResumeLayout(false);
         }
 
