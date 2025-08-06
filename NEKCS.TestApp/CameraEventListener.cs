@@ -28,7 +28,8 @@ namespace NEKCS.TestApp
 
         void newCamEvent(NEKCS.NikonCamera cam, NEKCS.MtpEvent e)
         {
-            _syncContext.Post(_ => {
+            _syncContext.Post(_ =>
+            {
                 NEKCS.NikonMtpEventCode ecode = (NEKCS.NikonMtpEventCode)e.eventCode;
                 this.EventList.Text += "Event: " + Enum.GetName(typeof(NEKCS.NikonMtpEventCode), ecode);
                 foreach (var item in e.eventParams)
@@ -44,6 +45,11 @@ namespace NEKCS.TestApp
                 }
                 this.EventList.Text += "\n";
             }, null);
+        }
+
+        private void CameraEventListener_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            camera.Dispose();
         }
     }
 }
