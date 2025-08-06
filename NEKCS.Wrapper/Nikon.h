@@ -23,9 +23,9 @@ namespace NEKCS {
 		~NikonCamera();
 		!NikonCamera();
 
-		MtpResponse^ SendCommand(System::UInt16 operationCode, MtpParams params);
-		MtpResponse^ SendCommandAndRead(System::UInt16 operationCode, MtpParams params);
-		MtpResponse^ SendCommandAndWrite(System::UInt16 operationCode, MtpParams params, System::Collections::Generic::List<System::Byte> data);
+		MtpResponse^ SendCommand(System::UInt16 operationCode, MtpParams^ params);
+		MtpResponse^ SendCommandAndRead(System::UInt16 operationCode, MtpParams^ params);
+		MtpResponse^ SendCommandAndWrite(System::UInt16 operationCode, MtpParams^ params, System::Collections::Generic::List<System::Byte>^ data);
 
 
 		event MtpEventHandler^ OnMtpEvent {

@@ -26,8 +26,10 @@ namespace NEKCS.TestApp
 
         private void cameraList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            CameraEventListener form = new CameraEventListener(cameras.ToList()[this.cameraList.SelectedIndex].Key);
-            form.ShowDialog();
+            if (this.cameraList.SelectedIndex >= 0 && this.cameraList.SelectedIndex < cameras.Count) { 
+                CameraEventListener form = new CameraEventListener(cameras.ToList()[this.cameraList.SelectedIndex].Key);
+                form.Show();
+            }
         }
     }
 }

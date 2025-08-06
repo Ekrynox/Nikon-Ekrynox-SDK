@@ -59,10 +59,7 @@ int main() {
 
 		auto params = nek::mtp::MtpParams();
 		params.addUint32(0xFFFFFFFF);
-		//params.addUint32(0xFFF0FF4F);
-		//nek::mtp::MtpResponse result = camera->SendCommand(nek::NikonMtpOperationCode::InitiateCaptureRecInSdram, params);
-
-		nek::mtp::MtpResponse result = camera->SendCommandAndRead(nek::NikonMtpOperationCode::GetDeviceInfo, params);
+		nek::mtp::MtpResponse result = camera->SendCommand(nek::NikonMtpOperationCode::InitiateCaptureRecInSdram, params);
 		cout << std::hex << "Response code: " << result.responseCode << endl;
 	}
 

@@ -15,6 +15,7 @@ namespace NEKCS.TestApp
     {
         private NEKCS.NikonCamera camera;
         private SynchronizationContext _syncContext;
+        private CameraShootingForm _cameraShootingForm;
 
 
         public CameraEventListener(string devicePath)
@@ -24,6 +25,9 @@ namespace NEKCS.TestApp
 
             camera = new NEKCS.NikonCamera(devicePath);
             camera.OnMtpEvent += new NEKCS.MtpEventHandler(newCamEvent);
+
+            _cameraShootingForm = new CameraShootingForm(camera);
+            _cameraShootingForm.Show();
         }
 
         void newCamEvent(NEKCS.NikonCamera cam, NEKCS.MtpEvent e)
@@ -49,6 +53,7 @@ namespace NEKCS.TestApp
 
         private void CameraEventListener_FormClosing(object sender, FormClosingEventArgs e)
         {
+            _cameraShootingForm.Dispose();
             camera.Dispose();
         }
     }

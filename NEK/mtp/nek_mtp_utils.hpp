@@ -16,9 +16,11 @@ namespace nek::mtp {
 
 	class NEK_API MtpReponseParams {
 	public:
-		MtpReponseParams() {};
+		MtpReponseParams();
 		MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
 		MtpReponseParams(CComPtr<IPortableDeviceValues> eventParameters);
+		MtpReponseParams(const MtpReponseParams& other);
+		MtpReponseParams& operator=(const MtpReponseParams& other);
 		~MtpReponseParams();
 
 		void SetCollection(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
