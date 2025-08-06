@@ -121,6 +121,7 @@ size_t MtpManager::countMtpDevices() {
 MtpDevice::MtpDevice(const PWSTR devicePath) {
 	devicePath_ = devicePath;
 	eventCookie_ = nullptr;
+	eventCallback_ = new nek::mtp::MtpEventCallback();
 
 	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
 	std::unique_lock lk(mutexTasks_);
@@ -128,8 +129,15 @@ MtpDevice::MtpDevice(const PWSTR devicePath) {
 }
 
 MtpDevice::MtpDevice() {
+	devicePath_ = (PWSTR)L"";
 	eventCookie_ = nullptr;
+	eventCallback_ = new nek::mtp::MtpEventCallback();
 }
+
+MtpDevice::~MtpDevice() {
+	nek::utils::MultiThreadedClass::~MultiThreadedClass();
+	delete eventCallback_;
+};
 
 void MtpDevice::mainThreadTask() {
 	mutexTasks_.lock();
@@ -138,12 +146,18 @@ void MtpDevice::mainThreadTask() {
 	//Com context
 	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	if (hr == RPC_E_CHANGED_MODE) {
+		mutexDevice_.unlock();
+		mutexTasks_.unlock();
 		throw MtpDeviceException(MtpExPhase::COM_INIT, hr);
 	}
 
 	//Device Client
 	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
-	if (FAILED(hr)) throw MtpDeviceException(MtpExPhase::DEVICECLIENT_INIT, hr);
+	if (FAILED(hr)) {
+		mutexDevice_.unlock();
+		mutexTasks_.unlock();
+		throw MtpDeviceException(MtpExPhase::DEVICECLIENT_INIT, hr);
+	}
 	deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
 	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
 	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
@@ -165,7 +179,6 @@ void MtpDevice::mainThreadTask() {
 		throw MtpDeviceException(MtpExPhase::DEVICE_INIT, hr);
 	}
 
-	eventCallback_ = new MtpEventCallback();
 	device_->Advise(0, eventCallback_, nullptr, &eventCookie_);
 
 	mutexDevice_.unlock();
