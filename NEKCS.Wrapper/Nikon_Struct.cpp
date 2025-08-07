@@ -6,7 +6,22 @@
 using namespace NEKCS;
 
 
-NikonDeviceInfoDS::NikonDeviceInfoDS() {};
+NikonDeviceInfoDS::NikonDeviceInfoDS() {
+	StandardVersion = 0;
+	VendorExtensionID = 0;
+	VendorExtensionVersion = 0;
+	VendorExtensionDesc = gcnew System::String("");
+	FunctionalMode = 0;
+	OperationsSupported = gcnew System::Collections::Generic::List<System::UInt16>();
+	EventsSupported = gcnew System::Collections::Generic::List<System::UInt16>();
+	DevicePropertiesSupported = gcnew System::Collections::Generic::List<System::UInt16>();
+	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>();
+	ImageFormats = gcnew System::Collections::Generic::List<System::UInt16>();
+	Manufacture = gcnew System::String("");
+	Model = gcnew System::String("");
+	DeviceVersion = gcnew System::String("");
+	SerialNumber = gcnew System::String("");
+};
 
 NikonDeviceInfoDS::NikonDeviceInfoDS(const nek::NikonDeviceInfoDS& native) {
 	StandardVersion = native.StandardVersion;
@@ -15,20 +30,25 @@ NikonDeviceInfoDS::NikonDeviceInfoDS(const nek::NikonDeviceInfoDS& native) {
 	VendorExtensionDesc = gcnew System::String(native.VendorExtensionDesc.c_str());
 	FunctionalMode = native.FunctionalMode;
 
+	OperationsSupported = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.OperationsSupported) {
-		OperationsSupported.Add(el);
+		OperationsSupported->Add(el);
 	}
+	EventsSupported = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.EventsSupported) {
-		EventsSupported.Add(el);
+		EventsSupported->Add(el);
 	}
+	DevicePropertiesSupported = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.DevicePropertiesSupported) {
-		DevicePropertiesSupported.Add(el);
+		DevicePropertiesSupported->Add(el);
 	}
+	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.CaptureFormats) {
-		CaptureFormats.Add(el);
+		CaptureFormats->Add(el);
 	}
+	ImageFormats = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.ImageFormats) {
-		ImageFormats.Add(el);
+		ImageFormats->Add(el);
 	}
 
 	Manufacture = gcnew System::String(native.Manufacture.c_str());

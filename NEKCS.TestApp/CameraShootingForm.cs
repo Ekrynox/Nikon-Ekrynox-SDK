@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Media.Imaging;
 
 namespace NEKCS.TestApp
 {
@@ -48,7 +50,17 @@ namespace NEKCS.TestApp
                 NEKCS.MtpResponse result = camera.SendCommandAndRead((ushort)NEKCS.NikonMtpOperationCode.GetObject, param);
                 if (result.responseCode == (ushort)NEKCS.NikonMtpResponseCode.OK)
                 {
-
+                    _syncContext.Post(delegate
+                    {
+                        var stream = new MemoryStream(result.data.ToArray());
+                        var decoder = System.Windows.Media.Imaging.BitmapDecoder.Create(stream, System.Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat, System.Windows.Media.Imaging.BitmapCacheOption.OnLoad);
+                        var frame = decoder.Frames[0];
+                        var encoder = new PngBitmapEncoder();
+                        encoder.Frames.Add(frame);
+                        var ms = new MemoryStream();
+                        encoder.Save(ms);
+                        PictureBox.Image = new System.Drawing.Bitmap(ms);
+                    }, null);
                 }
             }
         }

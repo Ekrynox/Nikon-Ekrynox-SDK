@@ -38,12 +38,14 @@ void MtpParams::addInt16(System::Int16  param) { m_nativeClass->addInt16(param);
 MtpResponse::MtpResponse() {
 	responseCode = 0;
 	responseParams_ = gcnew MtpReponseParams();
+	data = gcnew System::Collections::Generic::List<System::Byte>();
 }
 MtpResponse::MtpResponse(nek::mtp::MtpResponse response) {
 	responseCode = response.responseCode;
 	responseParams_ = gcnew MtpReponseParams(response.GetParams());
+	data = gcnew System::Collections::Generic::List<System::Byte>();
 	for (auto d : response.data) {
-		data.Add(d);
+		data->Add(d);
 	}
 }
 MtpResponse::~MtpResponse() { this->!MtpResponse(); }
