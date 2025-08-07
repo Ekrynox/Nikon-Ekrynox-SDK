@@ -9,15 +9,17 @@ using namespace NEKCS;
 
 
 //NikonCamera
-System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ NikonCamera::listNikonCameras() {
+System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ NikonCamera::listNikonCameras(System::Boolean onlyOn) {
 	System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ result = gcnew System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>();
-	for (auto& camera : nek::NikonCamera::listNikonCameras()) {
+	for (auto& camera : nek::NikonCamera::listNikonCameras(onlyOn)) {
 		result->Add(gcnew System::String(camera.first.c_str()), gcnew NikonDeviceInfoDS(camera.second));
 	}
 	return result;
 }
+System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ NikonCamera::listNikonCameras() { return listNikonCameras(true); }
 
-size_t NikonCamera::countNikonCameras() { return nek::NikonCamera::countNikonCameras(); }
+size_t NikonCamera::countNikonCameras(System::Boolean onlyOn) { return nek::NikonCamera::countNikonCameras(onlyOn); }
+size_t NikonCamera::countNikonCameras() { return countNikonCameras(true); }
 
 
 

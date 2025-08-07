@@ -16,7 +16,9 @@ namespace NEKCS {
 		System::Collections::Generic::Dictionary<MtpEventHandler^, size_t> _callbackIds;
 
 	public:
+		static System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ listNikonCameras(System::Boolean onlyOn);
 		static System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ listNikonCameras();
+		static size_t countNikonCameras(System::Boolean onlyOn);
 		static size_t countNikonCameras();
 
 		NikonCamera(System::String^ devicePath, System::Byte additionThreads);

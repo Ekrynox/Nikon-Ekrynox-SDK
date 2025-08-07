@@ -11,7 +11,7 @@ using namespace nek;
 
 
 
-std::map<std::wstring, NikonDeviceInfoDS> NikonCamera::listNikonCameras() {
+std::map<std::wstring, NikonDeviceInfoDS> NikonCamera::listNikonCameras(bool onlyOn) {
 	mtp::MtpManager* deviceManager = &nek::mtp::MtpManager::Instance();
 	auto cameras = deviceManager->listMtpDevices();
 	std::map<std::wstring, NikonDeviceInfoDS> nikonCameras;
@@ -21,15 +21,20 @@ std::map<std::wstring, NikonDeviceInfoDS> NikonCamera::listNikonCameras() {
 		std::wstring id(camera.first);
 		std::transform(id.begin(), id.end(), id.begin(), ::towlower);
 		if (id.find(L"vid_04b0") != std::wstring::npos) {
-			nikonCameras.insert(camera);
+			if (onlyOn == false) {
+				nikonCameras.insert(camera);
+			}
+			else if (std::find(camera.second.OperationsSupported.begin(), camera.second.OperationsSupported.end(), NikonMtpOperationCode::InitiateCaptureRecInSdram) != camera.second.OperationsSupported.end()) {
+				nikonCameras.insert(camera);
+			}
 		}
 	}
 
 	return nikonCameras;
 }
 
-size_t NikonCamera::countNikonCameras() {
-	return listNikonCameras().size();
+size_t NikonCamera::countNikonCameras(bool onlyOn) {
+	return listNikonCameras(onlyOn).size();
 }
 
 
