@@ -32,19 +32,19 @@ void ThreadedClassBase::sendTask(std::function<void()> task) {
 void ThreadedClassBase::threadTask() {
 	while (running_) {
 		mutexTasks_.lock();
-		while (tasks_.size() > 0) {
+		if (tasks_.size() > 0) {
 			auto task = tasks_.front();
 			tasks_.pop();
 			mutexTasks_.unlock();
 
 			task();
+		} else {
+			mutexTasks_.unlock();
 
-			mutexTasks_.lock();
+			std::unique_lock lk(mutexTasks_);
+			cvTasks_.wait(lk, [this] { return !this->running_ || (this->tasks_.size() > 0); });
+			lk.unlock();
 		}
-		mutexTasks_.unlock();
-
-		std::unique_lock lk(mutexTasks_);
-		cvTasks_.wait(lk, [this] { return !this->running_ || (this->tasks_.size() > 0); });
 	}
 }
 

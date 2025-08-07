@@ -33,7 +33,7 @@ size_t NikonCamera::countNikonCameras() {
 }
 
 
-NikonCamera::NikonCamera(std::wstring devicePath) : nek::mtp::MtpDevice::MtpDevice() {
+NikonCamera::NikonCamera(std::wstring devicePath, byte additionalThread) : nek::mtp::MtpDevice::MtpDevice() {
 	devicePath_ = (PWSTR)devicePath.c_str();
 
 	//Start main thread
@@ -44,6 +44,11 @@ NikonCamera::NikonCamera(std::wstring devicePath) : nek::mtp::MtpDevice::MtpDevi
 	//Event Thread
 	threads_.push_back(std::thread([this] { this->eventThreadTask(); }));
 	cvTasks_.wait(lk);
+
+	//Additional Threads
+	for (size_t i = 0; i < additionalThread; i++) {
+		threads_.push_back(std::thread([this] { this->additionalThreadTask(); }));
+	}
 }
 
 
@@ -146,7 +151,7 @@ void NikonCamera::eventThreadTask() {
 						eventParams.push_back(*(uint32_t*)(result.data.data() + offset));
 						offset += sizeof(uint32_t);
 					}
-					eventCallback_->OnEvent(nek::mtp::MtpEvent(eventCode, eventParams));
+					sendTaskAsync([this, eventCode, eventParams] { eventCallback_->OnEvent(nek::mtp::MtpEvent(eventCode, eventParams)); });
 				}
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));

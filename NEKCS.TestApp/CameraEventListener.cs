@@ -23,7 +23,7 @@ namespace NEKCS.TestApp
             InitializeComponent();
             _syncContext = SynchronizationContext.Current;
 
-            camera = new NEKCS.NikonCamera(devicePath);
+            camera = new NEKCS.NikonCamera(devicePath, 2);
             camera.OnMtpEvent += new NEKCS.MtpEventHandler(newCamEvent);
 
             _cameraShootingForm = new CameraShootingForm(camera);

@@ -118,7 +118,7 @@ size_t MtpManager::countMtpDevices() {
 
 
 //MtpDevice
-MtpDevice::MtpDevice(const PWSTR devicePath) {
+MtpDevice::MtpDevice(const PWSTR devicePath, byte additionalThread) {
 	devicePath_ = devicePath;
 	eventCookie_ = nullptr;
 	eventCallback_ = new nek::mtp::MtpEventCallback();
@@ -126,6 +126,10 @@ MtpDevice::MtpDevice(const PWSTR devicePath) {
 	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
 	std::unique_lock lk(mutexTasks_);
 	cvTasks_.wait(lk, [this] { return eventCookie_ != nullptr; });
+
+	for (byte i = 0; i < additionalThread; i++) {
+		threads_.push_back(std::thread([this] { this->additionalThreadTask(); }));
+	}
 }
 
 MtpDevice::MtpDevice() {
@@ -201,6 +205,20 @@ void MtpDevice::mainThreadTask() {
 	mutexDevice_.unlock();
 	mutexTasks_.unlock();
 	cvTasks_.notify_all();
+}
+
+void MtpDevice::additionalThreadTask() {
+	//Com context
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	if (hr == RPC_E_CHANGED_MODE) {
+		throw MtpDeviceException(MtpExPhase::COM_INIT, hr);
+	}
+
+	//Thread Loop
+	threadTask();
+
+	//Uninit
+	CoUninitialize();
 }
 
 

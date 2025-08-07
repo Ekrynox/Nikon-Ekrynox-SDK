@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="NEKCS.Wrapper.h" />
     <ClInclude Include="Nikon.h" />
     <ClInclude Include="Nikon_Enum.h" />
     <ClInclude Include="Nikon_Struct.h" />
@@ -88,7 +87,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="NEKCS.Wrapper.cpp" />
     <ClCompile Include="Nikon.cpp" />
     <ClCompile Include="Nikon_Struct.cpp" />
     <ClCompile Include="Nikon_Utils.cpp" />

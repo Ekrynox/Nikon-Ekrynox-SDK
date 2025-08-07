@@ -53,7 +53,7 @@ namespace nek::mtp {
 
 	class NEK_API MtpDevice : protected nek::utils::MultiThreadedClass {
 	public:
-		MtpDevice(const PWSTR devicePath);
+		MtpDevice(const PWSTR devicePath, byte additionalThread = 0);
 		~MtpDevice();
 
 		MtpResponse SendCommand(WORD operationCode, MtpParams params);
@@ -70,6 +70,7 @@ namespace nek::mtp {
 	protected:
 		MtpDevice();
 		void mainThreadTask();
+		void additionalThreadTask();
 
 		static MtpResponse SendCommand_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
 		static MtpResponse SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
