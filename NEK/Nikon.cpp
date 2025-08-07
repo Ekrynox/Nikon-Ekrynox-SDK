@@ -151,7 +151,10 @@ void NikonCamera::eventThreadTask() {
 						eventParams.push_back(*(uint32_t*)(result.data.data() + offset));
 						offset += sizeof(uint32_t);
 					}
-					sendTaskAsync([this, eventCode, eventParams] { eventCallback_->OnEvent(nek::mtp::MtpEvent(eventCode, eventParams)); });
+					mutexTasks_.lock();
+					tasksEvent_.push([this, eventCode, eventParams] { eventCallback_->OnEvent(nek::mtp::MtpEvent(eventCode, eventParams)); });
+					mutexTasks_.unlock();
+					cvTasks_.notify_one();
 				}
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -174,7 +177,10 @@ void NikonCamera::eventThreadTask() {
 				for (uint16_t i = 0; i < count; i++) {
 					eventCode = *(uint16_t*)(result.data.data() + 2 + i * 6);
 					eventParam = *(uint32_t*)(result.data.data() + 4 + i * 6);
-					eventCallback_->OnEvent(nek::mtp::MtpEvent(eventCode, eventParam));
+					mutexTasks_.lock();
+					tasksEvent_.push([this, eventCode, eventParam] { eventCallback_->OnEvent(nek::mtp::MtpEvent(eventCode, eventParam)); });
+					mutexTasks_.unlock();
+					cvTasks_.notify_one();
 				}
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -190,4 +196,31 @@ void NikonCamera::eventThreadTask() {
 	}
 
 	CoUninitialize();
+}
+
+void NikonCamera::threadTask() {
+	while (running_) {
+		mutexTasks_.lock();
+		if (tasksEvent_.size() > 0) {
+			auto task = tasksEvent_.front();
+			tasksEvent_.pop();
+			mutexTasks_.unlock();
+
+			task();
+		}
+		else if (tasks_.size() > 0) {
+			auto task = tasks_.front();
+			tasks_.pop();
+			mutexTasks_.unlock();
+
+			task();
+		}
+		else {
+			mutexTasks_.unlock();
+
+			std::unique_lock lk(mutexTasks_);
+			cvTasks_.wait(lk, [this] { return !this->running_ || (this->tasks_.size() + tasksEvent_.size() > 0); });
+			lk.unlock();
+		}
+	}
 }

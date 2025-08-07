@@ -19,8 +19,11 @@ namespace nek {
 		NikonCamera(std::wstring devicePath, byte additionalThread = 0);
 
 	private:
-		void mainThreadTask();
+		virtual void mainThreadTask() override;
+		virtual void threadTask() override;
 		void eventThreadTask();
+
+		std::queue<std::function<void()>> tasksEvent_;
 	};
 
 }

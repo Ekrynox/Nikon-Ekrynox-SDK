@@ -29,7 +29,7 @@ namespace nek::utils {
 		}
 
 	protected:
-		void threadTask();
+		virtual void threadTask();
 
 		std::queue<std::function<void()>> tasks_;
 		std::atomic<bool> running_;
