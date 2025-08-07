@@ -59,7 +59,7 @@ namespace nek::mtp {
 
 		MtpReponseParams& GetParams();
 
-		uint32_t responseCode;
+		uint16_t responseCode;
 		std::vector<BYTE> data;
 
 	private:

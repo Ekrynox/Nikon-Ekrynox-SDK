@@ -12,9 +12,9 @@ NikonDeviceInfoDS::NikonDeviceInfoDS() {
 	VendorExtensionVersion = 0;
 	VendorExtensionDesc = gcnew System::String("");
 	FunctionalMode = 0;
-	OperationsSupported = gcnew System::Collections::Generic::List<System::UInt16>();
-	EventsSupported = gcnew System::Collections::Generic::List<System::UInt16>();
-	DevicePropertiesSupported = gcnew System::Collections::Generic::List<System::UInt16>();
+	OperationsSupported = gcnew System::Collections::Generic::List<NikonMtpOperationCode>();
+	EventsSupported = gcnew System::Collections::Generic::List<NikonMtpEventCode>();
+	DevicePropertiesSupported = gcnew System::Collections::Generic::List<NikonMtpDevicePropCode>();
 	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>();
 	ImageFormats = gcnew System::Collections::Generic::List<System::UInt16>();
 	Manufacture = gcnew System::String("");
@@ -30,17 +30,17 @@ NikonDeviceInfoDS::NikonDeviceInfoDS(const nek::NikonDeviceInfoDS& native) {
 	VendorExtensionDesc = gcnew System::String(native.VendorExtensionDesc.c_str());
 	FunctionalMode = native.FunctionalMode;
 
-	OperationsSupported = gcnew System::Collections::Generic::List<System::UInt16>();
+	OperationsSupported = gcnew System::Collections::Generic::List<NikonMtpOperationCode>();
 	for (auto el : native.OperationsSupported) {
-		OperationsSupported->Add(el);
+		OperationsSupported->Add((NikonMtpOperationCode)el);
 	}
-	EventsSupported = gcnew System::Collections::Generic::List<System::UInt16>();
+	EventsSupported = gcnew System::Collections::Generic::List<NikonMtpEventCode>();
 	for (auto el : native.EventsSupported) {
-		EventsSupported->Add(el);
+		EventsSupported->Add((NikonMtpEventCode)el);
 	}
-	DevicePropertiesSupported = gcnew System::Collections::Generic::List<System::UInt16>();
+	DevicePropertiesSupported = gcnew System::Collections::Generic::List<NikonMtpDevicePropCode>();
 	for (auto el : native.DevicePropertiesSupported) {
-		DevicePropertiesSupported->Add(el);
+		DevicePropertiesSupported->Add((NikonMtpDevicePropCode)el);
 	}
 	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>();
 	for (auto el : native.CaptureFormats) {

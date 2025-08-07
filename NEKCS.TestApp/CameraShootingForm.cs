@@ -28,13 +28,13 @@ namespace NEKCS.TestApp
 
             NEKCS.MtpParams param = new NEKCS.MtpParams();
             param.addUint32(0);
-            NEKCS.MtpResponse result = camera.SendCommandAndRead((ushort)NEKCS.NikonMtpOperationCode.DeleteImagesInSdram, param);
+            NEKCS.MtpResponse result = camera.SendCommandAndRead(NEKCS.NikonMtpOperationCode.DeleteImagesInSdram, param);
         }
 
 
         private void cameraEvent(NEKCS.NikonCamera cam, NEKCS.MtpEvent e)
         {
-            if (e.eventCode == (ushort)NEKCS.NikonMtpEventCode.ObjectAddedInSdram)
+            if (e.eventCode == NEKCS.NikonMtpEventCode.ObjectAddedInSdram)
             {
                 if (e.eventParams.Count > 0 && e.eventParams[0] != 0)
                 {
@@ -47,8 +47,8 @@ namespace NEKCS.TestApp
 
                 NEKCS.MtpParams param = new NEKCS.MtpParams();
                 param.addUint32(_sdramHandle);
-                NEKCS.MtpResponse result = camera.SendCommandAndRead((ushort)NEKCS.NikonMtpOperationCode.GetObject, param);
-                if (result.responseCode == (ushort)NEKCS.NikonMtpResponseCode.OK)
+                NEKCS.MtpResponse result = camera.SendCommandAndRead(NEKCS.NikonMtpOperationCode.GetObject, param);
+                if (result.responseCode == NEKCS.NikonMtpResponseCode.OK)
                 {
                     _syncContext.Post(delegate
                     {
@@ -69,7 +69,7 @@ namespace NEKCS.TestApp
         {
             NEKCS.MtpParams param = new NEKCS.MtpParams();
             param.addUint32(0xFFFFFFFF);
-            NEKCS.MtpResponse result = camera.SendCommand((ushort)NEKCS.NikonMtpOperationCode.InitiateCaptureRecInSdram, param);
+            NEKCS.MtpResponse result = camera.SendCommand(NEKCS.NikonMtpOperationCode.InitiateCaptureRecInSdram, param);
         }
     }
 }

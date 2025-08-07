@@ -204,7 +204,7 @@ namespace NEKCS {
 		PictureControlHlgAdjustChanged = 0xC127
 	};
 
-	public enum class NikonMtpDevicePropCode : System::UInt16 {
+	public enum class NikonMtpDevicePropCode : System::UInt32 {
 		BatteryLevel = 0x5001,
 		ImageSize = 0x5003,
 		CompressionSetting = 0x5004,
@@ -437,7 +437,7 @@ namespace NEKCS {
 		PerceivedDeviceType = 0xD407
 	};
 
-	public enum class NikonMtpObjectPropCode : System::UInt16 {
+	public enum class NikonMtpObjectPropCode : System::UInt32 {
 		StorageID = 0xDC01,
 		ObjectFormat = 0xDC02,
 		ProtectionStatus = 0xDC03,
