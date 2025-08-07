@@ -37,6 +37,7 @@ namespace nek::mtp {
 		ENDWRITE_INIT = 21,
 		ENDWRITE_SEND = 22,
 		ENDWRITE_RESPONSE = 23,
+		DEVICE_NOT_CONNECTED = 24,
 	};
 
 	enum MtpExCode {

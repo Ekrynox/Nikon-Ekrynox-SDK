@@ -61,40 +61,15 @@ void NikonCamera::mainThreadTask() {
 	mutexTasks_.lock();
 	mutexDevice_.lock();
 
-	//Com context
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	if (hr == RPC_E_CHANGED_MODE) {
-		mutexDevice_.unlock();
-		mutexTasks_.unlock();
-		throw nek::mtp::MtpDeviceException(nek::mtp::MtpExPhase::COM_INIT, hr);
+	//Init & Connect
+	try {
+		initCom();
+		connect();
 	}
-
-	//Device Client
-	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
-	if (FAILED(hr)) {
+	catch (...) {
 		mutexDevice_.unlock();
 		mutexTasks_.unlock();
-		throw nek::mtp::MtpDeviceException(nek::mtp::MtpExPhase::DEVICECLIENT_INIT, hr);
-	}
-	deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
-	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
-	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
-	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
-
-	//Device
-	hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device_));
-	if (FAILED(hr)) {
-		mutexDevice_.unlock();
-		mutexTasks_.unlock();
-		throw nek::mtp::MtpDeviceException(nek::mtp::MtpExPhase::DEVICE_INIT, hr);
-	}
-
-	hr = device_->Open(devicePath_, deviceClient_);
-	if (FAILED(hr)) {
-		device_.Release();
-		mutexDevice_.unlock();
-		mutexTasks_.unlock();
-		throw nek::mtp::MtpDeviceException(nek::mtp::MtpExPhase::DEVICE_INIT, hr);
+		throw;
 	}
 
 	mutexDevice_.unlock();
@@ -121,11 +96,7 @@ void NikonCamera::mainThreadTask() {
 }
 
 void NikonCamera::eventThreadTask() {
-	//Com context
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	if (hr == RPC_E_CHANGED_MODE) {
-		throw std::runtime_error("Failed to init COM: " + hr);
-	}
+	initCom();
 
 	//Event Handler Detection
 	NikonDeviceInfoDS info = GetDeviceInfo();

@@ -120,6 +120,7 @@ size_t MtpManager::countMtpDevices() {
 //MtpDevice
 MtpDevice::MtpDevice(const PWSTR devicePath, byte additionalThread) {
 	devicePath_ = devicePath;
+	connected_ = false;
 	eventCookie_ = nullptr;
 	eventCallback_ = new nek::mtp::MtpEventCallback();
 
@@ -134,6 +135,7 @@ MtpDevice::MtpDevice(const PWSTR devicePath, byte additionalThread) {
 
 MtpDevice::MtpDevice() {
 	devicePath_ = (PWSTR)L"";
+	connected_ = false;
 	eventCookie_ = nullptr;
 	eventCallback_ = new nek::mtp::MtpEventCallback();
 }
@@ -143,44 +145,20 @@ MtpDevice::~MtpDevice() {
 	eventCallback_.Release();
 };
 
+
 void MtpDevice::mainThreadTask() {
 	mutexTasks_.lock();
 	mutexDevice_.lock();
 
-	//Com context
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	if (hr == RPC_E_CHANGED_MODE) {
-		mutexDevice_.unlock();
-		mutexTasks_.unlock();
-		throw MtpDeviceException(MtpExPhase::COM_INIT, hr);
+	//Init & Connect
+	try {
+		initCom();
+		connect();
 	}
-
-	//Device Client
-	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
-	if (FAILED(hr)) {
+	catch (...) {
 		mutexDevice_.unlock();
 		mutexTasks_.unlock();
-		throw MtpDeviceException(MtpExPhase::DEVICECLIENT_INIT, hr);
-	}
-	deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
-	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
-	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
-	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
-
-	//Device
-	hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device_));
-	if (FAILED(hr)) {
-		mutexDevice_.unlock();
-		mutexTasks_.unlock();
-		throw MtpDeviceException(MtpExPhase::DEVICE_INIT, hr);
-	}
-
-	hr = device_->Open(devicePath_, deviceClient_);
-	if (FAILED(hr)) {
-		device_.Release();
-		mutexDevice_.unlock();
-		mutexTasks_.unlock();
-		throw MtpDeviceException(MtpExPhase::DEVICE_INIT, hr);
+		throw;
 	}
 
 	device_->Advise(0, eventCallback_, nullptr, &eventCookie_);
@@ -199,7 +177,6 @@ void MtpDevice::mainThreadTask() {
 	device_->Unadvise(eventCookie_);
 	eventCallback_.Release();
 	device_.Release();
-	device_.p = nullptr;
 	CoUninitialize();
 
 	mutexDevice_.unlock();
@@ -209,10 +186,7 @@ void MtpDevice::mainThreadTask() {
 
 void MtpDevice::additionalThreadTask() {
 	//Com context
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	if (hr == RPC_E_CHANGED_MODE) {
-		throw MtpDeviceException(MtpExPhase::COM_INIT, hr);
-	}
+	initCom();
 
 	//Thread Loop
 	threadTask();
@@ -538,29 +512,88 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 
 
 
+void MtpDevice::initCom() {
+	//Com context
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	if (hr == RPC_E_CHANGED_MODE) {
+		throw MtpDeviceException(MtpExPhase::COM_INIT, hr);
+	}
+
+	//Device Client
+	if (deviceClient_ != nullptr) {
+		return; //Already initialized
+	}
+	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
+	if (FAILED(hr)) {
+		mutexDevice_.unlock();
+		mutexTasks_.unlock();
+		throw MtpDeviceException(MtpExPhase::DEVICECLIENT_INIT, hr);
+	}
+	deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
+	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
+	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
+	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
+}
+
+void MtpDevice::connect() {
+	if (connected_) {
+		return; //Already connected
+	}
+
+	HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device_));
+	if (FAILED(hr)) {
+		throw MtpDeviceException(MtpExPhase::DEVICE_INIT, hr);
+	}
+
+	hr = device_->Open(devicePath_, deviceClient_);
+	if (FAILED(hr)) {
+		device_.Release();
+		throw MtpDeviceException(MtpExPhase::DEVICE_INIT, hr);
+	}
+
+	connected_ = true;
+}
+
+
+
 MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
-	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
-		this->mutexDevice_.lock();
-		MtpResponse result =  this->SendCommand_(this->device_, operationCode, params);
-		this->mutexDevice_.unlock();
-		return result;
-		});
+	if (connected_) {
+		return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
+			this->mutexDevice_.lock();
+			MtpResponse result = this->SendCommand_(this->device_, operationCode, params);
+			this->mutexDevice_.unlock();
+			return result;
+			});
+	} 
+	else {
+		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, E_FAIL);
+	}
 }
 MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) {
-	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
-		this->mutexDevice_.lock();
-		MtpResponse result = this->SendCommandAndRead_(this->device_, operationCode, params);
-		this->mutexDevice_.unlock();
-		return result;
-		});
+	if (connected_) {
+		return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
+			this->mutexDevice_.lock();
+			MtpResponse result = this->SendCommandAndRead_(this->device_, operationCode, params);
+			this->mutexDevice_.unlock();
+			return result;
+			});
+	}
+	else {
+		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, E_FAIL);
+	}
 }
 MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<BYTE> data) {
-	return sendTaskWithResult<MtpResponse>([this, operationCode, &params, &data] {
-		this->mutexDevice_.lock();
-		MtpResponse result = this->SendCommandAndWrite_(this->device_, operationCode, params, data);
-		this->mutexDevice_.unlock();
-		return result;
-		});
+	if (connected_) {
+		return sendTaskWithResult<MtpResponse>([this, operationCode, &params, &data] {
+			this->mutexDevice_.lock();
+			MtpResponse result = this->SendCommandAndWrite_(this->device_, operationCode, params, data);
+			this->mutexDevice_.unlock();
+			return result;
+			});
+	}
+	else {
+		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, E_FAIL);
+	}
 }
 
 
