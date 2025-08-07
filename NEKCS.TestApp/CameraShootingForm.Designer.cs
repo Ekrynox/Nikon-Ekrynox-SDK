@@ -35,10 +35,11 @@
             // 
             // PictureBox
             // 
+            PictureBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             PictureBox.Location = new Point(12, 12);
             PictureBox.Name = "PictureBox";
             PictureBox.Size = new Size(528, 426);
-            PictureBox.SizeMode = PictureBoxSizeMode.AutoSize;
+            PictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
             PictureBox.TabIndex = 0;
             PictureBox.TabStop = false;
             // 
@@ -64,7 +65,6 @@
             Text = "CameraShootingForm";
             ((System.ComponentModel.ISupportInitialize)PictureBox).EndInit();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion

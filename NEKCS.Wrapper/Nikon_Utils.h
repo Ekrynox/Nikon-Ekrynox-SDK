@@ -48,7 +48,7 @@ namespace NEKCS {
 		MtpReponseParams^ GetParams();
 
 		System::UInt32 responseCode;
-		System::Collections::Generic::List<System::Byte> data;
+		System::Collections::Generic::List<System::Byte>^ data;
 	internal:
 		MtpReponseParams^ responseParams_;
 	};
