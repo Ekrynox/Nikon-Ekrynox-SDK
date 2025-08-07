@@ -76,9 +76,14 @@ namespace nek::mtp {
 		static MtpResponse SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
 		static MtpResponse SendCommandAndWrite_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params, std::vector<BYTE> data);
 
+		void initCom();
+		void connect();
+
 		PWSTR devicePath_;
 		CComPtr<IPortableDeviceValues> deviceClient_;
 		CComPtr<IPortableDevice> device_;
+		bool connected_;
+
 		CComPtr<MtpEventCallback> eventCallback_;
 		PWSTR eventCookie_;
 		std::mutex mutexDevice_;

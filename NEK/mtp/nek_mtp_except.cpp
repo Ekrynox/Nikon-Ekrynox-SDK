@@ -34,6 +34,7 @@ std::string MtpExPhaseToString(MtpExPhase phase) {
 	case ENDWRITE_INIT: return "End Write Initialization";
 	case ENDWRITE_SEND: return "End Write Send";
 	case ENDWRITE_RESPONSE: return "End Write Response";
+	case DEVICE_NOT_CONNECTED: return "Device Not Connected";
 	default: return "Unknown Phase";
 	}
 }
