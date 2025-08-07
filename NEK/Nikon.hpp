@@ -13,8 +13,8 @@ namespace nek {
 
 	class NEK_API NikonCamera : public nek::mtp::MtpDevice {
 	public:
-		static std::map<std::wstring, NikonDeviceInfoDS> listNikonCameras();
-		static size_t countNikonCameras();
+		static std::map<std::wstring, NikonDeviceInfoDS> listNikonCameras(bool onlyOn = true);
+		static size_t countNikonCameras(bool onlyOn = true);
 
 		NikonCamera(std::wstring devicePath, byte additionalThread = 0);
 
