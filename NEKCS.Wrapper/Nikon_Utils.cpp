@@ -36,12 +36,12 @@ void MtpParams::addInt16(System::Int16  param) { m_nativeClass->addInt16(param);
 
 //MtpResponse
 MtpResponse::MtpResponse() {
-	responseCode = 0;
+	responseCode = (NikonMtpResponseCode)0;
 	responseParams_ = gcnew MtpReponseParams();
 	data = gcnew System::Collections::Generic::List<System::Byte>();
 }
 MtpResponse::MtpResponse(nek::mtp::MtpResponse response) {
-	responseCode = response.responseCode;
+	responseCode = (NikonMtpResponseCode)response.responseCode;
 	responseParams_ = gcnew MtpReponseParams(response.GetParams());
 	data = gcnew System::Collections::Generic::List<System::Byte>();
 	for (auto d : response.data) {
@@ -60,7 +60,7 @@ MtpReponseParams^ MtpResponse::GetParams() { return responseParams_; }
 
 //MtpEvent
 MtpEvent::MtpEvent(nek::mtp::MtpEvent event) {
-	eventCode = event.eventCode;
+	eventCode = (NikonMtpEventCode)event.eventCode;
 	eventParams = gcnew System::Collections::Generic::List<System::UInt32>();
 	for (auto p : event.eventParams) {
 		eventParams->Add(p);

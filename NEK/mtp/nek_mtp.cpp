@@ -232,7 +232,9 @@ MtpResponse MtpDevice::SendCommand_(CComPtr<IPortableDevice> device, WORD operat
 	}
 
 	// Extract response code
-	hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+	ULONG tempCode;
+	hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, &tempCode);
+	result.responseCode = static_cast<uint16_t>(tempCode);
 	if (FAILED(hr)) {
 		command.Release();
 		commandResult.Release();
@@ -360,7 +362,9 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 	}
 
 	// Extract response code
-	hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+	ULONG tempCode;
+	hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, &tempCode);
+	result.responseCode = static_cast<uint16_t>(tempCode);
 	if (FAILED(hr)) {
 		CoTaskMemFree(context);
 		command.Release();
@@ -486,7 +490,9 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 	}
 
 	// Extract response code
-	hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, reinterpret_cast<ULONG*>(&result.responseCode));
+	ULONG tempCode;
+	hr = commandResult->GetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_RESPONSE_CODE, &tempCode);
+	result.responseCode = static_cast<uint16_t>(tempCode);
 	if (FAILED(hr)) {
 		command.Release();
 		commandResult.Release();

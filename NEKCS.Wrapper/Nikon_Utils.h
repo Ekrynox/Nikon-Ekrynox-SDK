@@ -1,5 +1,6 @@
 #pragma once
 #include "mtp/nek_mtp_utils.hpp"
+#include "Nikon_Enum.h"
 
 #include <vcclr.h>
 
@@ -47,7 +48,7 @@ namespace NEKCS {
 
 		MtpReponseParams^ GetParams();
 
-		System::UInt32 responseCode;
+		NikonMtpResponseCode responseCode;
 		System::Collections::Generic::List<System::Byte>^ data;
 	internal:
 		MtpReponseParams^ responseParams_;
@@ -59,7 +60,7 @@ namespace NEKCS {
 		MtpEvent(nek::mtp::MtpEvent event);
 
 	public:
-		System::UInt16 eventCode;
+		NikonMtpEventCode eventCode;
 		System::Collections::Generic::List<System::UInt32>^ eventParams;
 	};
 
