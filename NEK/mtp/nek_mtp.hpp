@@ -69,8 +69,8 @@ namespace nek::mtp {
 
 	protected:
 		MtpDevice();
-		void mainThreadTask();
-		void additionalThreadTask();
+		virtual void mainThreadTask();
+		virtual void additionalThreadTask();
 
 		static MtpResponse SendCommand_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
 		static MtpResponse SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
