@@ -48,8 +48,14 @@ int main() {
 		wcout << cameraInfo.second.Manufacture << " " << cameraInfo.second.Model << " " << cameraInfo.second.SerialNumber << endl;
 	}
 
-	camera = new nek::NikonCamera(nikonCameras.begin()->first);
+	camera = new nek::NikonCamera(nikonCameras.begin()->first, 1);
 	camera->RegisterCallback(eventFunc);
+
+	{
+		auto params = nek::mtp::MtpParams();
+		params.addUint32(0);
+		camera->SendCommand(nek::NikonMtpOperationCode::DeleteImagesInSdram, params);
+	}
 
 
 	int wait = 1;

@@ -19,6 +19,7 @@ namespace NEKCS {
 		static System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ listNikonCameras();
 		static size_t countNikonCameras();
 
+		NikonCamera(System::String^ devicePath, System::Byte additionThreads);
 		NikonCamera(System::String^ devicePath);
 		~NikonCamera();
 		!NikonCamera();

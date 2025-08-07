@@ -21,13 +21,14 @@ size_t NikonCamera::countNikonCameras() { return nek::NikonCamera::countNikonCam
 
 
 
-NikonCamera::NikonCamera(System::String^ devicePath) {
+NikonCamera::NikonCamera(System::String^ devicePath, System::Byte additionThreads) {
 	std::wstring str;
 	for each (auto c in devicePath) {
 		str += c;
 	}
-	m_nativeClass = new nek::NikonCamera(str);
+	m_nativeClass = new nek::NikonCamera(str, additionThreads);
 };
+NikonCamera::NikonCamera(System::String^ devicePath) : NikonCamera(devicePath, 0) {};
 NikonCamera::~NikonCamera() { this->!NikonCamera(); };
 NikonCamera::!NikonCamera() {
 	delete m_nativeClass;
