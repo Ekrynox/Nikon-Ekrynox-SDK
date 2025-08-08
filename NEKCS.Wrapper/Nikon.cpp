@@ -10,11 +10,16 @@ using namespace NEKCS;
 
 //NikonCamera
 System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ NikonCamera::listNikonCameras(System::Boolean onlyOn) {
-	System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ result = gcnew System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>();
-	for (auto& camera : nek::NikonCamera::listNikonCameras(onlyOn)) {
-		result->Add(gcnew System::String(camera.first.c_str()), gcnew NikonDeviceInfoDS(camera.second));
+	try {
+		System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ result = gcnew System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>();
+		for (auto& camera : nek::NikonCamera::listNikonCameras(onlyOn)) {
+			result->Add(gcnew System::String(camera.first.c_str()), gcnew NikonDeviceInfoDS(camera.second));
+		}
+		return result;
 	}
-	return result;
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
 }
 System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ NikonCamera::listNikonCameras() { return listNikonCameras(true); }
 
@@ -28,7 +33,12 @@ NikonCamera::NikonCamera(System::String^ devicePath, System::Byte additionThread
 	for each (auto c in devicePath) {
 		str += c;
 	}
-	m_nativeClass = new nek::NikonCamera(str, additionThreads);
+	try {
+		m_nativeClass = new nek::NikonCamera(str, additionThreads);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
 };
 NikonCamera::NikonCamera(System::String^ devicePath) : NikonCamera(devicePath, 0) {};
 NikonCamera::~NikonCamera() { this->!NikonCamera(); };
@@ -44,8 +54,22 @@ System::Boolean NikonCamera::isConnected() {
 
 
 
-MtpResponse^ NikonCamera::SendCommand(NikonMtpOperationCode operationCode, MtpParams^ params) { return gcnew MtpResponse(m_nativeClass->SendCommand((System::UInt16)operationCode, *params->m_nativeClass)); }
-MtpResponse^ NikonCamera::SendCommandAndRead(NikonMtpOperationCode operationCode, MtpParams^ params) { return gcnew MtpResponse(m_nativeClass->SendCommandAndRead((System::UInt16)operationCode, *params->m_nativeClass)); }
+MtpResponse^ NikonCamera::SendCommand(NikonMtpOperationCode operationCode, MtpParams^ params) { 
+	try {
+		return gcnew MtpResponse(m_nativeClass->SendCommand((System::UInt16)operationCode, *params->m_nativeClass));
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+}
+MtpResponse^ NikonCamera::SendCommandAndRead(NikonMtpOperationCode operationCode, MtpParams^ params) {
+	try {
+		return gcnew MtpResponse(m_nativeClass->SendCommandAndRead((System::UInt16)operationCode, *params->m_nativeClass));
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+}
 MtpResponse^ NikonCamera::SendCommandAndWrite(NikonMtpOperationCode operationCode, MtpParams^ params, array<System::Byte>^ data) {
 	std::vector<BYTE> datac = std::vector<BYTE>();
 	datac.resize(data->Length);
@@ -53,9 +77,24 @@ MtpResponse^ NikonCamera::SendCommandAndWrite(NikonMtpOperationCode operationCod
 		pin_ptr<System::Byte> dataptr = &data[0];
 		std::memcpy(datac.data(), dataptr, data->Length);
 	}
-	return gcnew MtpResponse(m_nativeClass->SendCommandAndWrite((System::UInt16)operationCode, *params->m_nativeClass, datac));
+	try {
+		return gcnew MtpResponse(m_nativeClass->SendCommandAndWrite((System::UInt16)operationCode, *params->m_nativeClass, datac));
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
 }
 
 
 
-NikonDeviceInfoDS^ NikonCamera::GetDeviceInfo() { return gcnew NikonDeviceInfoDS(m_nativeClass->GetDeviceInfo()); }
+NikonDeviceInfoDS^ NikonCamera::GetDeviceInfo() {
+	try {
+		return gcnew NikonDeviceInfoDS(m_nativeClass->GetDeviceInfo());
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+	catch (const nek::mtp::MtpException& e) {
+		throw gcnew MtpException(e);
+	}
+}
