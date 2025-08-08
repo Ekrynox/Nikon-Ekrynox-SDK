@@ -38,28 +38,10 @@ size_t NikonCamera::countNikonCameras(bool onlyOn) {
 }
 
 
-NikonCamera::NikonCamera(std::wstring devicePath, byte additionalThread) : nek::mtp::MtpDevice::MtpDevice() {
+NikonCamera::NikonCamera(std::wstring devicePath, uint8_t additionalThread) : nek::mtp::MtpDevice::MtpDevice() {
 	devicePath_ = (PWSTR)devicePath.c_str();
 
-	//Start main thread
-	mutexThreads_.lock();
-	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
-	mutexThreads_.unlock();
-	std::unique_lock lk(mutexTasks_);
-	cvTasks_.wait(lk);
-
-	//Event Thread
-	mutexThreads_.lock();
-	threads_.push_back(std::thread([this] { this->eventThreadTask(); }));
-	mutexThreads_.unlock();
-	cvTasks_.wait(lk);
-
-	//Additional Threads
-	for (size_t i = 0; i < additionalThread; i++) {
-		mutexThreads_.lock();
-		threads_.push_back(std::thread([this] { this->additionalThreadTask(); }));
-		mutexThreads_.unlock();
-	}
+	startThreads();
 }
 
 
@@ -230,5 +212,28 @@ void NikonCamera::threadTask() {
 			cvTasks_.wait(lk, [this] { return !this->running_ || (this->tasks_.size() + tasksEvent_.size() > 0); });
 			lk.unlock();
 		}
+	}
+}
+
+
+void NikonCamera::startThreads() {
+	//Start main thread
+	mutexThreads_.lock();
+	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
+	mutexThreads_.unlock();
+	std::unique_lock lk(mutexTasks_);
+	cvTasks_.wait(lk);
+
+	//Event Thread
+	mutexThreads_.lock();
+	threads_.push_back(std::thread([this] { this->eventThreadTask(); }));
+	mutexThreads_.unlock();
+	cvTasks_.wait(lk);
+
+	//Additional Threads
+	for (uint8_t i = 0; i < additionalThreadsNb_; i++) {
+		mutexThreads_.lock();
+		threads_.push_back(std::thread([this] { this->additionalThreadsTask(); }));
+		mutexThreads_.unlock();
 	}
 }
