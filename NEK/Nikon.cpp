@@ -127,7 +127,8 @@ void NikonCamera::eventThreadTask() {
 				mutexDevice_.unlock();
 				if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
 					disconnect();
-					result.responseCode = nek::NikonMtpResponseCode::Transaction_Cancelled;
+					CoUninitialize();
+					return;
 				}
 				else { throw; }
 			}
@@ -163,9 +164,22 @@ void NikonCamera::eventThreadTask() {
 		uint16_t eventCode;
 		uint32_t eventParam;
 		while (running_) {
+			nek::mtp::MtpResponse result;
 			mutexDevice_.lock();
-			nek::mtp::MtpResponse result = SendCommandAndRead_(device_, NikonMtpOperationCode::GetEvent, params);
-			mutexDevice_.unlock();
+			try {
+				result = SendCommandAndRead_(device_, NikonMtpOperationCode::GetEvent, params);
+				mutexDevice_.unlock();
+			}
+			catch (const nek::mtp::MtpDeviceException& e) {
+				mutexDevice_.unlock();
+				if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
+					disconnect();
+					CoUninitialize();
+					return;
+				}
+				else { throw; }
+			}
+
 			if (result.responseCode == NikonMtpResponseCode::OK) {
 				count = *(uint16_t*)(result.data.data());
 				for (uint16_t i = 0; i < count; i++) {

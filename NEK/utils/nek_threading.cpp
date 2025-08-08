@@ -94,11 +94,13 @@ void MultiThreadedClass::stopThread() {
 	while (threads_.size() > 0) {
 		if (threadId == threads_.back().get_id()) {
 			std::swap(thOwn, threads_.back());
+			thOwn.detach();
 		}
 		else if (threads_.back().joinable()) {
 			threads_.back().join();
-			threads_.pop_back();
 		}
+		threads_.pop_back();
 	}
 	mutexThreads_.unlock();
+
 }
