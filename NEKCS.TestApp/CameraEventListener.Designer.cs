@@ -51,6 +51,7 @@
             Name = "CameraEventListener";
             Text = "Event Listener";
             FormClosing += CameraEventListener_FormClosing;
+            Load += CameraEventListener_Load;
             ResumeLayout(false);
         }
 
