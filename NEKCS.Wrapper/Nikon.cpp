@@ -37,6 +37,13 @@ NikonCamera::!NikonCamera() {
 	m_nativeClass = nullptr;
 };
 
+
+System::Boolean NikonCamera::isConnected() {
+	return m_nativeClass->isConnected();
+}
+
+
+
 MtpResponse^ NikonCamera::SendCommand(NikonMtpOperationCode operationCode, MtpParams^ params) { return gcnew MtpResponse(m_nativeClass->SendCommand((System::UInt16)operationCode, *params->m_nativeClass)); }
 MtpResponse^ NikonCamera::SendCommandAndRead(NikonMtpOperationCode operationCode, MtpParams^ params) { return gcnew MtpResponse(m_nativeClass->SendCommandAndRead((System::UInt16)operationCode, *params->m_nativeClass)); }
 MtpResponse^ NikonCamera::SendCommandAndWrite(NikonMtpOperationCode operationCode, MtpParams^ params, array<System::Byte>^ data) {

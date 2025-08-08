@@ -16,12 +16,14 @@ namespace nek {
 		static std::map<std::wstring, NikonDeviceInfoDS> listNikonCameras(bool onlyOn = true);
 		static size_t countNikonCameras(bool onlyOn = true);
 
-		NikonCamera(std::wstring devicePath, byte additionalThread = 0);
+		NikonCamera(std::wstring devicePath, uint8_t additionalThread = 0);
 
 	private:
 		virtual void mainThreadTask() override;
 		virtual void threadTask() override;
 		void eventThreadTask();
+
+		virtual void startThreads() override;
 
 		std::queue<std::function<void()>> tasksEvent_;
 	};

@@ -118,23 +118,14 @@ size_t MtpManager::countMtpDevices() {
 
 
 //MtpDevice
-MtpDevice::MtpDevice(const PWSTR devicePath, byte additionalThread) {
+MtpDevice::MtpDevice(const PWSTR devicePath, uint8_t additionalThreadsNb) {
 	devicePath_ = devicePath;
 	connected_ = false;
 	eventCookie_ = nullptr;
 	eventCallback_ = new nek::mtp::MtpEventCallback();
+	additionalThreadsNb_ = additionalThreadsNb;
 
-	mutexThreads_.lock();
-	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
-	mutexThreads_.unlock();
-	std::unique_lock lk(mutexTasks_);
-	cvTasks_.wait(lk, [this] { return eventCookie_ != nullptr; });
-
-	for (byte i = 0; i < additionalThread; i++) {
-		mutexThreads_.lock();
-		threads_.push_back(std::thread([this] { this->additionalThreadTask(); }));
-		mutexThreads_.unlock();
-	}
+	startThreads();
 }
 
 MtpDevice::MtpDevice() {
@@ -142,6 +133,7 @@ MtpDevice::MtpDevice() {
 	connected_ = false;
 	eventCookie_ = nullptr;
 	eventCallback_ = new nek::mtp::MtpEventCallback();
+	additionalThreadsNb_ = 0;
 }
 
 MtpDevice::~MtpDevice() {
@@ -189,7 +181,7 @@ void MtpDevice::mainThreadTask() {
 	cvTasks_.notify_all();
 }
 
-void MtpDevice::additionalThreadTask() {
+void MtpDevice::additionalThreadsTask() {
 	//Com context
 	initCom();
 
@@ -578,6 +570,19 @@ void MtpDevice::disconnect() {
 	stopThread();
 }
 
+void MtpDevice::startThreads() {
+	mutexThreads_.lock();
+	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
+	mutexThreads_.unlock();
+	std::unique_lock lk(mutexTasks_);
+	cvTasks_.wait(lk, [this] { return eventCookie_ != nullptr; });
+
+	for (uint8_t i = 0; i < additionalThreadsNb_; i++) {
+		mutexThreads_.lock();
+		threads_.push_back(std::thread([this] { this->additionalThreadsTask(); }));
+		mutexThreads_.unlock();
+	}
+}
 
 
 MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {

@@ -53,8 +53,10 @@ namespace nek::mtp {
 
 	class NEK_API MtpDevice : protected nek::utils::MultiThreadedClass {
 	public:
-		MtpDevice(const PWSTR devicePath, byte additionalThread = 0);
+		MtpDevice(const PWSTR devicePath, uint8_t additionalThreadsNb = 0);
 		~MtpDevice();
+
+		bool isConnected() const { return connected_ && running_; }
 
 		MtpResponse SendCommand(WORD operationCode, MtpParams params);
 		MtpResponse SendCommandAndRead(WORD operationCode, MtpParams params);
@@ -70,7 +72,7 @@ namespace nek::mtp {
 	protected:
 		MtpDevice();
 		virtual void mainThreadTask();
-		virtual void additionalThreadTask();
+		virtual void additionalThreadsTask();
 
 		static MtpResponse SendCommand_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
 		static MtpResponse SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
@@ -79,6 +81,7 @@ namespace nek::mtp {
 		void initCom();
 		void connect();
 		void disconnect();
+		virtual void startThreads();
 
 		PWSTR devicePath_;
 		CComPtr<IPortableDeviceValues> deviceClient_;
@@ -88,6 +91,8 @@ namespace nek::mtp {
 		CComPtr<MtpEventCallback> eventCallback_;
 		PWSTR eventCookie_;
 		std::mutex mutexDevice_;
+
+		uint8_t additionalThreadsNb_;
 	};
 
 }
