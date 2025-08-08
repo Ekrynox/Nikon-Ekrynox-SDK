@@ -18,7 +18,7 @@ MtpManager& MtpManager::Instance() {
 MtpManager::MtpManager() {
 	deviceManager_.p = nullptr;
 
-	thread_ = std::thread([this] { this->threadTask(); });
+	startThread();
 	std::unique_lock lk(mutexTasks_);
 	cvTasks_.wait(lk);
 }
@@ -124,12 +124,16 @@ MtpDevice::MtpDevice(const PWSTR devicePath, byte additionalThread) {
 	eventCookie_ = nullptr;
 	eventCallback_ = new nek::mtp::MtpEventCallback();
 
+	mutexThreads_.lock();
 	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
+	mutexThreads_.unlock();
 	std::unique_lock lk(mutexTasks_);
 	cvTasks_.wait(lk, [this] { return eventCookie_ != nullptr; });
 
 	for (byte i = 0; i < additionalThread; i++) {
+		mutexThreads_.lock();
 		threads_.push_back(std::thread([this] { this->additionalThreadTask(); }));
+		mutexThreads_.unlock();
 	}
 }
 
@@ -141,7 +145,8 @@ MtpDevice::MtpDevice() {
 }
 
 MtpDevice::~MtpDevice() {
-	nek::utils::MultiThreadedClass::~MultiThreadedClass();
+	connected_ = false;
+	stopThread();
 	eventCallback_.Release();
 };
 
@@ -174,8 +179,8 @@ void MtpDevice::mainThreadTask() {
 	mutexTasks_.lock();
 	mutexDevice_.lock();
 
+	connected_ = false;
 	device_->Unadvise(eventCookie_);
-	eventCallback_.Release();
 	device_.Release();
 	CoUninitialize();
 
@@ -554,46 +559,88 @@ void MtpDevice::connect() {
 	connected_ = true;
 }
 
+void MtpDevice::disconnect() {
+	mutexDevice_.lock();
+	if (!connected_) {
+		mutexDevice_.unlock();
+		return; //Already disconnected
+	}
+	connected_ = false;
+	mutexDevice_.unlock();
+
+	mutexTasks_.lock();
+	tasks_.clear();
+	mutexTasks_.unlock();
+	stopThread();
+}
+
 
 
 MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
-	if (connected_) {
-		return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
-			this->mutexDevice_.lock();
-			MtpResponse result = this->SendCommand_(this->device_, operationCode, params);
-			this->mutexDevice_.unlock();
-			return result;
-			});
-	} 
-	else {
-		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, E_FAIL);
+	if (!connected_) {
+		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
+
+	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
+		MtpResponse result;
+		this->mutexDevice_.lock();
+		try {
+			result = this->SendCommand_(this->device_, operationCode, params);
+		}
+		catch (MtpDeviceException &e) {
+			this->mutexDevice_.unlock();
+			if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
+				disconnect();
+			}
+			throw;
+		}
+		this->mutexDevice_.unlock();
+		return result;
+		});
 }
 MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) {
-	if (connected_) {
-		return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
-			this->mutexDevice_.lock();
-			MtpResponse result = this->SendCommandAndRead_(this->device_, operationCode, params);
+	if (!connected_) {
+		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
+	}
+
+	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
+		MtpResponse result;
+		this->mutexDevice_.lock();
+		try {
+			result = this->SendCommandAndRead_(this->device_, operationCode, params);
+		}
+		catch (MtpDeviceException& e) {
 			this->mutexDevice_.unlock();
-			return result;
-			});
-	}
-	else {
-		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, E_FAIL);
-	}
+			if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
+				disconnect();
+			}
+			throw;
+		}
+		this->mutexDevice_.unlock();
+		return result;
+		});
 }
 MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<BYTE> data) {
-	if (connected_) {
-		return sendTaskWithResult<MtpResponse>([this, operationCode, &params, &data] {
-			this->mutexDevice_.lock();
-			MtpResponse result = this->SendCommandAndWrite_(this->device_, operationCode, params, data);
+	if (!connected_) {
+		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
+	}
+
+	return sendTaskWithResult<MtpResponse>([this, operationCode, &params, &data] {
+		MtpResponse result;
+		this->mutexDevice_.lock();
+		try {
+			result = this->SendCommandAndWrite_(this->device_, operationCode, params, data);
+		}
+		catch (MtpDeviceException& e) {
 			this->mutexDevice_.unlock();
-			return result;
-			});
-	}
-	else {
-		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, E_FAIL);
-	}
+			if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
+				disconnect();
+			}
+			throw;
+		}
+		this->mutexDevice_.unlock();
+		return result;
+		});
 }
 
 

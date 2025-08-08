@@ -42,17 +42,23 @@ NikonCamera::NikonCamera(std::wstring devicePath, byte additionalThread) : nek::
 	devicePath_ = (PWSTR)devicePath.c_str();
 
 	//Start main thread
+	mutexThreads_.lock();
 	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
+	mutexThreads_.unlock();
 	std::unique_lock lk(mutexTasks_);
 	cvTasks_.wait(lk);
 
 	//Event Thread
+	mutexThreads_.lock();
 	threads_.push_back(std::thread([this] { this->eventThreadTask(); }));
+	mutexThreads_.unlock();
 	cvTasks_.wait(lk);
 
 	//Additional Threads
 	for (size_t i = 0; i < additionalThread; i++) {
+		mutexThreads_.lock();
 		threads_.push_back(std::thread([this] { this->additionalThreadTask(); }));
+		mutexThreads_.unlock();
 	}
 }
 
@@ -112,8 +118,20 @@ void NikonCamera::eventThreadTask() {
 		std::vector<uint32_t> eventParams;
 		while (running_) {
 			mutexDevice_.lock();
-			nek::mtp::MtpResponse result = SendCommandAndRead_(device_, NikonMtpOperationCode::GetEventEx, params);
-			mutexDevice_.unlock();
+			nek::mtp::MtpResponse result;
+			try {
+				result = SendCommandAndRead_(device_, NikonMtpOperationCode::GetEventEx, params);
+				mutexDevice_.unlock();
+			}
+			catch (const nek::mtp::MtpDeviceException& e) {
+				mutexDevice_.unlock();
+				if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
+					disconnect();
+					result.responseCode = nek::NikonMtpResponseCode::Transaction_Cancelled;
+				}
+				else { throw; }
+			}
+
 			if (result.responseCode == NikonMtpResponseCode::OK) {
 				count = *(uint32_t*)(result.data.data());
 				offset = sizeof(uint32_t);
@@ -186,7 +204,7 @@ void NikonCamera::threadTask() {
 		}
 		else if (tasks_.size() > 0) {
 			auto task = tasks_.front();
-			tasks_.pop();
+			tasks_.pop_front();
 			mutexTasks_.unlock();
 
 			task();
