@@ -6,15 +6,16 @@ using namespace System::Runtime::CompilerServices;
 using namespace System::Runtime::InteropServices;
 using namespace System::Security::Permissions;
 
-[assembly:AssemblyTitleAttribute(L"NEKCSWrapper")];
+[assembly:AssemblyTitleAttribute(L"NEK C# Wrapper")];
 [assembly:AssemblyDescriptionAttribute(L"")];
 [assembly:AssemblyConfigurationAttribute(L"")];
 [assembly:AssemblyCompanyAttribute(L"")];
-[assembly:AssemblyProductAttribute(L"NEKCSWrapper")];
-[assembly:AssemblyCopyrightAttribute(L"Copyright (c)  2025")];
+[assembly:AssemblyProductAttribute(L"Nikon Ekrynox SDK - C#")];
+[assembly:AssemblyCopyrightAttribute(L"Copyright (c) 2025 Lucas Alias")];
 [assembly:AssemblyTrademarkAttribute(L"")];
 [assembly:AssemblyCultureAttribute(L"")];
 
-[assembly:AssemblyVersionAttribute(L"1.0.*")];
+[assembly:AssemblyVersionAttribute(L"0.4.*")];
+[assembly:AssemblyFileVersionAttribute(L"0.4.*")];
 
 [assembly:ComVisible(false)];
