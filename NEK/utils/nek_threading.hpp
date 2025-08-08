@@ -16,6 +16,7 @@ namespace nek::utils {
 		ThreadedClassBase();
 
 		virtual void startThread() = 0;
+		virtual void stopThread() = 0;
 
 		void sendTaskAsync(std::function<void()> task);
 		void sendTask(std::function<void()> task);
@@ -31,7 +32,7 @@ namespace nek::utils {
 	protected:
 		virtual void threadTask();
 
-		std::queue<std::function<void()>> tasks_;
+		std::deque<std::function<void()>> tasks_;
 		std::atomic<bool> running_;
 		std::mutex mutexTasks_;
 		std::condition_variable cvTasks_;
@@ -45,9 +46,11 @@ namespace nek::utils {
 		~ThreadedClass();
 
 		void startThread() override;
+		void stopThread() override;
 
 	protected:
 		std::thread thread_;
+		std::mutex mutexThread_;
 	};
 
 
@@ -58,9 +61,11 @@ namespace nek::utils {
 		~MultiThreadedClass();
 
 		void startThread() override;
+		void stopThread() override;
 
 	protected:
 		std::vector<std::thread> threads_;
+		std::mutex mutexThreads_;
 	};
 
 }

@@ -49,6 +49,7 @@ std::string MtpExCodeToString(MtpExCode code) {
 	case INVALID_ARG: return "Invalid Argument";
 	case INVALID_TYPE: return "Invalid Type";
 	case MISSING: return "Missing Parameter";
+	case DEVICE_DISCONNECTED: return "Device Disconnected";
 	default: return "Unknown Code";
 	}
 }
@@ -93,13 +94,31 @@ MtpExCode MtpDeviceException::computeCode(MtpExPhase phase, HRESULT hr) {
 			return UNKNOW_ERR;
 		}
 
-	case OPERATION_SEND:
-	case DATAREAD_SEND:
+	case OPERATION_RESPONSE:
+	case OPERATIONREAD_RESPONSE:
+	case OPERATIONWRITE_RESPONSE:
+	case ENDREAD_RESPONSE:
+	case ENDWRITE_RESPONSE:
 		switch (hr) {
 		case DISP_E_TYPEMISMATCH:
 			return INVALID_TYPE;
 		case HRESULT_FROM_WIN32(ERROR_NOT_FOUND):
 			return MISSING;
+		default:
+			return UNKNOW_ERR;
+		}
+
+	case OPERATION_SEND:
+	case OPERATIONREAD_SEND:
+	case OPERATIONWRITE_SEND:
+	case DATAWRITE_SEND:
+	case DATAREAD_SEND:
+	case ENDREAD_SEND:
+	case ENDWRITE_SEND:
+		switch (hr) {
+		case UI_E_SHUTDOWN_CALLED:
+			return DEVICE_DISCONNECTED;
+
 		default:
 			return UNKNOW_ERR;
 		}

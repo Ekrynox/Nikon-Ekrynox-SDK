@@ -49,6 +49,7 @@ namespace nek::mtp {
 		INVALID_ARG = 5,
 		INVALID_TYPE = 6,
 		MISSING = 7,
+		DEVICE_DISCONNECTED = 8,
 	};
 
 

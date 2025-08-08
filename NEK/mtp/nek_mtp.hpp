@@ -78,11 +78,12 @@ namespace nek::mtp {
 
 		void initCom();
 		void connect();
+		void disconnect();
 
 		PWSTR devicePath_;
 		CComPtr<IPortableDeviceValues> deviceClient_;
 		CComPtr<IPortableDevice> device_;
-		bool connected_;
+		std::atomic<bool> connected_;
 
 		CComPtr<MtpEventCallback> eventCallback_;
 		PWSTR eventCookie_;
