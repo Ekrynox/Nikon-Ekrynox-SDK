@@ -48,6 +48,12 @@ namespace NEKCS.TestApp
                     }
                 }
                 this.EventList.Text += "\n";
+
+                if (ecode == NEKCS.NikonMtpEventCode.DeviceInfoChanged && !camera.isConnected())
+                {
+                    this.Close();
+                    return;
+                }
             }, null);
         }
 
@@ -55,6 +61,11 @@ namespace NEKCS.TestApp
         {
             _cameraShootingForm.Dispose();
             camera.Dispose();
+        }
+
+        private void CameraEventListener_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

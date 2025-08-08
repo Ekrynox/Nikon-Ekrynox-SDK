@@ -568,6 +568,8 @@ void MtpDevice::disconnect() {
 	tasks_.clear();
 	mutexTasks_.unlock();
 	stopThread();
+	
+	eventCallback_->OnEvent(nek::mtp::MtpEvent(0x4008)); // Notify Disconnection: DeviceInfoChanged
 }
 
 void MtpDevice::startThreads() {
