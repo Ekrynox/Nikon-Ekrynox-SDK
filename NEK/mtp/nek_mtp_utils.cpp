@@ -65,7 +65,7 @@ void MtpReponseParams::SetCollection(CComPtr<IPortableDevicePropVariantCollectio
 	for (DWORD i = 0; i < size; i++) {
 		PROPVARIANT pv;
 		PropVariantInit(&pv);
-		paramsCollection->GetAt(i, &pv_.back());
+		paramsCollection->GetAt(i, &pv);
 		pv_.push_back(pv);
 	}
 }
@@ -78,7 +78,7 @@ void MtpReponseParams::SetCollection(CComPtr<IPortableDeviceValues> eventParamet
 		PROPERTYKEY pk;
 		PROPVARIANT pv;
 		PropVariantInit(&pv);
-		eventParameters->GetAt(i, &pk, &pv_.back());
+		eventParameters->GetAt(i, &pk, &pv);
 		pv_.push_back(pv);
 	}
 }

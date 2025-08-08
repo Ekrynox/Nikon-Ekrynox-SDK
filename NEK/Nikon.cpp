@@ -129,7 +129,7 @@ void NikonCamera::eventThreadTask() {
 						offset += sizeof(uint32_t);
 					}
 					mutexTasks_.lock();
-					tasksEvent_.push([this, eventCode, eventParams] { eventCallback_->OnEvent(nek::mtp::MtpEvent(eventCode, eventParams)); });
+					tasksEvent_.push_back([this, eventCode, eventParams] { eventCallback_->OnEvent(nek::mtp::MtpEvent(eventCode, eventParams)); });
 					mutexTasks_.unlock();
 					cvTasks_.notify_one();
 				}
@@ -168,7 +168,7 @@ void NikonCamera::eventThreadTask() {
 					eventCode = *(uint16_t*)(result.data.data() + 2 + i * 6);
 					eventParam = *(uint32_t*)(result.data.data() + 4 + i * 6);
 					mutexTasks_.lock();
-					tasksEvent_.push([this, eventCode, eventParam] { eventCallback_->OnEvent(nek::mtp::MtpEvent(eventCode, eventParam)); });
+					tasksEvent_.push_back([this, eventCode, eventParam] { eventCallback_->OnEvent(nek::mtp::MtpEvent(eventCode, eventParam)); });
 					mutexTasks_.unlock();
 					cvTasks_.notify_one();
 				}
@@ -193,7 +193,7 @@ void NikonCamera::threadTask() {
 		mutexTasks_.lock();
 		if (tasksEvent_.size() > 0) {
 			auto task = tasksEvent_.front();
-			tasksEvent_.pop();
+			tasksEvent_.pop_front();
 			mutexTasks_.unlock();
 
 			task();
