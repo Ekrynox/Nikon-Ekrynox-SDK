@@ -38,14 +38,15 @@ void MtpParams::addInt16(System::Int16  param) { m_nativeClass->addInt16(param);
 MtpResponse::MtpResponse() {
 	responseCode = (NikonMtpResponseCode)0;
 	responseParams_ = gcnew MtpReponseParams();
-	data = gcnew System::Collections::Generic::List<System::Byte>();
+	data = gcnew array<System::Byte>(0);
 }
 MtpResponse::MtpResponse(nek::mtp::MtpResponse response) {
 	responseCode = (NikonMtpResponseCode)response.responseCode;
 	responseParams_ = gcnew MtpReponseParams(response.GetParams());
-	data = gcnew System::Collections::Generic::List<System::Byte>();
-	for (auto d : response.data) {
-		data->Add(d);
+	data = gcnew array<System::Byte>(response.data.size());
+	if (data->Length > 0) {
+		pin_ptr<System::Byte> dataptr = &data[0];
+		std::memcpy(dataptr, response.data.data(), response.data.size());
 	}
 }
 MtpResponse::~MtpResponse() { this->!MtpResponse(); }
@@ -61,8 +62,9 @@ MtpReponseParams^ MtpResponse::GetParams() { return responseParams_; }
 //MtpEvent
 MtpEvent::MtpEvent(nek::mtp::MtpEvent event) {
 	eventCode = (NikonMtpEventCode)event.eventCode;
-	eventParams = gcnew System::Collections::Generic::List<System::UInt32>();
-	for (auto p : event.eventParams) {
-		eventParams->Add(p);
+	eventParams = gcnew array<System::UInt32>(event.eventParams.size());
+	if (eventParams->Length > 0) {
+		pin_ptr<System::UInt32> dataptr = &eventParams[0];
+		std::memcpy(dataptr, event.eventParams.data(), event.eventParams.size() * sizeof(uint32_t));
 	}
 }

@@ -28,7 +28,7 @@ namespace NEKCS {
 
 		MtpResponse^ SendCommand(NikonMtpOperationCode operationCode, MtpParams^ params);
 		MtpResponse^ SendCommandAndRead(NikonMtpOperationCode operationCode, MtpParams^ params);
-		MtpResponse^ SendCommandAndWrite(NikonMtpOperationCode operationCode, MtpParams^ params, System::Collections::Generic::List<System::Byte>^ data);
+		MtpResponse^ SendCommandAndWrite(NikonMtpOperationCode operationCode, MtpParams^ params, array<System::Byte>^ data);
 
 
 		event MtpEventHandler^ OnMtpEvent {

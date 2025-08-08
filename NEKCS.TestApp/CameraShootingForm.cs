@@ -36,7 +36,7 @@ namespace NEKCS.TestApp
         {
             if (e.eventCode == NEKCS.NikonMtpEventCode.ObjectAddedInSdram)
             {
-                if (e.eventParams.Count > 0 && e.eventParams[0] != 0)
+                if (e.eventParams.Length > 0 && e.eventParams[0] != 0)
                 {
                     _sdramHandle = e.eventParams[0];
                 }
