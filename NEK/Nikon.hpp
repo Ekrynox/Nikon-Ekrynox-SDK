@@ -25,7 +25,7 @@ namespace nek {
 
 		virtual void startThreads() override;
 
-		std::queue<std::function<void()>> tasksEvent_;
+		std::deque<std::function<void()>> tasksEvent_;
 	};
 
 }
