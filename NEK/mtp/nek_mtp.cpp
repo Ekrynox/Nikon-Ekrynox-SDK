@@ -320,11 +320,13 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
 	optimalSize = min(optimalSize, totalSize);
 	BYTE* buffer = new BYTE[optimalSize];
+	result.data.resize(totalSize);
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_READ, optimalSize);
 	command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, buffer, optimalSize);
 
 	BYTE* b = nullptr;
 	DWORD bNb = 0;
+	DWORD offset = 0;
 	do {
 		hr = device->SendCommand(0, command, &commandResult);
 		if (FAILED(hr)) {
@@ -334,9 +336,11 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 			throw MtpDeviceException(MtpExPhase::DATAREAD_SEND, hr);
 		}
 		commandResult->GetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &b, &bNb);
-		result.data.insert(result.data.end(), b, b + bNb);
+		std::memcpy(result.data.data() + offset, b, bNb);
+		CoTaskMemFree(b);
+		offset += bNb;
 		commandResult.Release();
-	} while (bNb > 0);
+	} while (totalSize > offset);
 
 	delete[] buffer;
 	command.Release();
@@ -451,7 +455,7 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 
 		optimalSize = min(optimalSize, data.size() - offset);
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_WRITE, optimalSize);
-		command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &data[offset], optimalSize);
+		command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, data.data() + offset, optimalSize);
 
 		hr = device->SendCommand(0, command, &commandResult);
 		if (FAILED(hr)) {
@@ -692,76 +696,66 @@ MtpDeviceInfoDS MtpDevice::GetDeviceInfo() {
 
 	len = *(uint8_t*)(response.data.data() + offset);
 	offset += sizeof(uint8_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.VendorExtensionDesc += *(char16_t*)(response.data.data() + offset);
-		offset += sizeof(char16_t);
-	}
+	deviceInfo.VendorExtensionDesc.resize(len);
+	std::memcpy(deviceInfo.VendorExtensionDesc.data(), response.data.data() + offset, sizeof(uint16_t) * len);
+	offset += sizeof(char16_t) * len;
 
 	deviceInfo.FunctionalMode = *(uint16_t*)(response.data.data() + offset);
 	offset += sizeof(uint16_t);
 
 	len = *(uint32_t*)(response.data.data() + offset);
 	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.OperationsSupported.push_back(*(uint16_t*)(response.data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
+	deviceInfo.OperationsSupported.resize(len);
+	std::memcpy(deviceInfo.OperationsSupported.data(), response.data.data() + offset, sizeof(uint16_t) * len);
+	offset += sizeof(uint16_t) * len;
 
 	len = *(uint32_t*)(response.data.data() + offset);
 	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.EventsSupported.push_back(*(uint16_t*)(response.data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
+	deviceInfo.EventsSupported.resize(len);
+	std::memcpy(deviceInfo.EventsSupported.data(), response.data.data() + offset, sizeof(uint16_t) * len);
+	offset += sizeof(uint16_t) * len;
 
 	len = *(uint32_t*)(response.data.data() + offset);
 	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.DevicePropertiesSupported.push_back(*(uint16_t*)(response.data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
+	deviceInfo.DevicePropertiesSupported.resize(len);
+	std::memcpy(deviceInfo.DevicePropertiesSupported.data(), response.data.data() + offset, sizeof(uint16_t) * len);
+	offset += sizeof(uint16_t) * len;
 
 	len = *(uint32_t*)(response.data.data() + offset);
 	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.CaptureFormats.push_back(*(uint16_t*)(response.data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
+	deviceInfo.CaptureFormats.resize(len);
+	std::memcpy(deviceInfo.CaptureFormats.data(), response.data.data() + offset, sizeof(uint16_t) * len);
+	offset += sizeof(uint16_t) * len;
 
 	len = *(uint32_t*)(response.data.data() + offset);
 	offset += sizeof(uint32_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.ImageFormats.push_back(*(uint16_t*)(response.data.data() + offset));
-		offset += sizeof(uint16_t);
-	}
+	deviceInfo.ImageFormats.resize(len);
+	std::memcpy(deviceInfo.ImageFormats.data(), response.data.data() + offset, sizeof(uint16_t) * len);
+	offset += sizeof(uint16_t) * len;
 
 	len = *(uint8_t*)(response.data.data() + offset);
 	offset += sizeof(uint8_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.Manufacture += *(char16_t*)(response.data.data() + offset);
-		offset += sizeof(char16_t);
-	}
+	deviceInfo.Manufacture.resize(len);
+	std::memcpy(deviceInfo.Manufacture.data(), response.data.data() + offset, sizeof(uint16_t) * len);
+	offset += sizeof(char16_t) * len;
 
 	len = *(uint8_t*)(response.data.data() + offset);
 	offset += sizeof(uint8_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.Model += *(char16_t*)(response.data.data() + offset);
-		offset += sizeof(char16_t);
-	}
+	deviceInfo.Model.resize(len);
+	std::memcpy(deviceInfo.Model.data(), response.data.data() + offset, sizeof(uint16_t) * len);
+	offset += sizeof(char16_t) * len;
 
 	len = *(uint8_t*)(response.data.data() + offset);
 	offset += sizeof(uint8_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.DeviceVersion += *(char16_t*)(response.data.data() + offset);
-		offset += sizeof(char16_t);
-	}
+	deviceInfo.DeviceVersion.resize(len);
+	std::memcpy(deviceInfo.DeviceVersion.data(), response.data.data() + offset, sizeof(uint16_t) * len);
+	offset += sizeof(char16_t) * len;
 
 	len = *(uint8_t*)(response.data.data() + offset);
 	offset += sizeof(uint8_t);
-	for (uint32_t i = 0; i < len; i++) {
-		deviceInfo.SerialNumber += *(char16_t*)(response.data.data() + offset);
-		offset += sizeof(char16_t);
-	}
+	deviceInfo.SerialNumber.resize(len);
+	std::memcpy(deviceInfo.SerialNumber.data(), response.data.data() + offset, sizeof(uint16_t) * len);
+	offset += sizeof(char16_t) * len;
 
 	return deviceInfo;
 }
