@@ -3,6 +3,7 @@
 #include "Nikon_Utils.h"
 #include "Nikon_Enum.h"
 #include "Nikon_Struct.h"
+#include "Nikon_Except.h"
 
 #include <vcclr.h>
 
@@ -38,14 +39,24 @@ namespace NEKCS {
 				if (_callbackIds.ContainsKey(handler)) {
 					return;
 				}
-				auto dispatcher = new gcroot<MtpEventHandlerHelper^>(gcnew MtpEventHandlerHelper(this, handler));
-				size_t callbackId = m_nativeClass->RegisterCallback(MtpEventHandlerHelper::createCallback(dispatcher));
-				_callbackIds[handler] = callbackId;
+				try {
+					auto dispatcher = new gcroot<MtpEventHandlerHelper^>(gcnew MtpEventHandlerHelper(this, handler));
+					size_t callbackId = m_nativeClass->RegisterCallback(MtpEventHandlerHelper::createCallback(dispatcher));
+					_callbackIds[handler] = callbackId;
+				}
+				catch (const nek::mtp::MtpDeviceException& e) {
+					throw gcnew MtpDeviceException(e);
+				}
 			}
 			void remove(MtpEventHandler^ handler) {
-				if (_callbackIds.ContainsKey(handler)) {
-					this->m_nativeClass->UnregisterCallback(_callbackIds[handler]);
-					_callbackIds.Remove(handler);
+				try {
+					if (_callbackIds.ContainsKey(handler)) {
+						this->m_nativeClass->UnregisterCallback(_callbackIds[handler]);
+						_callbackIds.Remove(handler);
+					}
+				}
+				catch (const nek::mtp::MtpDeviceException& e) {
+					throw gcnew MtpDeviceException(e);
 				}
 			}
 		}
