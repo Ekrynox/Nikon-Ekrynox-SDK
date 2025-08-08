@@ -39,10 +39,12 @@ NikonCamera::!NikonCamera() {
 
 MtpResponse^ NikonCamera::SendCommand(NikonMtpOperationCode operationCode, MtpParams^ params) { return gcnew MtpResponse(m_nativeClass->SendCommand((System::UInt16)operationCode, *params->m_nativeClass)); }
 MtpResponse^ NikonCamera::SendCommandAndRead(NikonMtpOperationCode operationCode, MtpParams^ params) { return gcnew MtpResponse(m_nativeClass->SendCommandAndRead((System::UInt16)operationCode, *params->m_nativeClass)); }
-MtpResponse^ NikonCamera::SendCommandAndWrite(NikonMtpOperationCode operationCode, MtpParams^ params, System::Collections::Generic::List<System::Byte>^ data) {
+MtpResponse^ NikonCamera::SendCommandAndWrite(NikonMtpOperationCode operationCode, MtpParams^ params, array<System::Byte>^ data) {
 	std::vector<BYTE> datac = std::vector<BYTE>();
-	for each (auto item in data) {
-		datac.push_back(item);
+	datac.resize(data->Length);
+	if (data->Length > 0) {
+		pin_ptr<System::Byte> dataptr = &data[0];
+		std::memcpy(datac.data(), dataptr, data->Length);
 	}
 	return gcnew MtpResponse(m_nativeClass->SendCommandAndWrite((System::UInt16)operationCode, *params->m_nativeClass, datac));
 }

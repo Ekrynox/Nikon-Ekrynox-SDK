@@ -49,7 +49,7 @@ namespace NEKCS {
 		MtpReponseParams^ GetParams();
 
 		NikonMtpResponseCode responseCode;
-		System::Collections::Generic::List<System::Byte>^ data;
+		array<System::Byte>^ data;
 	internal:
 		MtpReponseParams^ responseParams_;
 	};
@@ -61,7 +61,7 @@ namespace NEKCS {
 
 	public:
 		NikonMtpEventCode eventCode;
-		System::Collections::Generic::List<System::UInt32>^ eventParams;
+		array<System::UInt32>^ eventParams;
 	};
 
 
