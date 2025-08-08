@@ -580,14 +580,13 @@ MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
 	if (!connected_) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
-
-	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
+	auto func = [this, operationCode, &params] {
 		MtpResponse result;
 		this->mutexDevice_.lock();
 		try {
 			result = this->SendCommand_(this->device_, operationCode, params);
 		}
-		catch (MtpDeviceException &e) {
+		catch (MtpDeviceException& e) {
 			this->mutexDevice_.unlock();
 			if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
 				disconnect();
@@ -596,14 +595,22 @@ MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
 		}
 		this->mutexDevice_.unlock();
 		return result;
-		});
+		};
+
+	auto thId = std::this_thread::get_id();
+	for (auto& t : threads_) {
+		if (t.get_id() == thId) {
+			return func(); // We are in on of the threads of our Camera Class
+		}
+	}
+	return sendTaskWithResult<MtpResponse>(func);
 }
 MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) {
 	if (!connected_) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
 
-	return sendTaskWithResult<MtpResponse>([this, operationCode, &params] {
+	auto func = [this, operationCode, &params] {
 		MtpResponse result;
 		this->mutexDevice_.lock();
 		try {
@@ -618,14 +625,22 @@ MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) 
 		}
 		this->mutexDevice_.unlock();
 		return result;
-		});
+		};
+
+	auto thId = std::this_thread::get_id();
+	for (auto& t : threads_) {
+		if (t.get_id() == thId) {
+			return func(); // We are in on of the threads of our Camera Class
+		}
+	}
+	return sendTaskWithResult<MtpResponse>(func);
 }
 MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<BYTE> data) {
 	if (!connected_) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
 
-	return sendTaskWithResult<MtpResponse>([this, operationCode, &params, &data] {
+	auto func = [this, operationCode, &params, &data] {
 		MtpResponse result;
 		this->mutexDevice_.lock();
 		try {
@@ -640,7 +655,15 @@ MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params,
 		}
 		this->mutexDevice_.unlock();
 		return result;
-		});
+		};
+
+	auto thId = std::this_thread::get_id();
+	for (auto& t : threads_) {
+		if (t.get_id() == thId) {
+			return func(); // We are in on of the threads of our Camera Class
+		}
+	}
+	return sendTaskWithResult<MtpResponse>(func);
 }
 
 
