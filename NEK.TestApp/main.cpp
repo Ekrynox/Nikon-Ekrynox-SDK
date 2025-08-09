@@ -70,13 +70,9 @@ int main() {
 
 	auto propdesc = camera->GetDevicePropDesc(nek::NikonMtpDevicePropCode::ArtistV);
 
-	{
-		auto params = nek::mtp::MtpParams();
-		params.addUint32(nek::NikonMtpDevicePropCode::ExposureIndex);
-		auto result = camera->SendCommandAndRead(nek::NikonMtpOperationCode::GetDevicePropValue, params);
-		uint16_t exposureIndex = result.data[0] + (result.data[1]<<8);
-		cout << "Gain: " << std::dec << exposureIndex << endl;
-	}
+	auto propvalue1 = camera->GetDevicePropValue(nek::NikonMtpDevicePropCode::ExposureIndex);
+
+	auto propvalue2 = camera->GetDevicePropValue(nek::NikonMtpDevicePropCode::ExposureIndex);
 
 
 	int wait = 1;
