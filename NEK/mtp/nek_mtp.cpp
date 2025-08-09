@@ -1225,40 +1225,31 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue(uint16_t devicePropCode) {
 }
 MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_t dataType) {
 	MtpDatatypeVariant result;
-	size_t offset = 0;
 	
 	switch (dataType) {
 	case MtpDatatypeCode::Int8:
-		result = *(int8_t*)(response.data.data() + offset);
-		offset += sizeof(int8_t);
+		result = *(int8_t*)(response.data.data());
 		break;
 	case MtpDatatypeCode::UInt8:
-		result = *(uint8_t*)(response.data.data() + offset);
-		offset += sizeof(uint8_t);
+		result = *(uint8_t*)(response.data.data());
 		break;
 	case MtpDatatypeCode::Int16:
-		result = *(int16_t*)(response.data.data() + offset);
-		offset += sizeof(int16_t);
+		result = *(int16_t*)(response.data.data());
 		break;
 	case MtpDatatypeCode::UInt16:
-		result = *(uint16_t*)(response.data.data() + offset);
-		offset += sizeof(uint16_t);
+		result = *(uint16_t*)(response.data.data());
 		break;
 	case MtpDatatypeCode::Int32:
-		result = *(int32_t*)(response.data.data() + offset);
-		offset += sizeof(int32_t);
+		result = *(int32_t*)(response.data.data());
 		break;
 	case MtpDatatypeCode::UInt32:
-		result = *(uint32_t*)(response.data.data() + offset);
-		offset += sizeof(uint32_t);
+		result = *(uint32_t*)(response.data.data());
 		break;
 	case MtpDatatypeCode::Int64:
-		result = *(int64_t*)(response.data.data() + offset);
-		offset += sizeof(int64_t);
+		result = *(int64_t*)(response.data.data());
 		break;
 	case MtpDatatypeCode::UInt64:
-		result = *(uint64_t*)(response.data.data() + offset);
-		offset += sizeof(uint64_t);
+		result = *(uint64_t*)(response.data.data());
 		break;
 	case MtpDatatypeCode::Int128:
 		throw std::runtime_error("int128 Not Implemented");
@@ -1268,8 +1259,8 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 		break;
 	case MtpDatatypeCode::ArrayInt8:
 	{
-		int32_t len = *(int32_t*)(response.data.data() + offset);
-		offset += sizeof(int32_t);
+		int32_t len = *(int32_t*)(response.data.data());
+		size_t offset = sizeof(int32_t);
 		auto data = std::vector<int8_t>(len);
 		std::memcpy(data.data(), (int8_t*)(response.data.data() + offset), sizeof(int8_t) * len);
 		offset += sizeof(int8_t) * len;
@@ -1278,8 +1269,8 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 	break;
 	case MtpDatatypeCode::ArrayUInt8:
 	{
-		int32_t len = *(int32_t*)(response.data.data() + offset);
-		offset += sizeof(int32_t);
+		int32_t len = *(int32_t*)(response.data.data());
+		size_t offset = sizeof(int32_t);
 		auto data = std::vector<uint8_t>(len);
 		std::memcpy(data.data(), (uint8_t*)(response.data.data() + offset), sizeof(uint8_t) * len);
 		offset += sizeof(uint8_t) * len;
@@ -1288,8 +1279,8 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 	break;
 	case MtpDatatypeCode::ArrayInt16:
 	{
-		int32_t len = *(int32_t*)(response.data.data() + offset);
-		offset += sizeof(int32_t);
+		int32_t len = *(int32_t*)(response.data.data());
+		size_t offset = sizeof(int32_t);
 		auto data = std::vector<int16_t>(len);
 		std::memcpy(data.data(), (int16_t*)(response.data.data() + offset), sizeof(int16_t) * len);
 		offset += sizeof(int16_t) * len;
@@ -1298,8 +1289,8 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 	break;
 	case MtpDatatypeCode::ArrayUInt16:
 	{
-		int32_t len = *(int32_t*)(response.data.data() + offset);
-		offset += sizeof(int32_t);
+		int32_t len = *(int32_t*)(response.data.data());
+		size_t offset = sizeof(int32_t);
 		auto data = std::vector<uint16_t>(len);
 		std::memcpy(data.data(), (uint16_t*)(response.data.data() + offset), sizeof(uint16_t) * len);
 		offset += sizeof(uint16_t) * len;
@@ -1308,8 +1299,8 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 	break;
 	case MtpDatatypeCode::ArrayInt32:
 	{
-		int32_t len = *(int32_t*)(response.data.data() + offset);
-		offset += sizeof(int32_t);
+		int32_t len = *(int32_t*)(response.data.data());
+		size_t offset = sizeof(int32_t);
 		auto data = std::vector<int32_t>(len);
 		std::memcpy(data.data(), (int32_t*)(response.data.data() + offset), sizeof(int32_t) * len);
 		offset += sizeof(int32_t) * len;
@@ -1318,8 +1309,8 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 	break;
 	case MtpDatatypeCode::ArrayUInt32:
 	{
-		int32_t len = *(int32_t*)(response.data.data() + offset);
-		offset += sizeof(int32_t);
+		int32_t len = *(int32_t*)(response.data.data());
+		size_t offset = sizeof(int32_t);
 		auto data = std::vector<uint32_t>(len);
 		std::memcpy(data.data(), (uint32_t*)(response.data.data() + offset), sizeof(uint32_t) * len);
 		offset += sizeof(uint32_t) * len;
@@ -1328,8 +1319,8 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 	break;
 	case MtpDatatypeCode::ArrayInt64:
 	{
-		int32_t len = *(int32_t*)(response.data.data() + offset);
-		offset += sizeof(int32_t);
+		int32_t len = *(int32_t*)(response.data.data());
+		size_t offset = sizeof(int32_t);
 		auto data = std::vector<int64_t>(len);
 		std::memcpy(data.data(), (int64_t*)(response.data.data() + offset), sizeof(int64_t) * len);
 		offset += sizeof(int64_t) * len;
@@ -1338,8 +1329,8 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 	break;
 	case MtpDatatypeCode::ArrayUInt64:
 	{
-		int32_t len = *(int32_t*)(response.data.data() + offset);
-		offset += sizeof(int32_t);
+		int32_t len = *(int32_t*)(response.data.data());
+		size_t offset = sizeof(int32_t);
 		auto data = std::vector<uint64_t>(len);
 		std::memcpy(data.data(), (uint64_t*)(response.data.data() + offset), sizeof(uint64_t) * len);
 		offset += sizeof(uint64_t) * len;
@@ -1354,8 +1345,8 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 		break;
 	case MtpDatatypeCode::String:
 	{
-		auto len = *(uint8_t*)(response.data.data() + offset);
-		offset += sizeof(uint8_t);
+		auto len = *(uint8_t*)(response.data.data());
+		size_t offset = sizeof(uint8_t);
 		auto str = std::vector<char16_t>(len);
 		std::memcpy(str.data(), (char16_t*)(response.data.data() + offset), sizeof(char16_t) * len);
 		offset += sizeof(char16_t) * len;
