@@ -69,6 +69,7 @@ namespace nek::mtp {
 		MtpDeviceInfoDS GetDeviceInfo();
 
 		MtpDevicePropDescDS GetDevicePropDesc(uint16_t devicePropCode);
+		MtpDatatypeVariant GetDevicePropValue(uint16_t devicePropCode);
 
 
 	protected:
@@ -102,6 +103,7 @@ namespace nek::mtp {
 
 
 		MtpDevicePropDescDS GetDevicePropDesc_(MtpResponse& response);
+		MtpDatatypeVariant GetDevicePropValue_(MtpResponse& response, uint16_t dataType);
 	};
 
 }
