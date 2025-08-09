@@ -243,7 +243,7 @@ void NikonCamera::startThreads() {
 
 NikonDevicePropDescDS NikonCamera::GetDevicePropDesc(uint32_t devicePropCode) {
 	mutexDeviceInfo_.lock();
-	if (std::find(deviceInfo_.DevicePropertiesSupported.begin(), deviceInfo_.DevicePropertiesSupported.end(), NikonMtpOperationCode::GetDevicePropDescEx) != deviceInfo_.DevicePropertiesSupported.end()) {
+	if (std::find(deviceInfo_.OperationsSupported.begin(), deviceInfo_.OperationsSupported.end(), NikonMtpOperationCode::GetDevicePropDescEx) != deviceInfo_.OperationsSupported.end()) {
 		mutexDeviceInfo_.unlock();
 
 		mtp::MtpParams params;
