@@ -18,6 +18,10 @@ namespace nek {
 
 		NikonCamera(std::wstring devicePath, uint8_t additionalThread = 0);
 
+
+		NikonDevicePropDescDS GetDevicePropDesc(uint32_t devicePropCode);
+
+
 	private:
 		virtual void mainThreadTask() override;
 		virtual void threadTask() override;

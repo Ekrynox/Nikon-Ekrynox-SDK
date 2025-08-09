@@ -162,6 +162,7 @@ void MtpDevice::mainThreadTask() {
 
 	mutexDevice_.unlock();
 	mutexTasks_.unlock();
+	GetDeviceInfo();
 	cvTasks_.notify_all();
 
 	//Thread Loop
@@ -764,6 +765,9 @@ MtpDeviceInfoDS MtpDevice::GetDeviceInfo() {
 	std::memcpy(deviceInfo.SerialNumber.data(), response.data.data() + offset, sizeof(uint16_t) * len);
 	offset += sizeof(char16_t) * len;
 
+	mutexDeviceInfo_.lock();
+	deviceInfo_ = deviceInfo;
+	mutexDeviceInfo_.unlock();
 	return deviceInfo;
 }
 
@@ -1013,10 +1017,10 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 	result.FormFlag = *(uint8_t*)(response.data.data() + offset);
 	offset += sizeof(uint8_t);
 
-	if (result.FormFlag == 0x00) {
+	if (result.FormFlag == MtpFormtypeCode::Empty) {
 		return result;
 	}
-	else if (result.FormFlag == 0x01) {
+	else if (result.FormFlag == MtpFormtypeCode::Range) {
 		result.FORM = MtpRangeForm{};
 		switch (result.DataType) {
 		case MtpDatatypeCode::Int8:
@@ -1093,7 +1097,7 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 			return result;
 		}
 	}
-	else if (result.FormFlag == 0x02) {
+	else if (result.FormFlag == MtpFormtypeCode::Enum) {
 		uint16_t len = *(uint16_t*)(response.data.data() + offset);
 		offset += sizeof(uint16_t);
 

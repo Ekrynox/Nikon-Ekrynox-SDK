@@ -62,6 +62,7 @@ void NikonCamera::mainThreadTask() {
 
 	mutexDevice_.unlock();
 	mutexTasks_.unlock();
+	GetDeviceInfo();
 	cvTasks_.notify_all();
 
 	//Thread Loop
@@ -236,4 +237,26 @@ void NikonCamera::startThreads() {
 		threads_.push_back(std::thread([this] { this->additionalThreadsTask(); }));
 		mutexThreads_.unlock();
 	}
+}
+
+
+
+NikonDevicePropDescDS NikonCamera::GetDevicePropDesc(uint32_t devicePropCode) {
+	mutexDeviceInfo_.lock();
+	if (std::find(deviceInfo_.DevicePropertiesSupported.begin(), deviceInfo_.DevicePropertiesSupported.end(), NikonMtpOperationCode::GetDevicePropDescEx) != deviceInfo_.DevicePropertiesSupported.end()) {
+		mutexDeviceInfo_.unlock();
+
+		mtp::MtpParams params;
+		params.addUint32(devicePropCode);
+		mtp::MtpResponse response = SendCommandAndRead(NikonMtpOperationCode::GetDevicePropDescEx, params);
+
+		if (response.responseCode != NikonMtpResponseCode::OK) {
+			throw new mtp::MtpException(NikonMtpOperationCode::GetDevicePropDescEx, response.responseCode);
+		}
+
+		return GetDevicePropDesc_(response);
+	}
+	mutexDeviceInfo_.unlock();
+
+	return mtp::MtpDevice::GetDevicePropDesc(devicePropCode);
 }
