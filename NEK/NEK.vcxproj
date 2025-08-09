@@ -33,6 +33,9 @@
   <ItemGroup>
     <ResourceCompile Include="NEK.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="NEK.APS" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

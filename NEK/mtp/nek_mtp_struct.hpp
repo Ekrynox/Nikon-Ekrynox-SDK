@@ -47,4 +47,17 @@ namespace nek::mtp {
 	};
 	typedef struct MtpDeviceInfoDS_ MtpDeviceInfoDS;
 
+
+
+	//TOIMPROVE
+	struct MtpDevicePropDescDS_ {
+		uint32_t DevicePropertyCode = 0; //uint16_t for the GetDevicePropDesc operation //uint32_t for the Nikon GetDevicePropDescEx operation
+		uint16_t DataType = 0;
+		uint8_t GetSet = 0; //0x00 read-only, 0x01 read-write
+		std::vector<uint8_t> FactoryDefaultValue; //See DataType for the type of data stored here
+		std::vector<uint8_t> CurrentValue; //See DataType for the type of data stored here
+		uint8_t FormFlag = 0; //0x00 normal, 0x01 range, 0x02 enum
+		std::vector<uint8_t> FORM; //See DataType and FormFlag for the type of data stored here
+	};
+
 }
