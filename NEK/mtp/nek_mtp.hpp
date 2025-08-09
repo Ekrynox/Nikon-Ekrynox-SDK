@@ -89,7 +89,9 @@ namespace nek::mtp {
 		CComPtr<IPortableDeviceValues> deviceClient_;
 		CComPtr<IPortableDevice> device_;
 		std::atomic<bool> connected_;
+
 		MtpDeviceInfoDS deviceInfo_;
+		std::map<uint32_t, uint16_t> devicePropDataType_;
 
 		CComPtr<MtpEventCallback> eventCallback_;
 		PWSTR eventCookie_;

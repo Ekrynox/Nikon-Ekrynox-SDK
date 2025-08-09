@@ -780,7 +780,13 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc(uint16_t devicePropCode) {
 		throw new MtpException(MtpOperationCode::GetDevicePropDesc, response.responseCode);
 	}
 
-	return GetDevicePropDesc_(response);
+	MtpDevicePropDescDS result = GetDevicePropDesc_(response);
+	mutexDeviceInfo_.lock();
+	if (devicePropDataType_.find(result.DevicePropertyCode) == devicePropDataType_.end()) {
+		devicePropDataType_.insert(std::pair<uint32_t, uint16_t>(result.DevicePropertyCode, result.DataType)); //Register Type for futur use in Get Value
+	}
+	mutexDeviceInfo_.unlock();
+	return result;
 }
 MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 	MtpDevicePropDescDS result;
