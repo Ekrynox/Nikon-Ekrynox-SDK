@@ -311,12 +311,12 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_READ_DATA.pid);
 	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
 	optimalSize = min(optimalSize, totalSize);
-	BYTE* buffer = new BYTE[optimalSize];
+	uint8_t* buffer = new uint8_t[optimalSize];
 	result.data.resize(totalSize);
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_READ, optimalSize);
 	command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, buffer, optimalSize);
 
-	BYTE* b = nullptr;
+	uint8_t* b = nullptr;
 	DWORD bNb = 0;
 	DWORD offset = 0;
 	do {
@@ -383,7 +383,7 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 	return result;
 }
 
-MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params, std::vector<BYTE> data) {
+MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params, std::vector<uint8_t> data) {
 	MtpResponse result = MtpResponse();
 	HRESULT hr;
 
@@ -646,7 +646,7 @@ MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) 
 	}
 	return sendTaskWithResult<MtpResponse>(func);
 }
-MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<BYTE> data) {
+MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<uint8_t> data) {
 	if (!connected_) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}

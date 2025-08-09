@@ -60,7 +60,7 @@ namespace nek::mtp {
 
 		MtpResponse SendCommand(WORD operationCode, MtpParams params);
 		MtpResponse SendCommandAndRead(WORD operationCode, MtpParams params);
-		MtpResponse SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<BYTE> data);
+		MtpResponse SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<uint8_t> data);
 
 		size_t RegisterCallback(std::function<void(MtpEvent)> callback);
 		void UnregisterCallback(size_t id);
@@ -76,7 +76,7 @@ namespace nek::mtp {
 
 		static MtpResponse SendCommand_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
 		static MtpResponse SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params);
-		static MtpResponse SendCommandAndWrite_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params, std::vector<BYTE> data);
+		static MtpResponse SendCommandAndWrite_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params, std::vector<uint8_t> data);
 
 		void initCom();
 		void connect();
