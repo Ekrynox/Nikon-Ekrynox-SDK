@@ -31,7 +31,7 @@ namespace nek::mtp {
 	}
 	namespace MtpFormtypeCode {
 		enum MtpFormtypeCode : uint8_t {
-			Emtpy = 0x00,
+			Empty = 0x00,
 			Range = 0x01, // Min, Max, Step
 			Enum = 0x02, // Number of values (2bytes), Values * nb
 		};
