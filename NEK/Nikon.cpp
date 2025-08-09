@@ -11,10 +11,10 @@ using namespace nek;
 
 
 
-std::map<std::wstring, NikonDeviceInfoDS> NikonCamera::listNikonCameras(bool onlyOn) {
+std::map<std::wstring, mtp::MtpDeviceInfoDS> NikonCamera::listNikonCameras(bool onlyOn) {
 	mtp::MtpManager* deviceManager = &nek::mtp::MtpManager::Instance();
 	auto cameras = deviceManager->listMtpDevices();
-	std::map<std::wstring, NikonDeviceInfoDS> nikonCameras;
+	std::map<std::wstring, mtp::MtpDeviceInfoDS> nikonCameras;
 
 	for (auto &camera : cameras) {
 		//Check if Nikon
@@ -88,7 +88,7 @@ void NikonCamera::eventThreadTask() {
 	initCom();
 
 	//Event Handler Detection
-	NikonDeviceInfoDS info = GetDeviceInfo();
+	mtp::MtpDeviceInfoDS info = GetDeviceInfo();
 	if (std::find(info.OperationsSupported.begin(), info.OperationsSupported.end(), NikonMtpOperationCode::GetEventEx) != info.OperationsSupported.end()) { //GetEventEX
 		cvTasks_.notify_all();
 
@@ -241,7 +241,7 @@ void NikonCamera::startThreads() {
 
 
 
-NikonDevicePropDescDS NikonCamera::GetDevicePropDesc(uint32_t devicePropCode) {
+mtp::MtpDevicePropDescDS NikonCamera::GetDevicePropDesc(uint32_t devicePropCode) {
 	mutexDeviceInfo_.lock();
 	if (std::find(deviceInfo_.OperationsSupported.begin(), deviceInfo_.OperationsSupported.end(), NikonMtpOperationCode::GetDevicePropDescEx) != deviceInfo_.OperationsSupported.end()) {
 		mutexDeviceInfo_.unlock();

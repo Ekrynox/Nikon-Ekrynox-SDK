@@ -1,5 +1,5 @@
 #pragma once
-#include "nikon_struct.hpp"
+#include "mtp/nek_mtp_struct.hpp"
 #include "Nikon_Enum.h"
 
 
@@ -23,7 +23,7 @@ namespace NEKCS {
 		System::String^ SerialNumber = "";
 
 		NikonDeviceInfoDS();
-		NikonDeviceInfoDS(const nek::NikonDeviceInfoDS& native);
+		NikonDeviceInfoDS(const nek::mtp::MtpDeviceInfoDS& native);
 	};
 
 }
