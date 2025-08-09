@@ -68,6 +68,8 @@ namespace nek::mtp {
 
 		MtpDeviceInfoDS GetDeviceInfo();
 
+		MtpDevicePropDescDS GetDevicePropDesc(uint16_t devicePropCode);
+
 
 	protected:
 		MtpDevice();
@@ -93,6 +95,9 @@ namespace nek::mtp {
 		std::mutex mutexDevice_;
 
 		uint8_t additionalThreadsNb_;
+
+
+		MtpDevicePropDescDS GetDevicePropDesc_(MtpResponse& response);
 	};
 
 }
