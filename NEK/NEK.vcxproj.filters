@@ -28,9 +28,6 @@
     <ClInclude Include="nikon_enum.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nikon_struct.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="mtp\nek_mtp.hpp">
       <Filter>Header Files\mtp</Filter>
     </ClInclude>
