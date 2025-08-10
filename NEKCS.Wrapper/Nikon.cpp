@@ -111,4 +111,14 @@ MtpDatatypeVariant^ NikonCamera::GetDevicePropValue(NikonMtpDevicePropCode devic
 		throw gcnew MtpException(e);
 	}
 }
-//void SetDevicePropValue(uint16_t devicePropCode, mtp::MtpDatatypeVariant data);
+void NikonCamera::SetDevicePropValue(NikonMtpDevicePropCode devicePropCode, MtpDatatypeVariant^ data) {
+	try {
+		return m_nativeClass->SetDevicePropValue((System::UInt32)devicePropCode, data->getVariant());
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+	catch (const nek::mtp::MtpException& e) {
+		throw gcnew MtpException(e);
+	}
+}

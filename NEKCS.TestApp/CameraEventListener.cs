@@ -27,9 +27,6 @@ namespace NEKCS.TestApp
             camera.OnMtpEvent += new NEKCS.MtpEventHandler(newCamEvent);
 
 
-            var res = camera.GetDevicePropValue(NEKCS.NikonMtpDevicePropCode.Artist);
-
-
             _cameraShootingForm = new CameraShootingForm(camera);
             _cameraShootingForm.Show();
         }
