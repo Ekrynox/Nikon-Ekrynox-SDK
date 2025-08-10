@@ -99,7 +99,7 @@ CComPtr<IPortableDevicePropVariantCollection> MtpParams::GetCollection() {
 	if (FAILED(hr)) {
 		throw std::runtime_error("Failed to create Prop Variant Collection: " + hr);
 	}
-	for (const auto pv : pv_) {
+	for (const auto& pv : pv_) {
 		paramsCollection->Add(&pv);
 	}
 
