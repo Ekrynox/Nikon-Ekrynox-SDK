@@ -68,11 +68,15 @@ int main() {
 		camera->SendCommand(nek::NikonMtpOperationCode::DeleteImagesInSdram, params);
 	}
 
-	auto propdesc = camera->GetDevicePropDesc(nek::NikonMtpDevicePropCode::ArtistV);
+	auto propdesc = camera->GetDevicePropDesc(nek::NikonMtpDevicePropCode::ExposureIndex);
 
+	camera->SetDevicePropValue(nek::NikonMtpDevicePropCode::ExposureIndex, (uint16_t)1250);
 	auto propvalue1 = camera->GetDevicePropValue(nek::NikonMtpDevicePropCode::ExposureIndex);
 
 	auto propvalue2 = camera->GetDevicePropValue(nek::NikonMtpDevicePropCode::ExposureIndex);
+
+	camera->SetDevicePropValue(nek::NikonMtpDevicePropCode::ExposureIndex, (uint16_t)100);
+	auto propvalue3 = camera->GetDevicePropValue(nek::NikonMtpDevicePropCode::ExposureIndex);
 
 
 	int wait = 1;

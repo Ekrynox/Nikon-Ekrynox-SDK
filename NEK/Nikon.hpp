@@ -20,6 +20,7 @@ namespace nek {
 
 		mtp::MtpDevicePropDescDS GetDevicePropDesc(uint32_t devicePropCode);
 		mtp::MtpDatatypeVariant GetDevicePropValue(uint16_t devicePropCode);
+		void SetDevicePropValue(uint16_t devicePropCode, mtp::MtpDatatypeVariant data);
 
 
 	private:

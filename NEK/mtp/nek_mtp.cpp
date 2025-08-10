@@ -1359,3 +1359,152 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 
 	return result;
 }
+
+void MtpDevice::SetDevicePropValue(uint16_t devicePropCode, MtpDatatypeVariant data) {
+	std::vector<uint8_t> rawdata = SetDevicePropValue_(data);
+
+	MtpParams params;
+	params.addUint32(static_cast<uint32_t>(devicePropCode));
+	MtpResponse response = SendCommandAndWrite(MtpOperationCode::SetDevicePropValue, params, rawdata);
+
+	if (response.responseCode != MtpResponseCode::OK) {
+		throw new MtpException(MtpOperationCode::SetDevicePropValue, response.responseCode);
+	}
+
+	return;
+}
+std::vector<uint8_t> MtpDevice::SetDevicePropValue_(MtpDatatypeVariant data) {
+	auto rawdata = std::vector<uint8_t>();
+
+	switch (data.index()) {
+	case 1:
+		rawdata.resize(sizeof(int8_t));
+		std::memcpy((int8_t*)rawdata.data(), &std::get<int8_t>(data), sizeof(int8_t));
+		break;
+	case 2:
+		rawdata.resize(sizeof(uint8_t));
+		std::memcpy((uint8_t*)rawdata.data(), &std::get<uint8_t>(data), sizeof(uint8_t));
+		break;
+	case 3:
+		rawdata.resize(sizeof(int16_t));
+		std::memcpy((int16_t*)rawdata.data(), &std::get<int16_t>(data), sizeof(int16_t));
+		break;
+	case 4:
+		rawdata.resize(sizeof(uint16_t));
+		std::memcpy((uint16_t*)rawdata.data(), &std::get<uint16_t>(data), sizeof(uint16_t));
+		break;
+	case 5:
+		rawdata.resize(sizeof(int32_t));
+		std::memcpy((int32_t*)rawdata.data(), &std::get<int32_t>(data), sizeof(int32_t));
+		break;
+	case 6:
+		rawdata.resize(sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), &std::get<uint32_t>(data), sizeof(uint32_t));
+		break;
+	case 7:
+		rawdata.resize(sizeof(int64_t));
+		std::memcpy((int64_t*)rawdata.data(), &std::get<int64_t>(data), sizeof(int32_t));
+		break;
+	case 8:
+		rawdata.resize(sizeof(uint64_t));
+		std::memcpy((uint64_t*)rawdata.data(), &std::get<uint64_t>(data), sizeof(uint32_t));
+		break;
+	case 9:
+		throw std::runtime_error("int128 Not Implemented");
+		break;
+	case 10:
+		throw std::runtime_error("uint128 Not Implemented");
+		break;
+	case 11:
+	{
+		uint32_t len = std::get<std::vector<int8_t>>(data).size();
+		size_t size = sizeof(int8_t) * len;
+		rawdata.resize(size + sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((int8_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<int8_t>>(data).data(), size);
+	}
+		break;
+	case 12:
+	{
+		uint32_t len = std::get<std::vector<uint8_t>>(data).size();
+		size_t size = sizeof(uint8_t) * len;
+		rawdata.resize(size + sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint8_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<uint8_t>>(data).data(), size);
+	}
+		break;
+	case 13:
+	{
+		uint32_t len = std::get<std::vector<int16_t>>(data).size();
+		size_t size = sizeof(int16_t) * len;
+		rawdata.resize(size + sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((int16_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<int16_t>>(data).data(), size);
+	}
+		break;
+	case 14:
+	{
+		uint32_t len = std::get<std::vector<uint16_t>>(data).size();
+		size_t size = sizeof(uint16_t) * len;
+		rawdata.resize(size + sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint16_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<uint16_t>>(data).data(), size);
+	}
+		break;
+	case 15:
+	{
+		uint32_t len = std::get<std::vector<int32_t>>(data).size();
+		size_t size = sizeof(int32_t) * len;
+		rawdata.resize(size + sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((int32_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<int32_t>>(data).data(), size);
+	}
+		break;
+	case 16:
+	{
+		uint32_t len = std::get<std::vector<uint32_t>>(data).size();
+		size_t size = sizeof(uint32_t) * len;
+		rawdata.resize(size + sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint32_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<uint32_t>>(data).data(), size);
+	}
+		break;
+	case 17:
+	{
+		uint32_t len = std::get<std::vector<int64_t>>(data).size();
+		size_t size = sizeof(int64_t) * len;
+		rawdata.resize(size + sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((int64_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<int64_t>>(data).data(), size);
+	}
+		break;
+	case 18:
+	{
+		uint32_t len = std::get<std::vector<uint64_t>>(data).size();
+		size_t size = sizeof(uint64_t) * len;
+		rawdata.resize(size + sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint64_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<uint64_t>>(data).data(), size);
+	}
+		break;
+	case 19:
+		throw std::runtime_error("int128 Not Implemented");
+		break;
+	case 20:
+		throw std::runtime_error("uint128 Not Implemented");
+		break;
+	case 21:
+	{
+		uint8_t len = std::get<std::wstring>(data).length() + 1;
+		size_t size = sizeof(char16_t) * len;
+		rawdata.resize(size + sizeof(uint8_t));
+		std::memcpy((uint8_t*)rawdata.data(), &len, sizeof(uint8_t));
+		std::memcpy((char16_t*)(rawdata.data() + sizeof(uint8_t)), (char16_t*)std::get<std::wstring>(data).c_str(), size);
+	}
+	break;
+	default:
+		return rawdata;
+	}
+
+	return rawdata;
+}
