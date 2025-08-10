@@ -486,3 +486,143 @@ nek::mtp::MtpDatatypeVariant MtpDatatypeVariant::getVariant() {
 	
 	return nek::mtp::MtpDatatypeVariant();
 }
+
+
+System::Boolean MtpDatatypeVariant::TryGetInt8(System::SByte% data) {
+	if (m_type == NikonMtpDatatypeCode::Int8) {
+		data = safe_cast<System::SByte>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetUInt8(System::Byte% data) {
+	if (m_type == NikonMtpDatatypeCode::UInt8) {
+		data = safe_cast<System::Byte>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetInt16(System::Int16% data) {
+	if (m_type == NikonMtpDatatypeCode::Int16) {
+		data = safe_cast<System::Int16>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetUInt16(System::UInt16% data) {
+	if (m_type == NikonMtpDatatypeCode::UInt16) {
+		data = safe_cast<System::UInt16>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetInt32(System::Int32% data) {
+	if (m_type == NikonMtpDatatypeCode::Int32) {
+		data = safe_cast<System::Int32>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetUInt32(System::UInt32% data) {
+	if (m_type == NikonMtpDatatypeCode::UInt32) {
+		data = safe_cast<System::UInt32>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetInt64(System::Int64% data) {
+	if (m_type == NikonMtpDatatypeCode::Int64) {
+		data = safe_cast<System::Int64>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetUInt64(System::UInt64% data) {
+	if (m_type == NikonMtpDatatypeCode::UInt64) {
+		data = safe_cast<System::UInt64>(m_value);
+		return true;
+	}
+
+	return false;
+}
+
+System::Boolean MtpDatatypeVariant::TryGetArrayInt8(array<System::SByte>^% data) {
+	if (m_type == NikonMtpDatatypeCode::ArrayInt8) {
+		data = static_cast<array<System::SByte>^>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetArrayUInt8(array<System::Byte>^% data) {
+	if (m_type == NikonMtpDatatypeCode::ArrayUInt8) {
+		data = static_cast<array<System::Byte>^>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetArrayInt16(array<System::Int16>^% data) {
+	if (m_type == NikonMtpDatatypeCode::ArrayInt16) {
+		data = static_cast<array<System::Int16>^>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetArrayUInt16(array<System::UInt16>^% data) {
+	if (m_type == NikonMtpDatatypeCode::ArrayUInt16) {
+		data = static_cast<array<System::UInt16>^>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetArrayInt32(array<System::Int32>^% data) {
+	if (m_type == NikonMtpDatatypeCode::ArrayInt32) {
+		data = static_cast<array<System::Int32>^>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetArrayUInt32t(array<System::UInt32>^% data) {
+	if (m_type == NikonMtpDatatypeCode::ArrayUInt32) {
+		data = static_cast<array<System::UInt32>^>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetArrayInt64(array<System::Int64>^% data) {
+	if (m_type == NikonMtpDatatypeCode::ArrayInt64) {
+		data = static_cast<array<System::Int64>^>(m_value);
+		return true;
+	}
+
+	return false;
+}
+System::Boolean MtpDatatypeVariant::TryGetArrayUInt64(array<System::UInt64>^% data) {
+	if (m_type == NikonMtpDatatypeCode::ArrayUInt64) {
+		data = static_cast<array<System::UInt64>^>(m_value);
+		return true;
+	}
+
+	return false;
+}
+
+System::Boolean MtpDatatypeVariant::TryGetString(System::String^% data) {
+	if (m_type == NikonMtpDatatypeCode::String) {
+		data = static_cast<System::String^>(m_value);
+		return true;
+	}
+
+	return false;
+}

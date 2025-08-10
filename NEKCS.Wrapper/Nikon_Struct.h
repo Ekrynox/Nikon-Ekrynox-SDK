@@ -55,6 +55,26 @@ namespace NEKCS {
 
 		MtpDatatypeVariant(const nek::mtp::MtpDatatypeVariant& data);
 
+		System::Boolean TryGetInt8(System::SByte% data);
+		System::Boolean TryGetUInt8(System::Byte% data);
+		System::Boolean TryGetInt16(System::Int16% data);
+		System::Boolean TryGetUInt16(System::UInt16% data);
+		System::Boolean TryGetInt32(System::Int32% data);
+		System::Boolean TryGetUInt32(System::UInt32% data);
+		System::Boolean TryGetInt64(System::Int64% data);
+		System::Boolean TryGetUInt64(System::UInt64% data);
+
+		System::Boolean TryGetArrayInt8(array<System::SByte>^% data);
+		System::Boolean TryGetArrayUInt8(array<System::Byte>^% data);
+		System::Boolean TryGetArrayInt16(array<System::Int16>^% data);
+		System::Boolean TryGetArrayUInt16(array<System::UInt16>^% data);
+		System::Boolean TryGetArrayInt32(array<System::Int32>^% data);
+		System::Boolean TryGetArrayUInt32t(array<System::UInt32>^% data);
+		System::Boolean TryGetArrayInt64(array<System::Int64>^% data);
+		System::Boolean TryGetArrayUInt64(array<System::UInt64>^% data);
+
+		System::Boolean TryGetString(System::String^% data);
+
 	internal:
 		nek::mtp::MtpDatatypeVariant getVariant();
 
