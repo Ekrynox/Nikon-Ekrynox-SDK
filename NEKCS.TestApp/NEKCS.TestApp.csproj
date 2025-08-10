@@ -9,9 +9,15 @@
     <UseWPF>True</UseWPF>
   </PropertyGroup>
 
+  <Target Name="CopyNativeDeps" AfterTargets="Build">
+	  <ItemGroup>
+		<NativeDeps Include="$(SolutionDir)x64\$(Configuration)\NEK.dll" />
+	  </ItemGroup>
+	<Copy SourceFiles="@(NativeDeps)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+  </Target>
+
   <ItemGroup>
     <ProjectReference Include="..\NEKCS.Wrapper\NEKCS.Wrapper.vcxproj" />
-    <ProjectReference Include="..\NEK\NEK.vcxproj" />
   </ItemGroup>
 
 </Project>
