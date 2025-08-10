@@ -11,15 +11,15 @@
 
 namespace nek::utils {
 
-	class NEK_API ThreadedClassBase {
+	class ThreadedClassBase {
 	public:
-		ThreadedClassBase();
+		NEK_API ThreadedClassBase();
 
-		virtual void startThread() = 0;
-		virtual void stopThread() = 0;
+		NEK_API virtual void startThread() = 0;
+		NEK_API virtual void stopThread() = 0;
 
-		void sendTaskAsync(std::function<void()> task);
-		void sendTask(std::function<void()> task);
+		NEK_API void sendTaskAsync(std::function<void()> task);
+		NEK_API void sendTask(std::function<void()> task);
 		template<typename T> T sendTaskWithResult(std::function<T()> task) {
 			std::promise<T> p;
 			auto f = p.get_future();
@@ -40,13 +40,13 @@ namespace nek::utils {
 
 
 
-	class NEK_API ThreadedClass : public ThreadedClassBase {
+	class ThreadedClass : public ThreadedClassBase {
 	public:
-		ThreadedClass() {};
-		~ThreadedClass();
+		NEK_API ThreadedClass() {};
+		NEK_API ~ThreadedClass();
 
-		void startThread() override;
-		void stopThread() override;
+		NEK_API void startThread() override;
+		NEK_API void stopThread() override;
 
 	protected:
 		std::thread thread_;
@@ -55,13 +55,13 @@ namespace nek::utils {
 
 
 
-	class NEK_API MultiThreadedClass : public ThreadedClassBase {
+	class MultiThreadedClass : public ThreadedClassBase {
 	public:
-		MultiThreadedClass() {};
-		~MultiThreadedClass();
+		NEK_API MultiThreadedClass() {};
+		NEK_API ~MultiThreadedClass();
 
-		void startThread() override;
-		void stopThread() override;
+		NEK_API void startThread() override;
+		NEK_API void stopThread() override;
 
 	protected:
 		std::vector<std::thread> threads_;

@@ -14,17 +14,17 @@
 
 namespace nek::mtp {
 
-	class NEK_API MtpReponseParams {
+	class MtpReponseParams {
 	public:
-		MtpReponseParams();
-		MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
-		MtpReponseParams(CComPtr<IPortableDeviceValues> eventParameters);
-		MtpReponseParams(const MtpReponseParams& other);
-		MtpReponseParams& operator=(const MtpReponseParams& other);
-		~MtpReponseParams();
+		NEK_API MtpReponseParams();
+		NEK_API MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
+		NEK_API MtpReponseParams(CComPtr<IPortableDeviceValues> eventParameters);
+		NEK_API MtpReponseParams(const MtpReponseParams& other);
+		NEK_API MtpReponseParams& operator=(const MtpReponseParams& other);
+		NEK_API ~MtpReponseParams();
 
-		void SetCollection(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
-		void SetCollection(CComPtr<IPortableDeviceValues> eventParameters);
+		NEK_API void SetCollection(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
+		NEK_API void SetCollection(CComPtr<IPortableDeviceValues> eventParameters);
 
 		/*uint32_t getUint32(size_t pos);
 		uint16_t getUint16(size_t param);
@@ -36,28 +36,28 @@ namespace nek::mtp {
 	};
 
 
-	class NEK_API MtpParams {
+	class MtpParams {
 	public:
-		MtpParams() {};
-		~MtpParams();
+		NEK_API MtpParams() {};
+		NEK_API ~MtpParams();
 
-		CComPtr<IPortableDevicePropVariantCollection> GetCollection();
+		NEK_API CComPtr<IPortableDevicePropVariantCollection> GetCollection();
 
-		void addUint32(uint32_t param);
-		void addUint16(uint16_t param);
-		void addInt32(int32_t param);
-		void addInt16(int16_t param);
+		NEK_API void addUint32(uint32_t param);
+		NEK_API void addUint16(uint16_t param);
+		NEK_API void addInt32(int32_t param);
+		NEK_API void addInt16(int16_t param);
 
 	protected:
 		std::vector<PROPVARIANT> pv_;
 	};
 
 
-	class NEK_API MtpResponse {
+	class MtpResponse {
 	public:
-		MtpResponse();
+		NEK_API MtpResponse();
 
-		MtpReponseParams& GetParams();
+		NEK_API MtpReponseParams& GetParams();
 
 		uint16_t responseCode;
 		std::vector<uint8_t> data;
@@ -67,11 +67,11 @@ namespace nek::mtp {
 	};
 
 
-	class NEK_API MtpEvent {
+	class MtpEvent {
 	public:
-		MtpEvent(uint16_t eventCode);
-		MtpEvent(uint16_t eventCode, uint32_t param);
-		MtpEvent(uint16_t eventCode, std::vector<uint32_t> params);
+		NEK_API MtpEvent(uint16_t eventCode);
+		NEK_API MtpEvent(uint16_t eventCode, uint32_t param);
+		NEK_API MtpEvent(uint16_t eventCode, std::vector<uint32_t> params);
 
 		uint16_t eventCode;
 		std::vector<uint32_t> eventParams;

@@ -31,12 +31,12 @@
 
 namespace nek::mtp {
 
-	class NEK_API MtpManager : protected nek::utils::ThreadedClass {
+	class MtpManager : protected nek::utils::ThreadedClass {
 	public:
-		static MtpManager& Instance();
+		NEK_API static MtpManager& Instance();
 
-		std::map<std::wstring, MtpDeviceInfoDS> listMtpDevices();
-		size_t countMtpDevices();
+		NEK_API std::map<std::wstring, MtpDeviceInfoDS> listMtpDevices();
+		NEK_API size_t countMtpDevices();
 
 	private:
 		MtpManager& operator= (const MtpManager&) = delete;
@@ -51,26 +51,26 @@ namespace nek::mtp {
 
 
 
-	class NEK_API MtpDevice : protected nek::utils::MultiThreadedClass {
+	class MtpDevice : protected nek::utils::MultiThreadedClass {
 	public:
-		MtpDevice(const PWSTR devicePath, uint8_t additionalThreadsNb = 0);
-		~MtpDevice();
+		NEK_API MtpDevice(const PWSTR devicePath, uint8_t additionalThreadsNb = 0);
+		NEK_API ~MtpDevice();
 
-		bool isConnected() const { return connected_ && running_; }
+		NEK_API bool isConnected() const { return connected_ && running_; }
 
-		MtpResponse SendCommand(WORD operationCode, MtpParams params);
-		MtpResponse SendCommandAndRead(WORD operationCode, MtpParams params);
-		MtpResponse SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<uint8_t> data);
+		NEK_API MtpResponse SendCommand(WORD operationCode, MtpParams params);
+		NEK_API MtpResponse SendCommandAndRead(WORD operationCode, MtpParams params);
+		NEK_API MtpResponse SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<uint8_t> data);
 
-		size_t RegisterCallback(std::function<void(MtpEvent)> callback);
-		void UnregisterCallback(size_t id);
+		NEK_API size_t RegisterCallback(std::function<void(MtpEvent)> callback);
+		NEK_API void UnregisterCallback(size_t id);
 
 
-		MtpDeviceInfoDS GetDeviceInfo();
+		NEK_API MtpDeviceInfoDS GetDeviceInfo();
 
-		MtpDevicePropDescDS GetDevicePropDesc(uint16_t devicePropCode);
-		MtpDatatypeVariant GetDevicePropValue(uint16_t devicePropCode);
-		void SetDevicePropValue(uint16_t devicePropCode, MtpDatatypeVariant data);
+		NEK_API MtpDevicePropDescDS GetDevicePropDesc(uint16_t devicePropCode);
+		NEK_API MtpDatatypeVariant GetDevicePropValue(uint16_t devicePropCode);
+		NEK_API void SetDevicePropValue(uint16_t devicePropCode, MtpDatatypeVariant data);
 
 
 	protected:
