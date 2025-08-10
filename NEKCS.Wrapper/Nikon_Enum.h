@@ -4,6 +4,54 @@
 
 namespace NEKCS {
 
+	public enum class NikonMtpDatatypeCode : System::UInt16 {
+		Undefined = 0x0000,
+		Int8 = 0x0001,
+		UInt8 = 0x0002,
+		Int16 = 0x0003,
+		UInt16 = 0x0004,
+		Int32 = 0x0005,
+		UInt32 = 0x0006,
+		Int64 = 0x0007,
+		UInt64 = 0x0008,
+		Int128 = 0x0009,
+		UInt128 = 0x000A,
+		ArrayInt8 = 0x4001,
+		ArrayUInt8 = 0x4002,
+		ArrayInt16 = 0x4003,
+		ArrayUInt16 = 0x4004,
+		ArrayInt32 = 0x4005,
+		ArrayUInt32 = 0x4006,
+		ArrayInt64 = 0x4007,
+		ArrayUInt64 = 0x4008,
+		ArrayInt128 = 0x4009,
+		ArrayUInt128 = 0x400A,
+		String = 0xFFFF,
+	};
+
+	public enum class NikonMtpFormtypeCode : System::Byte {
+		Empty = 0x00,
+		Range = 0x01, // Min, Max, Step
+		Enum = 0x02, // Number of values (2bytes), Values * nb
+	};
+
+
+	public enum class NikonMtpObjectFormatCode : System::UInt16 {
+		Undefined = 0x3000,
+		Association = 0x3001,
+		Script = 0x3002,
+		WAV = 0x3008,
+		NEF = 0x3800,
+		JPEG = 0x3801,
+		JFIF = 0x3808,
+		MOV = 0x300D,
+		TIFF = 0x380D,
+		HEIF = 0xB200,
+		NEV = 0xB201,
+		MP4 = 0xB982,
+	};
+
+
 	public enum class NikonMtpOperationCode : System::UInt16 {
 		GetDeviceInfo = 0x1001,
 		OpenSession = 0x1002,

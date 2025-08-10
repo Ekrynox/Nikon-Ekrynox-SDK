@@ -26,4 +26,14 @@ namespace NEKCS {
 		NikonDeviceInfoDS(const nek::mtp::MtpDeviceInfoDS& native);
 	};
 
+
+	public ref class MtpDatatypeVariant {
+	private:
+		NikonMtpDatatypeCode m_type;
+		Object^ m_value;
+
+	public:
+		MtpDatatypeVariant(const nek::mtp::MtpDatatypeVariant& data);
+	};
+
 }

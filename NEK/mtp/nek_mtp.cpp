@@ -95,7 +95,7 @@ std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
 			mutexDevice_.unlock();
 
 			for (DWORD i = 0; i < devicesNb; i++) {
-				if (devices[i] != nullptr) {
+				if (devices[i] != 0) {
 					nikonCameras.insert(std::pair(std::wstring(devices[i]), MtpDevice(devices[i]).GetDeviceInfo()));
 					CoTaskMemFree(devices[i]);
 				}

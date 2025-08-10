@@ -2,6 +2,8 @@
 
 #include "Nikon_Utils.h"
 
+#include <assert.h>
+
 
 using namespace NEKCS;
 
@@ -41,9 +43,10 @@ MtpResponse::MtpResponse() {
 	data = gcnew array<System::Byte>(0);
 }
 MtpResponse::MtpResponse(nek::mtp::MtpResponse response) {
+	assert(response.data.size() <= static_cast<size_t>(INT_MAX));
 	responseCode = (NikonMtpResponseCode)response.responseCode;
 	responseParams_ = gcnew MtpReponseParams(response.GetParams());
-	data = gcnew array<System::Byte>(response.data.size());
+	data = gcnew array<System::Byte>(static_cast<int>(response.data.size()));
 	if (data->Length > 0) {
 		pin_ptr<System::Byte> dataptr = &data[0];
 		std::memcpy(dataptr, response.data.data(), response.data.size());
@@ -61,8 +64,9 @@ MtpReponseParams^ MtpResponse::GetParams() { return responseParams_; }
 
 //MtpEvent
 MtpEvent::MtpEvent(nek::mtp::MtpEvent event) {
+	assert(event.eventParams.size() <= static_cast<size_t>(INT_MAX));
 	eventCode = (NikonMtpEventCode)event.eventCode;
-	eventParams = gcnew array<System::UInt32>(event.eventParams.size());
+	eventParams = gcnew array<System::UInt32>(static_cast<int>(event.eventParams.size()));
 	if (eventParams->Length > 0) {
 		pin_ptr<System::UInt32> dataptr = &eventParams[0];
 		std::memcpy(dataptr, event.eventParams.data(), event.eventParams.size() * sizeof(uint32_t));
