@@ -401,7 +401,7 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 	// Set operation code and parameters
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPERATION_CODE, operationCode);
 	command->SetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, params.GetCollection());
-	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, data.size());
+	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, (ULONG)data.size());
 
 	// Send command
 	CComPtr<IPortableDeviceValues> commandResult;
@@ -446,7 +446,7 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_WRITE_DATA.pid);
 		command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
 
-		optimalSize = min(optimalSize, data.size() - offset);
+		optimalSize = (ULONG)min(optimalSize, data.size() - offset);
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_WRITE, optimalSize);
 		command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, data.data() + offset, optimalSize);
 
@@ -1417,73 +1417,73 @@ std::vector<uint8_t> MtpDevice::SetDevicePropValue_(MtpDatatypeVariant data) {
 		break;
 	case 11:
 	{
-		uint32_t len = std::get<std::vector<int8_t>>(data).size();
+		size_t len = std::get<std::vector<int8_t>>(data).size();
 		size_t size = sizeof(int8_t) * len;
 		rawdata.resize(size + sizeof(uint32_t));
-		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), (uint32_t*)&len, sizeof(uint32_t));
 		std::memcpy((int8_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<int8_t>>(data).data(), size);
 	}
 		break;
 	case 12:
 	{
-		uint32_t len = std::get<std::vector<uint8_t>>(data).size();
+		size_t len = std::get<std::vector<uint8_t>>(data).size();
 		size_t size = sizeof(uint8_t) * len;
 		rawdata.resize(size + sizeof(uint32_t));
-		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), (uint32_t*)&len, sizeof(uint32_t));
 		std::memcpy((uint8_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<uint8_t>>(data).data(), size);
 	}
 		break;
 	case 13:
 	{
-		uint32_t len = std::get<std::vector<int16_t>>(data).size();
+		size_t len = std::get<std::vector<int16_t>>(data).size();
 		size_t size = sizeof(int16_t) * len;
 		rawdata.resize(size + sizeof(uint32_t));
-		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), (uint32_t*)&len, sizeof(uint32_t));
 		std::memcpy((int16_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<int16_t>>(data).data(), size);
 	}
 		break;
 	case 14:
 	{
-		uint32_t len = std::get<std::vector<uint16_t>>(data).size();
+		size_t len = std::get<std::vector<uint16_t>>(data).size();
 		size_t size = sizeof(uint16_t) * len;
 		rawdata.resize(size + sizeof(uint32_t));
-		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), (uint32_t*)&len, sizeof(uint32_t));
 		std::memcpy((uint16_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<uint16_t>>(data).data(), size);
 	}
 		break;
 	case 15:
 	{
-		uint32_t len = std::get<std::vector<int32_t>>(data).size();
+		size_t len = std::get<std::vector<int32_t>>(data).size();
 		size_t size = sizeof(int32_t) * len;
 		rawdata.resize(size + sizeof(uint32_t));
-		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), (uint32_t*)&len, sizeof(uint32_t));
 		std::memcpy((int32_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<int32_t>>(data).data(), size);
 	}
 		break;
 	case 16:
 	{
-		uint32_t len = std::get<std::vector<uint32_t>>(data).size();
+		size_t len = std::get<std::vector<uint32_t>>(data).size();
 		size_t size = sizeof(uint32_t) * len;
 		rawdata.resize(size + sizeof(uint32_t));
-		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), (uint32_t*)&len, sizeof(uint32_t));
 		std::memcpy((uint32_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<uint32_t>>(data).data(), size);
 	}
 		break;
 	case 17:
 	{
-		uint32_t len = std::get<std::vector<int64_t>>(data).size();
+		size_t len = std::get<std::vector<int64_t>>(data).size();
 		size_t size = sizeof(int64_t) * len;
 		rawdata.resize(size + sizeof(uint32_t));
-		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), (uint32_t*)&len, sizeof(uint32_t));
 		std::memcpy((int64_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<int64_t>>(data).data(), size);
 	}
 		break;
 	case 18:
 	{
-		uint32_t len = std::get<std::vector<uint64_t>>(data).size();
+		size_t len = std::get<std::vector<uint64_t>>(data).size();
 		size_t size = sizeof(uint64_t) * len;
 		rawdata.resize(size + sizeof(uint32_t));
-		std::memcpy((uint32_t*)rawdata.data(), &len, sizeof(uint32_t));
+		std::memcpy((uint32_t*)rawdata.data(), (uint32_t*)&len, sizeof(uint32_t));
 		std::memcpy((uint64_t*)(rawdata.data() + sizeof(uint32_t)), std::get<std::vector<uint64_t>>(data).data(), size);
 	}
 		break;
@@ -1495,10 +1495,10 @@ std::vector<uint8_t> MtpDevice::SetDevicePropValue_(MtpDatatypeVariant data) {
 		break;
 	case 21:
 	{
-		uint8_t len = std::get<std::wstring>(data).length() + 1;
+		size_t len = std::get<std::wstring>(data).length() + 1;
 		size_t size = sizeof(char16_t) * len;
 		rawdata.resize(size + sizeof(uint8_t));
-		std::memcpy((uint8_t*)rawdata.data(), &len, sizeof(uint8_t));
+		std::memcpy((uint8_t*)rawdata.data(), (uint8_t*)&len, sizeof(uint8_t));
 		std::memcpy((char16_t*)(rawdata.data() + sizeof(uint8_t)), (char16_t*)std::get<std::wstring>(data).c_str(), size);
 	}
 	break;

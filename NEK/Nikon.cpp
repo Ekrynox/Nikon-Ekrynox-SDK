@@ -305,6 +305,8 @@ void NikonCamera::SetDevicePropValue(uint32_t devicePropCode, mtp::MtpDatatypeVa
 		if (response.responseCode != mtp::MtpResponseCode::OK) {
 			throw new mtp::MtpException(NikonMtpOperationCode::SetDevicePropValueEx, response.responseCode);
 		}
+
+		return;
 	}
 	mutexDeviceInfo_.unlock();
 

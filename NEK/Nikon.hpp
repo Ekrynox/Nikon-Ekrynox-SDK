@@ -10,17 +10,17 @@
 
 namespace nek {
 
-	class NEK_API NikonCamera : public nek::mtp::MtpDevice {
+	class NikonCamera : public nek::mtp::MtpDevice {
 	public:
-		static std::map<std::wstring, mtp::MtpDeviceInfoDS> listNikonCameras(bool onlyOn = true);
-		static size_t countNikonCameras(bool onlyOn = true);
+		NEK_API static std::map<std::wstring, mtp::MtpDeviceInfoDS> listNikonCameras(bool onlyOn = true);
+		NEK_API static size_t countNikonCameras(bool onlyOn = true);
 
-		NikonCamera(std::wstring devicePath, uint8_t additionalThread = 0);
+		NEK_API NikonCamera(std::wstring devicePath, uint8_t additionalThread = 0);
 
 
-		mtp::MtpDevicePropDescDS GetDevicePropDesc(uint32_t devicePropCode);
-		mtp::MtpDatatypeVariant GetDevicePropValue(uint32_t devicePropCode);
-		void SetDevicePropValue(uint32_t devicePropCode, mtp::MtpDatatypeVariant data);
+		NEK_API mtp::MtpDevicePropDescDS GetDevicePropDesc(uint32_t devicePropCode);
+		NEK_API mtp::MtpDatatypeVariant GetDevicePropValue(uint32_t devicePropCode);
+		NEK_API void SetDevicePropValue(uint32_t devicePropCode, mtp::MtpDatatypeVariant data);
 
 
 	private:
