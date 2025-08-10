@@ -593,7 +593,7 @@ System::Boolean MtpDatatypeVariant::TryGetArrayInt32(array<System::Int32>^% data
 
 	return false;
 }
-System::Boolean MtpDatatypeVariant::TryGetArrayUInt32t(array<System::UInt32>^% data) {
+System::Boolean MtpDatatypeVariant::TryGetArrayUInt32(array<System::UInt32>^% data) {
 	if (m_type == NikonMtpDatatypeCode::ArrayUInt32) {
 		data = static_cast<array<System::UInt32>^>(m_value);
 		return true;
@@ -625,4 +625,529 @@ System::Boolean MtpDatatypeVariant::TryGetString(System::String^% data) {
 	}
 
 	return false;
+}
+
+
+//NikonDevicePropDescDS_Variant
+NikonDevicePropDescDS_Variant::NikonDevicePropDescDS_Variant(const nek::mtp::MtpDevicePropDescDS& desc) {
+	DevicePropertyCode = (NikonMtpDevicePropCode)desc.DevicePropertyCode;
+	DataType = (NikonMtpDatatypeCode)desc.DataType;
+	GetSet = desc.GetSet;
+
+	FactoryDefaultValue = gcnew MtpDatatypeVariant(desc.FactoryDefaultValue);
+	CurrentValue = gcnew MtpDatatypeVariant(desc.CurrentValue);
+	FormFlag = NikonMtpFormtypeCode(desc.FormFlag);
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		auto form = std::get<nek::mtp::MtpRangeForm>(desc.FORM);
+		RangeFORM = gcnew NikonMtpRangeForm<MtpDatatypeVariant^>();
+		RangeFORM->min = gcnew MtpDatatypeVariant(form.min);
+		RangeFORM->max = gcnew MtpDatatypeVariant(form.max);
+		RangeFORM->step = gcnew MtpDatatypeVariant(form.step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		auto form = std::get<nek::mtp::MtpEnumForm>(desc.FORM);
+		assert(form.size() <= static_cast<int>(INT_MAX));
+		EnumFORM = gcnew array<MtpDatatypeVariant^>(static_cast<int>(form.size()));
+		for (int i = 0; i < form.size(); i++) {
+			EnumFORM[i] = gcnew MtpDatatypeVariant(form[i]);
+		}
+	}
+}
+
+
+System::Boolean NikonDevicePropDescDS_Variant::TryGetInt8(NikonDevicePropDescDS<System::SByte>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::Int8) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetInt8(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetInt8(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<System::SByte>();
+		res &= RangeFORM->min->TryGetInt8(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetInt8(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetInt8(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<System::SByte>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetInt8(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetUInt8(NikonDevicePropDescDS<System::Byte>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::UInt8) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetUInt8(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetUInt8(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<System::Byte>();
+		res &= RangeFORM->min->TryGetUInt8(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetUInt8(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetUInt8(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<System::Byte>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetUInt8(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetInt16(NikonDevicePropDescDS<System::Int16>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::Int16) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetInt16(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetInt16(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<System::Int16>();
+		res &= RangeFORM->min->TryGetInt16(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetInt16(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetInt16(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<System::Int16>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetInt16(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetUInt16(NikonDevicePropDescDS<System::UInt16>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::UInt16) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetUInt16(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetUInt16(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<System::UInt16>();
+		res &= RangeFORM->min->TryGetUInt16(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetUInt16(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetUInt16(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<System::UInt16>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetUInt16(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetInt32(NikonDevicePropDescDS<System::Int32>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::Int32) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetInt32(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetInt32(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<System::Int32>();
+		res &= RangeFORM->min->TryGetInt32(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetInt32(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetInt32(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<System::Int32>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetInt32(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetUInt32(NikonDevicePropDescDS<System::UInt32>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::UInt32) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetUInt32(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetUInt32(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<System::UInt32>();
+		res &= RangeFORM->min->TryGetUInt32(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetUInt32(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetUInt32(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<System::UInt32>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetUInt32(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetInt64(NikonDevicePropDescDS<System::Int64>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::Int64) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetInt64(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetInt64(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<System::Int64>();
+		res &= RangeFORM->min->TryGetInt64(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetInt64(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetInt64(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<System::Int64>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetInt64(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetUInt64(NikonDevicePropDescDS<System::UInt64>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::UInt64) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetUInt64(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetUInt64(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<System::UInt64>();
+		res &= RangeFORM->min->TryGetUInt64(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetUInt64(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetUInt64(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<System::UInt64>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetUInt64(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+
+System::Boolean NikonDevicePropDescDS_Variant::TryGetArrayInt8(NikonDevicePropDescDS<array<System::SByte>^>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::ArrayInt8) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetArrayInt8(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetArrayInt8(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<array<System::SByte>^>();
+		res &= RangeFORM->min->TryGetArrayInt8(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetArrayInt8(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetArrayInt8(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<array<System::SByte>^>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetArrayInt8(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetArrayUInt8(NikonDevicePropDescDS<array<System::Byte>^>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::ArrayUInt8) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetArrayUInt8(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetArrayUInt8(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<array<System::Byte>^>();
+		res &= RangeFORM->min->TryGetArrayUInt8(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetArrayUInt8(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetArrayUInt8(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<array<System::Byte>^>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetArrayUInt8(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetArrayInt16(NikonDevicePropDescDS<array<System::Int16>^>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::ArrayInt16) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetArrayInt16(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetArrayInt16(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<array<System::Int16>^>();
+		res &= RangeFORM->min->TryGetArrayInt16(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetArrayInt16(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetArrayInt16(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<array<System::Int16>^>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetArrayInt16(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetArrayUInt16(NikonDevicePropDescDS<array<System::UInt16>^>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::ArrayUInt16) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetArrayUInt16(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetArrayUInt16(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<array<System::UInt16>^>();
+		res &= RangeFORM->min->TryGetArrayUInt16(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetArrayUInt16(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetArrayUInt16(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<array<System::UInt16>^>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetArrayUInt16(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetArrayInt32(NikonDevicePropDescDS<array<System::Int32>^>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::ArrayInt32) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetArrayInt32(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetArrayInt32(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<array<System::Int32>^>();
+		res &= RangeFORM->min->TryGetArrayInt32(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetArrayInt32(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetArrayInt32(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<array<System::Int32>^>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetArrayInt32(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetArrayUInt32(NikonDevicePropDescDS<array<System::UInt32>^>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::ArrayUInt32) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetArrayUInt32(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetArrayUInt32(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<array<System::UInt32>^>();
+		res &= RangeFORM->min->TryGetArrayUInt32(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetArrayUInt32(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetArrayUInt32(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<array<System::UInt32>^>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetArrayUInt32(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetArrayInt64(NikonDevicePropDescDS<array<System::Int64>^>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::ArrayInt64) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetArrayInt64(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetArrayInt64(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<array<System::Int64>^>();
+		res &= RangeFORM->min->TryGetArrayInt64(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetArrayInt64(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetArrayInt64(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<array<System::Int64>^>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetArrayInt64(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+System::Boolean NikonDevicePropDescDS_Variant::TryGetArrayUInt64(NikonDevicePropDescDS<array<System::UInt64>^>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::ArrayUInt64) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetArrayUInt64(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetArrayUInt64(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<array<System::UInt64>^>();
+		res &= RangeFORM->min->TryGetArrayUInt64(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetArrayUInt64(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetArrayUInt64(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<array<System::UInt64>^>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetArrayUInt64(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
+}
+
+System::Boolean NikonDevicePropDescDS_Variant::TryGetString(NikonDevicePropDescDS<System::String^>^% desc) {
+	if (DataType != NikonMtpDatatypeCode::String) {
+		return false;
+	}
+	System::Boolean res = true;
+
+	desc->DevicePropertyCode = DevicePropertyCode;
+	desc->DataType = DataType;
+	desc->GetSet = GetSet;
+
+	res &= FactoryDefaultValue->TryGetString(desc->FactoryDefaultValue);
+	res &= CurrentValue->TryGetString(desc->CurrentValue);
+	desc->FormFlag = FormFlag;
+
+	if (FormFlag == NikonMtpFormtypeCode::Range) {
+		desc->RangeFORM = gcnew NikonMtpRangeForm<System::String^>();
+		res &= RangeFORM->min->TryGetString(desc->RangeFORM->min);
+		res &= RangeFORM->max->TryGetString(desc->RangeFORM->max);
+		res &= RangeFORM->step->TryGetString(desc->RangeFORM->step);
+	}
+	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
+		desc->EnumFORM = gcnew array<System::String^>(EnumFORM->Length);
+		for (int i = 0; i < EnumFORM->Length; i++) {
+			res &= EnumFORM[i]->TryGetString(desc->EnumFORM[i]);
+		}
+	}
+
+	return res;
 }

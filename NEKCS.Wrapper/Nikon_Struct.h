@@ -27,6 +27,7 @@ namespace NEKCS {
 	};
 
 
+
 	public ref class MtpDatatypeVariant {
 	private:
 		NikonMtpDatatypeCode m_type;
@@ -69,7 +70,7 @@ namespace NEKCS {
 		System::Boolean TryGetArrayInt16(array<System::Int16>^% data);
 		System::Boolean TryGetArrayUInt16(array<System::UInt16>^% data);
 		System::Boolean TryGetArrayInt32(array<System::Int32>^% data);
-		System::Boolean TryGetArrayUInt32t(array<System::UInt32>^% data);
+		System::Boolean TryGetArrayUInt32(array<System::UInt32>^% data);
 		System::Boolean TryGetArrayInt64(array<System::Int64>^% data);
 		System::Boolean TryGetArrayUInt64(array<System::UInt64>^% data);
 
@@ -100,4 +101,50 @@ namespace NEKCS {
 		void SetString(const std::wstring& data);
 	};
 
+
+	generic<typename T>
+	public ref struct NikonMtpRangeForm {
+		T min;
+		T max;
+		T step;
+	};
+
+	generic<typename T>
+	public ref struct NikonDevicePropDescDS {
+		NikonMtpDevicePropCode DevicePropertyCode = (NikonMtpDevicePropCode)0;
+		NikonMtpDatatypeCode DataType = NikonMtpDatatypeCode::Undefined;
+		System::Byte GetSet = 0;
+
+		T FactoryDefaultValue;
+		T CurrentValue;
+		NikonMtpFormtypeCode FormFlag = NikonMtpFormtypeCode::Empty;
+
+		NikonMtpRangeForm<T>^ RangeFORM = nullptr;
+		array<T>^ EnumFORM = nullptr;
+
+		NikonDevicePropDescDS() {};
+	};
+	public ref struct NikonDevicePropDescDS_Variant : NikonDevicePropDescDS<MtpDatatypeVariant^> {
+		NikonDevicePropDescDS_Variant(const nek::mtp::MtpDevicePropDescDS& desc);
+
+		System::Boolean TryGetInt8(NikonDevicePropDescDS<System::SByte>^% desc);
+		System::Boolean TryGetUInt8(NikonDevicePropDescDS<System::Byte>^% desc);
+		System::Boolean TryGetInt16(NikonDevicePropDescDS<System::Int16>^% desc);
+		System::Boolean TryGetUInt16(NikonDevicePropDescDS<System::UInt16>^% desc);
+		System::Boolean TryGetInt32(NikonDevicePropDescDS<System::Int32>^% desc);
+		System::Boolean TryGetUInt32(NikonDevicePropDescDS<System::UInt32>^% desc);
+		System::Boolean TryGetInt64(NikonDevicePropDescDS<System::Int64>^% desc);
+		System::Boolean TryGetUInt64(NikonDevicePropDescDS<System::UInt64>^% desc);
+
+		System::Boolean TryGetArrayInt8(NikonDevicePropDescDS<array<System::SByte>^>^% desc);
+		System::Boolean TryGetArrayUInt8(NikonDevicePropDescDS<array<System::Byte>^>^% desc);
+		System::Boolean TryGetArrayInt16(NikonDevicePropDescDS<array<System::Int16>^>^% desc);
+		System::Boolean TryGetArrayUInt16(NikonDevicePropDescDS<array<System::UInt16>^>^% desc);
+		System::Boolean TryGetArrayInt32(NikonDevicePropDescDS<array<System::Int32>^>^% desc);
+		System::Boolean TryGetArrayUInt32(NikonDevicePropDescDS<array<System::UInt32>^>^% desc);
+		System::Boolean TryGetArrayInt64(NikonDevicePropDescDS<array<System::Int64>^>^% desc);
+		System::Boolean TryGetArrayUInt64(NikonDevicePropDescDS<array<System::UInt64>^>^% desc);
+
+		System::Boolean TryGetString(NikonDevicePropDescDS<System::String^>^% desc);
+	};
 }
