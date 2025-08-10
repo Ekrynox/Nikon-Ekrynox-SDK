@@ -14,8 +14,8 @@ namespace NEKCS.TestApp
     public partial class CameraEventListener : Form
     {
         private NEKCS.NikonCamera camera;
-        private SynchronizationContext _syncContext;
-        private CameraShootingForm _cameraShootingForm;
+        private SynchronizationContext? _syncContext;
+        private CameraShootingForm? _cameraShootingForm;
 
 
         public CameraEventListener(string devicePath)
@@ -26,13 +26,17 @@ namespace NEKCS.TestApp
             camera = new NEKCS.NikonCamera(devicePath, 2);
             camera.OnMtpEvent += new NEKCS.MtpEventHandler(newCamEvent);
 
+
+            var res = camera.GetDevicePropValue(NEKCS.NikonMtpDevicePropCode.Artist);
+
+
             _cameraShootingForm = new CameraShootingForm(camera);
             _cameraShootingForm.Show();
         }
 
         void newCamEvent(NEKCS.NikonCamera cam, NEKCS.MtpEvent e)
         {
-            _syncContext.Post(_ =>
+            _syncContext?.Post(_ =>
             {
                 NEKCS.NikonMtpEventCode ecode = (NEKCS.NikonMtpEventCode)e.eventCode;
                 this.EventList.Text += "Event: " + Enum.GetName(typeof(NEKCS.NikonMtpEventCode), ecode);
@@ -59,7 +63,7 @@ namespace NEKCS.TestApp
 
         private void CameraEventListener_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _cameraShootingForm.Dispose();
+            _cameraShootingForm?.Dispose();
             camera.Dispose();
         }
 
