@@ -119,7 +119,6 @@ MtpExCode MtpDeviceException::computeCode(MtpExPhase phase, HRESULT hr) {
 		switch (hr) {
 		case UI_E_SHUTDOWN_CALLED:
 			return DEVICE_DISCONNECTED;
-
 		default:
 			return UNKNOW_ERR;
 		}
