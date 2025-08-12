@@ -173,8 +173,10 @@ HRESULT MtpEventCallback::OnEvent(IPortableDeviceValues* pEventParameters) {
 }
 
 HRESULT MtpEventCallback::OnEvent(MtpEvent event) {
-	std::lock_guard<std::mutex> lock(mutex_);
-	for (auto& [id, callback] : *callbacks_) {
+	mutex_.lock();
+	auto callbacks = *callbacks_;
+	mutex_.unlock();
+	for (auto& [id, callback] : callbacks) {
 		callback(event);
 	}
 	return HRESULT(0);
