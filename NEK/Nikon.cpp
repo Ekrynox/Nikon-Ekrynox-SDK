@@ -113,7 +113,7 @@ void NikonCamera::eventThreadTask() {
 					CoUninitialize();
 					return;
 				}
-				else { throw; }
+				result.responseCode == NikonMtpResponseCode::General_Error;
 			}
 
 			if (result.responseCode == NikonMtpResponseCode::OK) {
@@ -160,7 +160,7 @@ void NikonCamera::eventThreadTask() {
 					CoUninitialize();
 					return;
 				}
-				else { throw; }
+				result.responseCode == NikonMtpResponseCode::General_Error;
 			}
 
 			if (result.responseCode == NikonMtpResponseCode::OK) {
