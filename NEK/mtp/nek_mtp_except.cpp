@@ -58,6 +58,7 @@ std::string MtpExCodeToString(MtpExCode code) {
 
 //MtpDeviceException
 MtpDeviceException::MtpDeviceException(MtpExPhase phase, HRESULT hr) : phase(phase), code(computeCode(phase, hr)) {};
+MtpDeviceException::MtpDeviceException(MtpExPhase phase, MtpExCode code) : phase(phase), code(code) {};
 
 MtpExCode MtpDeviceException::computeCode(MtpExPhase phase, HRESULT hr) {
 	if (hr == S_OK) return NO_ERR;

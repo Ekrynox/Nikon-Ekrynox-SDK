@@ -52,7 +52,7 @@ void NikonCamera::mainThreadTask() {
 	//Init & Connect
 	try {
 		initCom();
-		connect();
+		initDevice();
 	}
 	catch (...) {
 		mutexDevice_.unlock();
@@ -109,7 +109,7 @@ void NikonCamera::eventThreadTask() {
 			catch (const nek::mtp::MtpDeviceException& e) {
 				mutexDevice_.unlock();
 				if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
-					disconnect();
+					Disconnect();
 					CoUninitialize();
 					return;
 				}
@@ -156,7 +156,7 @@ void NikonCamera::eventThreadTask() {
 			catch (const nek::mtp::MtpDeviceException& e) {
 				mutexDevice_.unlock();
 				if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
-					disconnect();
+					Disconnect();
 					CoUninitialize();
 					return;
 				}
@@ -218,6 +218,7 @@ void NikonCamera::threadTask() {
 
 
 void NikonCamera::startThreads() {
+	running_ = true;
 	//Start main thread
 	mutexThreads_.lock();
 	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));

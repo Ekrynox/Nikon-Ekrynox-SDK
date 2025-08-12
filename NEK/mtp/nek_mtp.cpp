@@ -137,8 +137,7 @@ MtpDevice::MtpDevice() {
 }
 
 MtpDevice::~MtpDevice() {
-	connected_ = false;
-	stopThread();
+	Disconnect();
 	eventCallback_.Release();
 };
 
@@ -150,7 +149,7 @@ void MtpDevice::mainThreadTask() {
 	//Init & Connect
 	try {
 		initCom();
-		connect();
+		initDevice();
 	}
 	catch (...) {
 		mutexDevice_.unlock();
@@ -320,6 +319,7 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 	uint8_t* b = nullptr;
 	DWORD bNb = 0;
 	DWORD offset = 0;
+	size_t retry = 0;
 	do {
 		hr = device->SendCommand(0, command, &commandResult);
 		if (FAILED(hr)) {
@@ -328,11 +328,21 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 			commandResult.Release();
 			throw MtpDeviceException(MtpExPhase::DATAREAD_SEND, hr);
 		}
-		commandResult->GetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &b, &bNb);
-		std::memcpy(result.data.data() + offset, b, bNb);
-		CoTaskMemFree(b);
-		offset += bNb;
-		commandResult.Release();
+		hr = commandResult->GetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &b, &bNb);
+		if (SUCCEEDED(hr) && (bNb > 0)) {
+			std::memcpy(result.data.data() + offset, b, bNb);
+			CoTaskMemFree(b);
+			commandResult.Release();
+			offset += bNb;
+			retry = 0;
+		}
+		else {
+			retry += 1;
+			commandResult.Release();
+			if (retry >= 10) {
+				break;
+			}
+		}
 	} while (totalSize > offset);
 
 	delete[] buffer;
@@ -527,8 +537,6 @@ void MtpDevice::initCom() {
 	}
 	hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
 	if (FAILED(hr)) {
-		mutexDevice_.unlock();
-		mutexTasks_.unlock();
 		throw MtpDeviceException(MtpExPhase::DEVICECLIENT_INIT, hr);
 	}
 	deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
@@ -537,8 +545,8 @@ void MtpDevice::initCom() {
 	deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
 }
 
-void MtpDevice::connect() {
-	if (connected_) {
+void MtpDevice::initDevice() {
+	if (isConnected()) {
 		return; //Already connected
 	}
 
@@ -556,24 +564,22 @@ void MtpDevice::connect() {
 	connected_ = true;
 }
 
-void MtpDevice::disconnect() {
-	mutexDevice_.lock();
-	if (!connected_) {
-		mutexDevice_.unlock();
+void MtpDevice::Disconnect() {
+	if (!isConnected()) {
 		return; //Already disconnected
 	}
 	connected_ = false;
-	mutexDevice_.unlock();
 
 	mutexTasks_.lock();
 	tasks_.clear();
 	mutexTasks_.unlock();
 	stopThread();
 	
-	eventCallback_->OnEvent(nek::mtp::MtpEvent(0x4008)); // Notify Disconnection: DeviceInfoChanged
+	eventCallback_->OnEvent(nek::mtp::MtpEvent(MtpEventCode::DeviceInfoChanged)); // Notify Disconnection: DeviceInfoChanged
 }
 
 void MtpDevice::startThreads() {
+	running_ = true;
 	mutexThreads_.lock();
 	threads_.push_back(std::thread([this] { this->mainThreadTask(); }));
 	mutexThreads_.unlock();
@@ -589,7 +595,7 @@ void MtpDevice::startThreads() {
 
 
 MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
-	if (!connected_) {
+	if (!isConnected()) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
 	auto func = [this, operationCode, &params] {
@@ -601,7 +607,7 @@ MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
 		catch (MtpDeviceException& e) {
 			this->mutexDevice_.unlock();
 			if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
-				disconnect();
+				Disconnect();
 			}
 			throw;
 		}
@@ -618,7 +624,7 @@ MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
 	return sendTaskWithResult<MtpResponse>(func);
 }
 MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) {
-	if (!connected_) {
+	if (!isConnected()) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
 
@@ -631,7 +637,7 @@ MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) 
 		catch (MtpDeviceException& e) {
 			this->mutexDevice_.unlock();
 			if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
-				disconnect();
+				Disconnect();
 			}
 			throw;
 		}
@@ -648,10 +654,9 @@ MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) 
 	return sendTaskWithResult<MtpResponse>(func);
 }
 MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<uint8_t> data) {
-	if (!connected_) {
+	if (!isConnected()) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
-
 	auto func = [this, operationCode, &params, &data] {
 		MtpResponse result;
 		this->mutexDevice_.lock();
@@ -661,7 +666,7 @@ MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params,
 		catch (MtpDeviceException& e) {
 			this->mutexDevice_.unlock();
 			if (e.code == nek::mtp::MtpExCode::DEVICE_DISCONNECTED) {
-				disconnect();
+				Disconnect();
 			}
 			throw;
 		}
