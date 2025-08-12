@@ -159,7 +159,13 @@ MtpEvent::MtpEvent(uint16_t eventCode, std::vector<uint32_t> params) {
 
 
 //MtpEventCallback
-MtpEventCallback::MtpEventCallback() : ref_(0), nextId(0) {}
+MtpEventCallback::MtpEventCallback() : ref_(0), nextId(0) {
+	callbacks_ = new std::vector<std::pair<size_t, std::function<void(MtpEvent)>>>();
+}
+
+MtpEventCallback::~MtpEventCallback() {
+	delete callbacks_;
+}
 
 HRESULT MtpEventCallback::OnEvent(IPortableDeviceValues* pEventParameters) {
 	MtpEvent event = MtpEvent(0); //TO UPDATE TO EXTRACT DATA
@@ -168,7 +174,7 @@ HRESULT MtpEventCallback::OnEvent(IPortableDeviceValues* pEventParameters) {
 
 HRESULT MtpEventCallback::OnEvent(MtpEvent event) {
 	std::lock_guard<std::mutex> lock(mutex_);
-	for (auto& [id, callback] : callbacks_) {
+	for (auto& [id, callback] : *callbacks_) {
 		callback(event);
 	}
 	return HRESULT(0);
@@ -197,12 +203,12 @@ size_t MtpEventCallback::RegisterCallback(std::function<void(MtpEvent)> callback
 	std::lock_guard<std::mutex> lock(mutex_);
 
 	size_t id = nextId++;
-	callbacks_.emplace_back(id, callback);
+	callbacks_->emplace_back(id, callback);
 	return id;
 }
 
 void MtpEventCallback::UnregisterCallback(size_t id) {
 	std::lock_guard<std::mutex> lock(mutex_);
 
-	callbacks_.erase(std::remove_if(callbacks_.begin(), callbacks_.end(), [id](const auto& pair) { return pair.first == id; }), callbacks_.end());
+	callbacks_->erase(std::remove_if(callbacks_->begin(), callbacks_->end(), [id](const auto& pair) { return pair.first == id; }), callbacks_->end());
 }
