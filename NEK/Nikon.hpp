@@ -26,6 +26,10 @@ namespace nek {
 		NEK_API void SetDevicePropValue(uint32_t devicePropCode, mtp::MtpDatatypeVariant data);
 
 
+		NEK_API uint32_t DeviceReady();
+		NEK_API uint32_t DeviceReady(uint32_t whileResponseCode, size_t sleepTimems = 500);
+
+
 	private:
 		virtual void mainThreadTask() override;
 		virtual void threadTask() override;
