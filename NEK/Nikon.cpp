@@ -39,7 +39,7 @@ size_t NikonCamera::countNikonCameras(bool onlyOn) {
 
 
 NikonCamera::NikonCamera(std::wstring devicePath, uint8_t additionalThread) : nek::mtp::MtpDevice::MtpDevice() {
-	devicePath_ = (PWSTR)devicePath.c_str();
+	devicePath_ = devicePath;
 
 	startThreads();
 }
