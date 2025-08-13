@@ -69,7 +69,7 @@ namespace nek::mtp {
 		std::wstring Filename;
 		std::wstring CaptureDate;
 		std::wstring ModificationDate;
-		uint8_t Keywords;
+		uint8_t Keywords = 0;
 	};
 	typedef struct MtpObjectInfoDS_ MtpObjectInfoDS;
 

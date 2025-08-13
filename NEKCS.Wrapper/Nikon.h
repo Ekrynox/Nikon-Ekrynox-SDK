@@ -64,6 +64,8 @@ namespace NEKCS {
 
 		NikonDeviceInfoDS^ GetDeviceInfo();
 
+		NikonObjectInfoDS^ GetObjectInfo(System::UInt32 handle);
+
 		NikonDevicePropDescDS_Variant^ GetDevicePropDesc(NikonMtpDevicePropCode devicePropCode);
 		MtpDatatypeVariant^ GetDevicePropValue(NikonMtpDevicePropCode devicePropCode);
 		void SetDevicePropValue(NikonMtpDevicePropCode devicePropCode, MtpDatatypeVariant^ data);
