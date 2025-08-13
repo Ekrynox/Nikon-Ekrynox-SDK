@@ -79,5 +79,19 @@ namespace NEKCS.TestApp
 
             this.capture.Enabled = true;
         }
+
+        private void liveview_Click(object sender, EventArgs e)
+        {
+            byte lvstatus = 0;
+            camera.GetDevicePropValue(NikonMtpDevicePropCode.RemoteLiveViewStatus).TryGetUInt8(ref lvstatus);
+            if (lvstatus == 0)
+            {
+                camera.StartLiveView();
+                this.liveview.Text = "Stop Liveview";
+            } else {
+                camera.EndLiveView();
+                this.liveview.Text = "Start Liveview";
+            }
+        }
     }
 }

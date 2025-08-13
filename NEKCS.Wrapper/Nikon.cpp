@@ -172,3 +172,49 @@ NikonMtpResponseCode NikonCamera::DeviceReady(NikonMtpResponseCode whileResponse
 		throw gcnew MtpDeviceException(e);
 	}
 }
+
+
+NikonMtpResponseCode NikonCamera::StartLiveView(System::Boolean wait, System::UInt32 sleepTimems) {
+	try {
+		return (NikonMtpResponseCode)m_nativeClass->StartLiveView(wait, sleepTimems);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+	catch (const nek::mtp::MtpException& e) {
+		throw gcnew MtpException(e);
+	}
+}
+NikonMtpResponseCode NikonCamera::StartLiveView(System::Boolean wait) {
+	try {
+		return (NikonMtpResponseCode)m_nativeClass->StartLiveView(wait);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+	catch (const nek::mtp::MtpException& e) {
+		throw gcnew MtpException(e);
+	}
+}
+NikonMtpResponseCode NikonCamera::StartLiveView() {
+	try {
+		return (NikonMtpResponseCode)m_nativeClass->StartLiveView();
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+	catch (const nek::mtp::MtpException& e) {
+		throw gcnew MtpException(e);
+	}
+}
+void NikonCamera::EndLiveView() {
+	try {
+		return m_nativeClass->EndLiveView();
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+	catch (const nek::mtp::MtpException& e) {
+		throw gcnew MtpException(e);
+	}
+}
