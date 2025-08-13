@@ -30,6 +30,10 @@ namespace nek {
 		NEK_API uint32_t DeviceReady(uint32_t whileResponseCode, size_t sleepTimems = 500);
 
 
+		NEK_API uint32_t StartLiveView(bool wait = true, size_t sleepTimems = 500);
+		NEK_API void EndLiveView();
+
+
 	private:
 		virtual void mainThreadTask() override;
 		virtual void threadTask() override;

@@ -73,6 +73,11 @@ namespace NEKCS {
 		NikonMtpResponseCode DeviceReady();
 		NikonMtpResponseCode DeviceReady(NikonMtpResponseCode whileResponseCode, System::UInt32 sleepTimems);
 		NikonMtpResponseCode DeviceReady(NikonMtpResponseCode whileResponseCode);
+
+		NikonMtpResponseCode StartLiveView(System::Boolean wait, System::UInt32 sleepTimems);
+		NikonMtpResponseCode StartLiveView(System::Boolean wait);
+		NikonMtpResponseCode StartLiveView();
+		void EndLiveView();
 	};
 
 }

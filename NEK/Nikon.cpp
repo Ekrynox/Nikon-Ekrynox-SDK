@@ -406,3 +406,32 @@ uint32_t NikonCamera::DeviceReady(uint32_t whileResponseCode, size_t sleepTimems
 	} while (responseCode == whileResponseCode);
 	return responseCode;
 }
+
+
+uint32_t NikonCamera::StartLiveView(bool wait, size_t sleepTimems) {
+	auto lvstate = GetDevicePropValue(NikonMtpDevicePropCode::RemoteLiveViewStatus);
+	if (std::get<uint8_t>(lvstate) == 1) {
+		return NikonMtpResponseCode::OK; //Liveview already On
+	}
+
+	mtp::MtpParams params = mtp::MtpParams();
+	mtp::MtpResponse response = SendCommand(NikonMtpOperationCode::StartLiveView, params);
+	if (response.responseCode != NikonMtpResponseCode::OK) {
+		throw new mtp::MtpException(NikonMtpOperationCode::StartLiveView, response.responseCode);
+	}
+
+	if (!wait) return response.responseCode;
+	return DeviceReady(NikonMtpResponseCode::Device_Busy, sleepTimems);
+}
+void NikonCamera::EndLiveView() {
+	auto lvstate = GetDevicePropValue(NikonMtpDevicePropCode::RemoteLiveViewStatus);
+	if (std::get<uint8_t>(lvstate) != 1) {
+		return; //Liveview is not On
+	}
+
+	mtp::MtpParams params = mtp::MtpParams();
+	mtp::MtpResponse response = SendCommand(NikonMtpOperationCode::EndLiveView, params);
+	if (response.responseCode != NikonMtpResponseCode::OK) {
+		throw new mtp::MtpException(NikonMtpOperationCode::EndLiveView, response.responseCode);
+	}
+}
