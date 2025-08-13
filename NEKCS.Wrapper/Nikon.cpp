@@ -101,6 +101,18 @@ NikonDeviceInfoDS^ NikonCamera::GetDeviceInfo() {
 	}
 }
 
+NikonObjectInfoDS^ NikonCamera::GetObjectInfo(System::UInt32 handle) {
+	try {
+		return gcnew NikonObjectInfoDS(m_nativeClass->GetObjectInfo(handle));
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+	catch (const nek::mtp::MtpException& e) {
+		throw gcnew MtpException(e);
+	}
+}
+
 NikonDevicePropDescDS_Variant^ NikonCamera::GetDevicePropDesc(NikonMtpDevicePropCode devicePropCode) {
 	try {
 		return gcnew NikonDevicePropDescDS_Variant(m_nativeClass->GetDevicePropDesc((System::UInt32)devicePropCode));

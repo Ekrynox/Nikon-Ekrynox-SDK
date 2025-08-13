@@ -45,6 +45,8 @@ namespace NEKCS.TestApp
                     _sdramHandle = 0xFFFF0001;
                 }
 
+                camera.GetObjectInfo(_sdramHandle);
+
                 NEKCS.MtpParams param = new NEKCS.MtpParams();
                 param.addUint32(_sdramHandle);
                 NEKCS.MtpResponse result = camera.SendCommandAndRead(NEKCS.NikonMtpOperationCode.GetObject, param);
