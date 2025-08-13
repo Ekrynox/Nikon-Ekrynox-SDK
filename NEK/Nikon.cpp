@@ -391,3 +391,18 @@ void NikonCamera::SetDevicePropValue(uint32_t devicePropCode, mtp::MtpDatatypeVa
 
 	return mtp::MtpDevice::SetDevicePropValue(devicePropCode, data);
 }
+
+
+uint32_t NikonCamera::DeviceReady() {
+	mtp::MtpParams params;
+	return SendCommandAndRead(NikonMtpOperationCode::DeviceReady, params).responseCode;
+}
+uint32_t NikonCamera::DeviceReady(uint32_t whileResponseCode, size_t sleepTimems) {
+	mtp::MtpParams params;
+	uint32_t responseCode;
+	do {
+		std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimems));
+		responseCode = SendCommandAndRead(NikonMtpOperationCode::DeviceReady, params).responseCode;
+	} while (responseCode == whileResponseCode);
+	return responseCode;
+}

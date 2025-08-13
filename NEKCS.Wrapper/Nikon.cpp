@@ -146,3 +146,29 @@ void NikonCamera::SetDevicePropValue(NikonMtpDevicePropCode devicePropCode, MtpD
 		throw gcnew MtpException(e);
 	}
 }
+
+
+NikonMtpResponseCode NikonCamera::DeviceReady() {
+	try {
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReady();
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+}
+NikonMtpResponseCode NikonCamera::DeviceReady(NikonMtpResponseCode whileResponseCode, System::UInt32 sleepTimems) {
+	try {
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReady((System::UInt32)whileResponseCode, sleepTimems);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+}
+NikonMtpResponseCode NikonCamera::DeviceReady(NikonMtpResponseCode whileResponseCode) {
+	try {
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReady((System::UInt32)whileResponseCode);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+}

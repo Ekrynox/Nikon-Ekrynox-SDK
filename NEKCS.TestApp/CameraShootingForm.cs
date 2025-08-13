@@ -69,9 +69,15 @@ namespace NEKCS.TestApp
 
         private void capture_Click(object sender, EventArgs e)
         {
+            this.capture.Enabled = false;
+
             NEKCS.MtpParams param = new NEKCS.MtpParams();
             param.addUint32(0xFFFFFFFF);
             NEKCS.MtpResponse result = camera.SendCommand(NEKCS.NikonMtpOperationCode.InitiateCaptureRecInSdram, param);
+
+            camera.DeviceReady(NikonMtpResponseCode.Device_Busy);
+
+            this.capture.Enabled = true;
         }
     }
 }
