@@ -91,6 +91,7 @@
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="Nikon.cpp" />
+    <ClCompile Include="Nikon_Struct_Variant.cpp" />
     <ClCompile Include="Nikon_Except.cpp" />
     <ClCompile Include="Nikon_Struct.cpp" />
     <ClCompile Include="Nikon_Utils.cpp" />
