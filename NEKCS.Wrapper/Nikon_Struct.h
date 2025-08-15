@@ -109,7 +109,7 @@ namespace NEKCS {
 		template<typename T> void SetManaged(array<T>^ data);
 		template<typename T> void SetNative(const T& data);
 		template<typename T> void SetNative(const std::vector<T>& data);
-		template<> void MtpDatatypeVariant::SetNative(const std::wstring& data);
+		template<> void SetNative(const std::wstring& data);
 
 		template<typename T> System::Boolean TryGet([Out] T% data);
 		template<typename T> System::Boolean TryGet([Out] array<T>^% data);
