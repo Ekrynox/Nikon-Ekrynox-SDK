@@ -397,7 +397,7 @@ uint32_t NikonCamera::DeviceReady() {
 	mtp::MtpParams params;
 	return SendCommandAndRead(NikonMtpOperationCode::DeviceReady, params).responseCode;
 }
-uint32_t NikonCamera::DeviceReady(uint32_t whileResponseCode, size_t sleepTimems, std::stop_token stopToken) {
+uint32_t NikonCamera::DeviceReady(uint32_t whileResponseCode, std::stop_token stopToken, size_t sleepTimems) {
 	mtp::MtpParams params;
 	uint32_t responseCode = SendCommandAndRead(NikonMtpOperationCode::DeviceReady, params).responseCode;
 	while ((responseCode == whileResponseCode) && !stopToken.stop_requested()) {
@@ -406,7 +406,7 @@ uint32_t NikonCamera::DeviceReady(uint32_t whileResponseCode, size_t sleepTimems
 	}
 	return responseCode;
 }
-uint32_t NikonCamera::DeviceReady(std::vector<uint32_t> whileResponseCodes, size_t sleepTimems, std::stop_token stopToken) {
+uint32_t NikonCamera::DeviceReady(std::vector<uint32_t> whileResponseCodes, std::stop_token stopToken, size_t sleepTimems) {
 	mtp::MtpParams params;
 	uint32_t responseCode = SendCommandAndRead(NikonMtpOperationCode::DeviceReady, params).responseCode;
 	while ((std::find(whileResponseCodes.begin(), whileResponseCodes.end(), responseCode) != whileResponseCodes.end()) && !stopToken.stop_requested()) {
@@ -417,7 +417,7 @@ uint32_t NikonCamera::DeviceReady(std::vector<uint32_t> whileResponseCodes, size
 }
 
 
-uint32_t NikonCamera::StartLiveView(bool wait, size_t sleepTimems, std::stop_token stopToken) {
+uint32_t NikonCamera::StartLiveView(bool wait, std::stop_token stopToken, size_t sleepTimems) {
 	auto lvstate = GetDevicePropValue(NikonMtpDevicePropCode::RemoteLiveViewStatus);
 	if (std::get<uint8_t>(lvstate) == 1) {
 		return NikonMtpResponseCode::OK; //Liveview already On
@@ -430,7 +430,7 @@ uint32_t NikonCamera::StartLiveView(bool wait, size_t sleepTimems, std::stop_tok
 	}
 
 	if (!wait) return response.responseCode;
-	return DeviceReady(NikonMtpResponseCode::Device_Busy, sleepTimems, stopToken);
+	return DeviceReady(NikonMtpResponseCode::Device_Busy, stopToken, sleepTimems);
 }
 void NikonCamera::EndLiveView() {
 	auto lvstate = GetDevicePropValue(NikonMtpDevicePropCode::RemoteLiveViewStatus);
