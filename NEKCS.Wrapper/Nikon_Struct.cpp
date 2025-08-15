@@ -18,11 +18,11 @@ NikonDeviceInfoDS::NikonDeviceInfoDS() {
 	VendorExtensionVersion = 0;
 	VendorExtensionDesc = gcnew System::String("");
 	FunctionalMode = 0;
-	OperationsSupported = gcnew System::Collections::Generic::List<NikonMtpOperationCode>();
-	EventsSupported = gcnew System::Collections::Generic::List<NikonMtpEventCode>();
-	DevicePropertiesSupported = gcnew System::Collections::Generic::List<NikonMtpDevicePropCode>();
-	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>();
-	ImageFormats = gcnew System::Collections::Generic::List<System::UInt16>();
+	OperationsSupported = gcnew System::Collections::Generic::List<NikonMtpOperationCode>(0);
+	EventsSupported = gcnew System::Collections::Generic::List<NikonMtpEventCode>(0);
+	DevicePropertiesSupported = gcnew System::Collections::Generic::List<NikonMtpDevicePropCode>(0);
+	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
+	ImageFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
 	Manufacture = gcnew System::String("");
 	Model = gcnew System::String("");
 	DeviceVersion = gcnew System::String("");
@@ -36,23 +36,23 @@ NikonDeviceInfoDS::NikonDeviceInfoDS(const nek::mtp::MtpDeviceInfoDS& native) {
 	VendorExtensionDesc = gcnew System::String(native.VendorExtensionDesc.c_str());
 	FunctionalMode = native.FunctionalMode;
 
-	OperationsSupported = gcnew System::Collections::Generic::List<NikonMtpOperationCode>();
+	OperationsSupported = gcnew System::Collections::Generic::List<NikonMtpOperationCode>(0);
 	for (auto el : native.OperationsSupported) {
 		OperationsSupported->Add((NikonMtpOperationCode)el);
 	}
-	EventsSupported = gcnew System::Collections::Generic::List<NikonMtpEventCode>();
+	EventsSupported = gcnew System::Collections::Generic::List<NikonMtpEventCode>(0);
 	for (auto el : native.EventsSupported) {
 		EventsSupported->Add((NikonMtpEventCode)el);
 	}
-	DevicePropertiesSupported = gcnew System::Collections::Generic::List<NikonMtpDevicePropCode>();
+	DevicePropertiesSupported = gcnew System::Collections::Generic::List<NikonMtpDevicePropCode>(0);
 	for (auto el : native.DevicePropertiesSupported) {
 		DevicePropertiesSupported->Add((NikonMtpDevicePropCode)el);
 	}
-	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>();
+	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
 	for (auto el : native.CaptureFormats) {
 		CaptureFormats->Add(el);
 	}
-	ImageFormats = gcnew System::Collections::Generic::List<System::UInt16>();
+	ImageFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
 	for (auto el : native.ImageFormats) {
 		ImageFormats->Add(el);
 	}
