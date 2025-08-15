@@ -399,11 +399,20 @@ uint32_t NikonCamera::DeviceReady() {
 }
 uint32_t NikonCamera::DeviceReady(uint32_t whileResponseCode, size_t sleepTimems) {
 	mtp::MtpParams params;
-	uint32_t responseCode;
-	do {
+	uint32_t responseCode = SendCommandAndRead(NikonMtpOperationCode::DeviceReady, params).responseCode;
+	while (responseCode == whileResponseCode) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimems));
 		responseCode = SendCommandAndRead(NikonMtpOperationCode::DeviceReady, params).responseCode;
-	} while (responseCode == whileResponseCode);
+	}
+	return responseCode;
+}
+uint32_t NikonCamera::DeviceReady(std::vector<uint32_t> whileResponseCodes, size_t sleepTimems) {
+	mtp::MtpParams params;
+	uint32_t responseCode = SendCommandAndRead(NikonMtpOperationCode::DeviceReady, params).responseCode;
+	while (std::find(whileResponseCodes.begin(), whileResponseCodes.end(), responseCode) != whileResponseCodes.end()) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimems));
+		responseCode = SendCommandAndRead(NikonMtpOperationCode::DeviceReady, params).responseCode;
+	}
 	return responseCode;
 }
 
