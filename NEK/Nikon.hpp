@@ -28,6 +28,7 @@ namespace nek {
 
 		NEK_API uint32_t DeviceReady();
 		NEK_API uint32_t DeviceReady(uint32_t whileResponseCode, size_t sleepTimems = 500);
+		NEK_API uint32_t DeviceReady(std::vector<uint32_t> whileResponseCodes, size_t sleepTimems);
 
 
 		NEK_API uint32_t StartLiveView(bool wait = true, size_t sleepTimems = 500);
