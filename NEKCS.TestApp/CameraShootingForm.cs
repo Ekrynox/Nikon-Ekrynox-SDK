@@ -80,7 +80,7 @@ namespace NEKCS.TestApp
             param.addUint32(0xFFFFFFFF);
             NEKCS.MtpResponse result = camera.SendCommand(NEKCS.NikonMtpOperationCode.InitiateCaptureRecInSdram, param);
 
-            camera.DeviceReady(NikonMtpResponseCode.Device_Busy);
+            camera.DeviceReadyWhile(NikonMtpResponseCode.Device_Busy);
 
             this.capture.Enabled = true;
         }

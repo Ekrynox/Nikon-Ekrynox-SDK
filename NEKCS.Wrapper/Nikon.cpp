@@ -168,57 +168,43 @@ NikonMtpResponseCode NikonCamera::DeviceReady() {
 		throw gcnew MtpDeviceException(e);
 	}
 };
-NikonMtpResponseCode NikonCamera::DeviceReady(NikonMtpResponseCode whileResponseCode, System::Threading::CancellationToken stopToken, System::UInt32 sleepTimems) {
+NikonMtpResponseCode NikonCamera::DeviceReadyWhile(NikonMtpResponseCode whileResponseCode, System::Threading::CancellationToken stopToken, System::UInt32 sleepTimems) {
 	try {
 		auto nativeToken = new std::stop_source();
 		stopToken.Register(gcnew System::Action(gcnew NativeTokenHandler(nativeToken), &NativeTokenHandler::Cancel));
-		return (NikonMtpResponseCode)m_nativeClass->DeviceReady((System::UInt32)whileResponseCode, nativeToken->get_token(), sleepTimems);
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhile((System::UInt32)whileResponseCode, nativeToken->get_token(), sleepTimems);
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
 	}
 };
-NikonMtpResponseCode NikonCamera::DeviceReady(NikonMtpResponseCode whileResponseCode, System::Threading::CancellationToken stopToken) {
+NikonMtpResponseCode NikonCamera::DeviceReadyWhile(NikonMtpResponseCode whileResponseCode, System::Threading::CancellationToken stopToken) {
 	try {
 		auto nativeToken = new std::stop_source();
 		stopToken.Register(gcnew System::Action(gcnew NativeTokenHandler(nativeToken), &NativeTokenHandler::Cancel));
-		return (NikonMtpResponseCode)m_nativeClass->DeviceReady((System::UInt32)whileResponseCode, nativeToken->get_token());
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhile((System::UInt32)whileResponseCode, nativeToken->get_token());
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
 	}
 };
-NikonMtpResponseCode NikonCamera::DeviceReady(NikonMtpResponseCode whileResponseCode, System::UInt32 sleepTimems) {
+NikonMtpResponseCode NikonCamera::DeviceReadyWhile(NikonMtpResponseCode whileResponseCode, System::UInt32 sleepTimems) {
 	try {
-		return (NikonMtpResponseCode)m_nativeClass->DeviceReady((System::UInt32)whileResponseCode, std::stop_token(), sleepTimems);
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhile((System::UInt32)whileResponseCode, std::stop_token(), sleepTimems);
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
 	}
 };
-NikonMtpResponseCode NikonCamera::DeviceReady(NikonMtpResponseCode whileResponseCode) {
+NikonMtpResponseCode NikonCamera::DeviceReadyWhile(NikonMtpResponseCode whileResponseCode) {
 	try {
-		return (NikonMtpResponseCode)m_nativeClass->DeviceReady((System::UInt32)whileResponseCode);
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhile((System::UInt32)whileResponseCode);
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
 	}
 };
-NikonMtpResponseCode NikonCamera::DeviceReady(System::Collections::Generic::List<NikonMtpResponseCode>^ whileResponseCodes, System::Threading::CancellationToken stopToken, System::UInt32 sleepTimems) {
-	try {
-		auto nativeToken = new std::stop_source();
-		stopToken.Register(gcnew System::Action(gcnew NativeTokenHandler(nativeToken), &NativeTokenHandler::Cancel));
-		auto codes = std::vector<uint32_t>();
-		for each(auto c in whileResponseCodes) {
-			codes.push_back((System::UInt32)c);
-		}
-		return (NikonMtpResponseCode)m_nativeClass->DeviceReady(codes, nativeToken->get_token(), sleepTimems);
-	}
-	catch (const nek::mtp::MtpDeviceException& e) {
-		throw gcnew MtpDeviceException(e);
-	}
-};
-NikonMtpResponseCode NikonCamera::DeviceReady(System::Collections::Generic::List<NikonMtpResponseCode>^ whileResponseCodes, System::Threading::CancellationToken stopToken) {
+NikonMtpResponseCode NikonCamera::DeviceReadyWhile(System::Collections::Generic::List<NikonMtpResponseCode>^ whileResponseCodes, System::Threading::CancellationToken stopToken, System::UInt32 sleepTimems) {
 	try {
 		auto nativeToken = new std::stop_source();
 		stopToken.Register(gcnew System::Action(gcnew NativeTokenHandler(nativeToken), &NativeTokenHandler::Cancel));
@@ -226,31 +212,133 @@ NikonMtpResponseCode NikonCamera::DeviceReady(System::Collections::Generic::List
 		for each(auto c in whileResponseCodes) {
 			codes.push_back((System::UInt32)c);
 		}
-		return (NikonMtpResponseCode)m_nativeClass->DeviceReady(codes, nativeToken->get_token());
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhile(codes, nativeToken->get_token(), sleepTimems);
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
 	}
 };
-NikonMtpResponseCode NikonCamera::DeviceReady(System::Collections::Generic::List<NikonMtpResponseCode>^ whileResponseCodes, System::UInt32 sleepTimems) {
+NikonMtpResponseCode NikonCamera::DeviceReadyWhile(System::Collections::Generic::List<NikonMtpResponseCode>^ whileResponseCodes, System::Threading::CancellationToken stopToken) {
 	try {
+		auto nativeToken = new std::stop_source();
+		stopToken.Register(gcnew System::Action(gcnew NativeTokenHandler(nativeToken), &NativeTokenHandler::Cancel));
 		auto codes = std::vector<uint32_t>();
 		for each(auto c in whileResponseCodes) {
 			codes.push_back((System::UInt32)c);
 		}
-		return (NikonMtpResponseCode)m_nativeClass->DeviceReady(codes, std::stop_token(), sleepTimems);
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhile(codes, nativeToken->get_token());
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
 	}
 };
-NikonMtpResponseCode NikonCamera::DeviceReady(System::Collections::Generic::List<NikonMtpResponseCode>^ whileResponseCodes) {
+NikonMtpResponseCode NikonCamera::DeviceReadyWhile(System::Collections::Generic::List<NikonMtpResponseCode>^ whileResponseCodes, System::UInt32 sleepTimems) {
 	try {
 		auto codes = std::vector<uint32_t>();
 		for each(auto c in whileResponseCodes) {
 			codes.push_back((System::UInt32)c);
 		}
-		return (NikonMtpResponseCode)m_nativeClass->DeviceReady(codes);
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhile(codes, std::stop_token(), sleepTimems);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+};
+NikonMtpResponseCode NikonCamera::DeviceReadyWhile(System::Collections::Generic::List<NikonMtpResponseCode>^ whileResponseCodes) {
+	try {
+		auto codes = std::vector<uint32_t>();
+		for each(auto c in whileResponseCodes) {
+			codes.push_back((System::UInt32)c);
+		}
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhile(codes);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+};
+NikonMtpResponseCode NikonCamera::DeviceReadyWhileNot(NikonMtpResponseCode whileNotResponseCode, System::Threading::CancellationToken stopToken, System::UInt32 sleepTimems) {
+	try {
+		auto nativeToken = new std::stop_source();
+		stopToken.Register(gcnew System::Action(gcnew NativeTokenHandler(nativeToken), &NativeTokenHandler::Cancel));
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhileNot((System::UInt32)whileNotResponseCode, nativeToken->get_token(), sleepTimems);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+};
+NikonMtpResponseCode NikonCamera::DeviceReadyWhileNot(NikonMtpResponseCode whileNotResponseCode, System::Threading::CancellationToken stopToken) {
+	try {
+		auto nativeToken = new std::stop_source();
+		stopToken.Register(gcnew System::Action(gcnew NativeTokenHandler(nativeToken), &NativeTokenHandler::Cancel));
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhileNot((System::UInt32)whileNotResponseCode, nativeToken->get_token());
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+};
+NikonMtpResponseCode NikonCamera::DeviceReadyWhileNot(NikonMtpResponseCode whileNotResponseCode, System::UInt32 sleepTimems) {
+	try {
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhileNot((System::UInt32)whileNotResponseCode, std::stop_token(), sleepTimems);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+};
+NikonMtpResponseCode NikonCamera::DeviceReadyWhileNot(NikonMtpResponseCode whileNotResponseCode) {
+	try {
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhileNot((System::UInt32)whileNotResponseCode);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+};
+NikonMtpResponseCode NikonCamera::DeviceReadyWhileNot(System::Collections::Generic::List<NikonMtpResponseCode>^ whileNotResponseCodes, System::Threading::CancellationToken stopToken, System::UInt32 sleepTimems) {
+	try {
+		auto nativeToken = new std::stop_source();
+		stopToken.Register(gcnew System::Action(gcnew NativeTokenHandler(nativeToken), &NativeTokenHandler::Cancel));
+		auto codes = std::vector<uint32_t>();
+		for each (auto c in whileNotResponseCodes) {
+			codes.push_back((System::UInt32)c);
+		}
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhileNot(codes, nativeToken->get_token(), sleepTimems);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+};
+NikonMtpResponseCode NikonCamera::DeviceReadyWhileNot(System::Collections::Generic::List<NikonMtpResponseCode>^ whileNotResponseCodes, System::Threading::CancellationToken stopToken) {
+	try {
+		auto nativeToken = new std::stop_source();
+		stopToken.Register(gcnew System::Action(gcnew NativeTokenHandler(nativeToken), &NativeTokenHandler::Cancel));
+		auto codes = std::vector<uint32_t>();
+		for each (auto c in whileNotResponseCodes) {
+			codes.push_back((System::UInt32)c);
+		}
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhileNot(codes, nativeToken->get_token());
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+};
+NikonMtpResponseCode NikonCamera::DeviceReadyWhileNot(System::Collections::Generic::List<NikonMtpResponseCode>^ whileNotResponseCodes, System::UInt32 sleepTimems) {
+	try {
+		auto codes = std::vector<uint32_t>();
+		for each (auto c in whileNotResponseCodes) {
+			codes.push_back((System::UInt32)c);
+		}
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhileNot(codes, std::stop_token(), sleepTimems);
+	}
+	catch (const nek::mtp::MtpDeviceException& e) {
+		throw gcnew MtpDeviceException(e);
+	}
+};
+NikonMtpResponseCode NikonCamera::DeviceReadyWhileNot(System::Collections::Generic::List<NikonMtpResponseCode>^ whileNotResponseCodes) {
+	try {
+		auto codes = std::vector<uint32_t>();
+		for each (auto c in whileNotResponseCodes) {
+			codes.push_back((System::UInt32)c);
+		}
+		return (NikonMtpResponseCode)m_nativeClass->DeviceReadyWhileNot(codes);
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
