@@ -75,6 +75,10 @@ namespace NEKCS {
 		NikonMtpResponseCode DeviceReady(NikonMtpResponseCode whileResponseCode, System::Threading::CancellationToken stopToken);
 		NikonMtpResponseCode DeviceReady(NikonMtpResponseCode whileResponseCode, System::UInt32 sleepTimems);
 		NikonMtpResponseCode DeviceReady(NikonMtpResponseCode whileResponseCode);
+		NikonMtpResponseCode DeviceReady(System::Collections::Generic::List<NikonMtpResponseCode> whileResponseCodes, System::Threading::CancellationToken stopToken, System::UInt32 sleepTimems);
+		NikonMtpResponseCode DeviceReady(System::Collections::Generic::List<NikonMtpResponseCode> whileResponseCodes, System::Threading::CancellationToken stopToken);
+		NikonMtpResponseCode DeviceReady(System::Collections::Generic::List<NikonMtpResponseCode> whileResponseCodes, System::UInt32 sleepTimems);
+		NikonMtpResponseCode DeviceReady(System::Collections::Generic::List<NikonMtpResponseCode> whileResponseCodes);
 
 		NikonMtpResponseCode StartLiveView(System::Boolean wait, System::Threading::CancellationToken stopToken, System::UInt32 sleepTimems);
 		NikonMtpResponseCode StartLiveView(System::Boolean wait, System::Threading::CancellationToken stopToken);
