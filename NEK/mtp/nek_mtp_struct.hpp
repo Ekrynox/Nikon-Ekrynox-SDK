@@ -1,6 +1,8 @@
 #pragma once
 #include "../utils/nek_int128.hpp"
+#include "nek_mtp_enum.hpp"
 
+#include <stdexcept>
 #include <stdint.h>
 #include <string>
 #include <variant>
@@ -105,6 +107,65 @@ namespace nek::mtp {
 		> FORM;
 	};
 	template<typename T> using MtpDevicePropDescDS = struct MtpDevicePropDescDS_<T>;
-	using MtpDevicePropDescDSV = MtpDevicePropDescDS<MtpDatatypeVariant>;
+
+	struct MtpDevicePropDescDSV_ : public MtpDevicePropDescDS<MtpDatatypeVariant> {
+		template<typename T> bool TryGet(MtpDevicePropDescDS<T>& desc) {
+			desc = MtpDevicePropDescDS<T>();
+
+			if (!std::holds_alternative<T>(this->CurrentValue)) return false;
+			if ((this->CurrentValue.index() == 1) && (this->DataType != MtpDatatypeCode::Int8)) return false;
+			if ((this->CurrentValue.index() == 2) && (this->DataType != MtpDatatypeCode::UInt8)) return false;
+			if ((this->CurrentValue.index() == 3) && (this->DataType != MtpDatatypeCode::Int16)) return false;
+			if ((this->CurrentValue.index() == 4) && (this->DataType != MtpDatatypeCode::UInt16)) return false;
+			if ((this->CurrentValue.index() == 5) && (this->DataType != MtpDatatypeCode::Int32)) return false;
+			if ((this->CurrentValue.index() == 6) && (this->DataType != MtpDatatypeCode::UInt32)) return false;
+			if ((this->CurrentValue.index() == 7) && (this->DataType != MtpDatatypeCode::Int64)) return false;
+			if ((this->CurrentValue.index() == 8) && (this->DataType != MtpDatatypeCode::UInt64)) return false;
+			if ((this->CurrentValue.index() == 9) && (this->DataType != MtpDatatypeCode::Int128)) return false;
+			if ((this->CurrentValue.index() == 10) && (this->DataType != MtpDatatypeCode::UInt128)) return false;
+			if ((this->CurrentValue.index() == 11) && (this->DataType != MtpDatatypeCode::ArrayInt8)) return false;
+			if ((this->CurrentValue.index() == 12) && (this->DataType != MtpDatatypeCode::ArrayUInt8)) return false;
+			if ((this->CurrentValue.index() == 13) && (this->DataType != MtpDatatypeCode::ArrayInt16)) return false;
+			if ((this->CurrentValue.index() == 14) && (this->DataType != MtpDatatypeCode::ArrayUInt16)) return false;
+			if ((this->CurrentValue.index() == 15) && (this->DataType != MtpDatatypeCode::ArrayInt32)) return false;
+			if ((this->CurrentValue.index() == 16) && (this->DataType != MtpDatatypeCode::ArrayUInt32)) return false;
+			if ((this->CurrentValue.index() == 17) && (this->DataType != MtpDatatypeCode::ArrayInt64)) return false;
+			if ((this->CurrentValue.index() == 18) && (this->DataType != MtpDatatypeCode::ArrayUInt64)) return false;
+			if ((this->CurrentValue.index() == 19) && (this->DataType != MtpDatatypeCode::ArrayInt128)) return false;
+			if ((this->CurrentValue.index() == 20) && (this->DataType != MtpDatatypeCode::ArrayUInt128)) return false;
+			if ((this->CurrentValue.index() == 21) && (this->DataType != MtpDatatypeCode::String)) return false;
+
+			desc.DevicePropertyCode = this->DevicePropertyCode;
+			desc.DataType = this->DataType;
+			desc.GetSet = this->GetSet;
+			desc.FormFlag = this->FormFlag;
+
+			desc.FactoryDefaultValue = std::get<T>(this->FactoryDefaultValue);
+			desc.CurrentValue = std::get<T>(this->CurrentValue);
+
+			if (this->FormFlag == MtpFormtypeCode::Range) {
+				if (MtpRangeFormV* rangeVar = std::get_if<MtpRangeFormV>(&this->FORM)) {
+					MtpRangeForm<T> converted;
+					converted.min = std::get<T>(rangeVar->min);
+					converted.max = std::get<T>(rangeVar->max);
+					converted.step = std::get<T>(rangeVar->step);
+
+					desc.FORM = converted;
+				}
+			}
+			else if (this->FormFlag == MtpFormtypeCode::Enum) {
+				if (MtpEnumFormV* enumVar = std::get_if<MtpEnumFormV>(&this->FORM)) {
+					MtpEnumForm<T> converted = MtpEnumForm<T>(0);
+					for (auto i : *enumVar) {
+						converted.push_back(std::get<T>(i));
+					}
+					desc.FORM = converted;
+				}
+			}
+
+			return true;
+		}
+	};
+	using MtpDevicePropDescDSV = struct MtpDevicePropDescDSV_;
 
 }
