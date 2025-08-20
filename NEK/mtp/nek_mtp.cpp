@@ -906,7 +906,7 @@ MtpObjectInfoDS MtpDevice::GetObjectInfo(uint32_t handle) {
 }
 
 
-MtpDevicePropDescDS MtpDevice::GetDevicePropDesc(uint16_t devicePropCode) {
+MtpDevicePropDescDSV MtpDevice::GetDevicePropDesc(uint16_t devicePropCode) {
 	MtpParams params;
 	params.addUint32(static_cast<uint32_t>(devicePropCode));
 	MtpResponse response = SendCommandAndRead(MtpOperationCode::GetDevicePropDesc, params);
@@ -915,7 +915,7 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc(uint16_t devicePropCode) {
 		throw MtpException(MtpOperationCode::GetDevicePropDesc, response.responseCode);
 	}
 
-	MtpDevicePropDescDS result = GetDevicePropDesc_(response);
+	MtpDevicePropDescDSV result = GetDevicePropDesc_(response);
 	mutexDeviceInfo_.lock();
 	if (devicePropDataType_.find(result.DevicePropertyCode) == devicePropDataType_.end()) {
 		devicePropDataType_.insert(std::pair<uint32_t, uint16_t>(result.DevicePropertyCode, result.DataType)); //Register Type for futur use in Get Value
@@ -923,8 +923,8 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc(uint16_t devicePropCode) {
 	mutexDeviceInfo_.unlock();
 	return result;
 }
-MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
-	MtpDevicePropDescDS result;
+MtpDevicePropDescDSV MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
+	MtpDevicePropDescDSV result;
 	size_t offset = 0;
 
 	result.DevicePropertyCode = static_cast<uint32_t>(*(uint16_t*)(response.data.data() + offset));
@@ -1162,70 +1162,70 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 		return result;
 	}
 	else if (result.FormFlag == MtpFormtypeCode::Range) {
-		result.FORM = MtpRangeForm{};
+		result.FORM = MtpRangeFormV{};
 		switch (result.DataType) {
 		case MtpDatatypeCode::Int8:
-			std::get<MtpRangeForm>(result.FORM).min = *(int8_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).min = *(int8_t*)(response.data.data() + offset);
 			offset += sizeof(int8_t);
-			std::get<MtpRangeForm>(result.FORM).max = *(int8_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).max = *(int8_t*)(response.data.data() + offset);
 			offset += sizeof(int8_t);
-			std::get<MtpRangeForm>(result.FORM).step = *(int8_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).step = *(int8_t*)(response.data.data() + offset);
 			offset += sizeof(int8_t);
 			break;
 		case MtpDatatypeCode::UInt8:
-			std::get<MtpRangeForm>(result.FORM).min = *(uint8_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).min = *(uint8_t*)(response.data.data() + offset);
 			offset += sizeof(uint8_t);
-			std::get<MtpRangeForm>(result.FORM).max = *(uint8_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).max = *(uint8_t*)(response.data.data() + offset);
 			offset += sizeof(uint8_t);
-			std::get<MtpRangeForm>(result.FORM).step = *(uint8_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).step = *(uint8_t*)(response.data.data() + offset);
 			offset += sizeof(uint8_t);
 			break;
 		case MtpDatatypeCode::Int16:
-			std::get<MtpRangeForm>(result.FORM).min = *(int16_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).min = *(int16_t*)(response.data.data() + offset);
 			offset += sizeof(int16_t);
-			std::get<MtpRangeForm>(result.FORM).max = *(int16_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).max = *(int16_t*)(response.data.data() + offset);
 			offset += sizeof(int16_t);
-			std::get<MtpRangeForm>(result.FORM).step = *(int16_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).step = *(int16_t*)(response.data.data() + offset);
 			offset += sizeof(int16_t);
 			break;
 		case MtpDatatypeCode::UInt16:
-			std::get<MtpRangeForm>(result.FORM).min = *(uint16_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).min = *(uint16_t*)(response.data.data() + offset);
 			offset += sizeof(uint16_t);
-			std::get<MtpRangeForm>(result.FORM).max = *(uint16_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).max = *(uint16_t*)(response.data.data() + offset);
 			offset += sizeof(uint16_t);
-			std::get<MtpRangeForm>(result.FORM).step = *(uint16_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).step = *(uint16_t*)(response.data.data() + offset);
 			offset += sizeof(uint16_t);
 			break;
 		case MtpDatatypeCode::Int32:
-			std::get<MtpRangeForm>(result.FORM).min = *(int32_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).min = *(int32_t*)(response.data.data() + offset);
 			offset += sizeof(int32_t);
-			std::get<MtpRangeForm>(result.FORM).max = *(int32_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).max = *(int32_t*)(response.data.data() + offset);
 			offset += sizeof(int32_t);
-			std::get<MtpRangeForm>(result.FORM).step = *(int32_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).step = *(int32_t*)(response.data.data() + offset);
 			offset += sizeof(int32_t);
 			break;
 		case MtpDatatypeCode::UInt32:
-			std::get<MtpRangeForm>(result.FORM).min = *(uint32_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).min = *(uint32_t*)(response.data.data() + offset);
 			offset += sizeof(uint32_t);
-			std::get<MtpRangeForm>(result.FORM).max = *(uint32_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).max = *(uint32_t*)(response.data.data() + offset);
 			offset += sizeof(uint32_t);
-			std::get<MtpRangeForm>(result.FORM).step = *(uint32_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).step = *(uint32_t*)(response.data.data() + offset);
 			offset += sizeof(uint32_t);
 			break;
 		case MtpDatatypeCode::Int64:
-			std::get<MtpRangeForm>(result.FORM).min = *(int64_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).min = *(int64_t*)(response.data.data() + offset);
 			offset += sizeof(int64_t);
-			std::get<MtpRangeForm>(result.FORM).max = *(int64_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).max = *(int64_t*)(response.data.data() + offset);
 			offset += sizeof(int64_t);
-			std::get<MtpRangeForm>(result.FORM).step = *(int64_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).step = *(int64_t*)(response.data.data() + offset);
 			offset += sizeof(int64_t);
 			break;
 		case MtpDatatypeCode::UInt64:
-			std::get<MtpRangeForm>(result.FORM).min = *(uint64_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).min = *(uint64_t*)(response.data.data() + offset);
 			offset += sizeof(uint64_t);
-			std::get<MtpRangeForm>(result.FORM).max = *(uint64_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).max = *(uint64_t*)(response.data.data() + offset);
 			offset += sizeof(uint64_t);
-			std::get<MtpRangeForm>(result.FORM).step = *(uint64_t*)(response.data.data() + offset);
+			std::get<MtpRangeFormV>(result.FORM).step = *(uint64_t*)(response.data.data() + offset);
 			offset += sizeof(uint64_t);
 			break;
 		case MtpDatatypeCode::Int128:
@@ -1245,7 +1245,7 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 		switch (result.DataType) {
 		case MtpDatatypeCode::Int8:
 		{
-			MtpEnumForm form(len);
+			MtpEnumFormV form(len);
 			for (size_t i = 0; i < len; i++) {
 				form[i] = MtpDatatypeVariant{ *(int8_t*)(response.data.data() + offset) };
 				offset += sizeof(int8_t);
@@ -1255,7 +1255,7 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 		break;
 		case MtpDatatypeCode::UInt8:
 		{
-			MtpEnumForm form(len);
+			MtpEnumFormV form(len);
 			for (size_t i = 0; i < len; i++) {
 				form[i] = MtpDatatypeVariant{ *(uint8_t*)(response.data.data() + offset) };
 				offset += sizeof(uint8_t);
@@ -1265,7 +1265,7 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 		break;
 		case MtpDatatypeCode::Int16:
 		{
-			MtpEnumForm form(len);
+			MtpEnumFormV form(len);
 			for (size_t i = 0; i < len; i++) {
 				form[i] = MtpDatatypeVariant{ *(int16_t*)(response.data.data() + offset) };
 				offset += sizeof(int16_t);
@@ -1275,7 +1275,7 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 		break;
 		case MtpDatatypeCode::UInt16:
 		{
-			MtpEnumForm form(len);
+			MtpEnumFormV form(len);
 			for (size_t i = 0; i < len; i++) {
 				form[i] = MtpDatatypeVariant{ *(uint16_t*)(response.data.data() + offset) };
 				offset += sizeof(uint16_t);
@@ -1285,7 +1285,7 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 		break;
 		case MtpDatatypeCode::Int32:
 		{
-			MtpEnumForm form(len);
+			MtpEnumFormV form(len);
 			for (size_t i = 0; i < len; i++) {
 				form[i] = MtpDatatypeVariant{ *(int32_t*)(response.data.data() + offset) };
 				offset += sizeof(int32_t);
@@ -1295,7 +1295,7 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 		break;
 		case MtpDatatypeCode::UInt32:
 		{
-			MtpEnumForm form(len);
+			MtpEnumFormV form(len);
 			for (size_t i = 0; i < len; i++) {
 				form[i] = MtpDatatypeVariant{ *(uint32_t*)(response.data.data() + offset) };
 				offset += sizeof(uint32_t);
@@ -1305,7 +1305,7 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 		break;
 		case MtpDatatypeCode::Int64:
 		{
-			MtpEnumForm form(len);
+			MtpEnumFormV form(len);
 			for (size_t i = 0; i < len; i++) {
 				form[i] = MtpDatatypeVariant{ *(int64_t*)(response.data.data() + offset) };
 				offset += sizeof(int64_t);
@@ -1315,7 +1315,7 @@ MtpDevicePropDescDS MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 		break;
 		case MtpDatatypeCode::UInt64:
 		{
-			MtpEnumForm form(len);
+			MtpEnumFormV form(len);
 			for (size_t i = 0; i < len; i++) {
 				form[i] = MtpDatatypeVariant{ *(uint64_t*)(response.data.data() + offset) };
 				offset += sizeof(uint64_t);

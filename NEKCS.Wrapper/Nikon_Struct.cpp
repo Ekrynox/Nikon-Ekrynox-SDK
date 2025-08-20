@@ -113,7 +113,7 @@ NikonObjectInfoDS::NikonObjectInfoDS(const nek::mtp::MtpObjectInfoDS& native) {
 
 
 //NikonDevicePropDescDS_Variant
-NikonDevicePropDescDS_Variant::NikonDevicePropDescDS_Variant(const nek::mtp::MtpDevicePropDescDS& desc) {
+NikonDevicePropDescDS_Variant::NikonDevicePropDescDS_Variant(const nek::mtp::MtpDevicePropDescDSV& desc) {
 	DevicePropertyCode = (NikonMtpDevicePropCode)desc.DevicePropertyCode;
 	DataType = (NikonMtpDatatypeCode)desc.DataType;
 	GetSet = desc.GetSet;
@@ -123,14 +123,14 @@ NikonDevicePropDescDS_Variant::NikonDevicePropDescDS_Variant(const nek::mtp::Mtp
 	FormFlag = NikonMtpFormtypeCode(desc.FormFlag);
 
 	if (FormFlag == NikonMtpFormtypeCode::Range) {
-		auto form = std::get<nek::mtp::MtpRangeForm>(desc.FORM);
+		auto form = std::get<nek::mtp::MtpRangeFormV>(desc.FORM);
 		RangeFORM = gcnew NikonMtpRangeForm<MtpDatatypeVariant^>();
 		RangeFORM->min = gcnew MtpDatatypeVariant(form.min);
 		RangeFORM->max = gcnew MtpDatatypeVariant(form.max);
 		RangeFORM->step = gcnew MtpDatatypeVariant(form.step);
 	}
 	else if (FormFlag == NikonMtpFormtypeCode::Enum) {
-		auto form = std::get<nek::mtp::MtpEnumForm>(desc.FORM);
+		auto form = std::get<nek::mtp::MtpEnumFormV>(desc.FORM);
 		assert(form.size() <= static_cast<int>(INT_MAX));
 		EnumFORM = gcnew array<MtpDatatypeVariant^>(static_cast<int>(form.size()));
 		for (int i = 0; i < form.size(); i++) {
