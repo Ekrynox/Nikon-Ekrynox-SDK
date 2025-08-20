@@ -320,7 +320,7 @@ mtp::MtpDeviceInfoDS NikonCamera::GetDeviceInfo() {
 }
 
 
-mtp::MtpDevicePropDescDS NikonCamera::GetDevicePropDesc(uint32_t devicePropCode) {
+mtp::MtpDevicePropDescDSV NikonCamera::GetDevicePropDesc(uint32_t devicePropCode) {
 	mutexDeviceInfo_.lock();
 	if (std::find(deviceInfo_.OperationsSupported.begin(), deviceInfo_.OperationsSupported.end(), NikonMtpOperationCode::GetDevicePropDescEx) != deviceInfo_.OperationsSupported.end()) {
 		mutexDeviceInfo_.unlock();
@@ -333,7 +333,7 @@ mtp::MtpDevicePropDescDS NikonCamera::GetDevicePropDesc(uint32_t devicePropCode)
 			throw mtp::MtpException(NikonMtpOperationCode::GetDevicePropDescEx, response.responseCode);
 		}
 
-		mtp::MtpDevicePropDescDS result = GetDevicePropDesc_(response);
+		mtp::MtpDevicePropDescDSV result = GetDevicePropDesc_(response);
 		mutexDeviceInfo_.lock();
 		if (devicePropDataType_.find(result.DevicePropertyCode) == devicePropDataType_.end()) {
 			devicePropDataType_.insert(std::pair<uint32_t, uint16_t>(result.DevicePropertyCode, result.DataType)); //Register Type for futur use in Get Value

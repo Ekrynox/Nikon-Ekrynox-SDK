@@ -78,28 +78,33 @@ namespace nek::mtp {
 
 	using MtpDatatypeVariant = std::variant<std::monostate, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, int128, uint128, std::vector<int8_t>, std::vector<uint8_t>, std::vector<int16_t>, std::vector<uint16_t>, std::vector<int32_t>, std::vector<uint32_t>, std::vector<int64_t>, std::vector<uint64_t>, std::vector<int128>, std::vector<uint128>, std::wstring>;
 	
+	template<typename T>
 	struct MtpRangeForm_ {
-		MtpDatatypeVariant min;
-		MtpDatatypeVariant max;
-		MtpDatatypeVariant step;
+		T min;
+		T max;
+		T step;
 	};
-	typedef struct MtpRangeForm_ MtpRangeForm;
-	typedef std::vector<MtpDatatypeVariant> MtpEnumForm;
+	template<typename T> using MtpRangeForm = struct MtpRangeForm_<T>;
+	template<typename T> using MtpEnumForm = std::vector<T>;
+	using MtpRangeFormV = MtpRangeForm<MtpDatatypeVariant>;
+	using MtpEnumFormV = MtpEnumForm<MtpDatatypeVariant>;
 
+	template<typename T>
 	struct MtpDevicePropDescDS_ {
 		uint32_t DevicePropertyCode = 0; //uint16_t for the GetDevicePropDesc operation //uint32_t for the Nikon GetDevicePropDescEx operation
 		uint16_t DataType = 0;
 		uint8_t GetSet = 0; //0x00 read-only, 0x01 read-write
-		MtpDatatypeVariant FactoryDefaultValue; //See DataType for the type of data stored here
-		MtpDatatypeVariant CurrentValue; //See DataType for the type of data stored here
+		T FactoryDefaultValue; //See DataType for the type of data stored here
+		T CurrentValue; //See DataType for the type of data stored here
 		uint8_t FormFlag = 0; //0x00 normal, 0x01 range, 0x02 enum
 
 		std::variant<
 			std::monostate, //FormFlag is 0x00
-			MtpRangeForm, //FormFlag is 0x01 
-			MtpEnumForm //FormFlag is 0x02
+			MtpRangeForm<T>, //FormFlag is 0x01 
+			MtpEnumForm<T> //FormFlag is 0x02
 		> FORM;
 	};
-	typedef struct MtpDevicePropDescDS_ MtpDevicePropDescDS;
+	template<typename T> using MtpDevicePropDescDS = struct MtpDevicePropDescDS_<T>;
+	using MtpDevicePropDescDSV = MtpDevicePropDescDS<MtpDatatypeVariant>;
 
 }

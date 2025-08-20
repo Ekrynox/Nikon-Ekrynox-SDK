@@ -72,7 +72,7 @@ namespace nek::mtp {
 
 		NEK_API MtpObjectInfoDS GetObjectInfo(uint32_t handle);
 
-		NEK_API MtpDevicePropDescDS GetDevicePropDesc(uint16_t devicePropCode);
+		NEK_API MtpDevicePropDescDSV GetDevicePropDesc(uint16_t devicePropCode);
 		NEK_API MtpDatatypeVariant GetDevicePropValue(uint16_t devicePropCode);
 		NEK_API void SetDevicePropValue(uint16_t devicePropCode, MtpDatatypeVariant data);
 
@@ -106,7 +106,7 @@ namespace nek::mtp {
 		uint8_t additionalThreadsNb_;
 
 
-		MtpDevicePropDescDS GetDevicePropDesc_(MtpResponse& response);
+		MtpDevicePropDescDSV GetDevicePropDesc_(MtpResponse& response);
 		MtpDatatypeVariant GetDevicePropValue_(MtpResponse& response, uint16_t dataType);
 		std::vector<uint8_t> SetDevicePropValue_(MtpDatatypeVariant data);
 	};

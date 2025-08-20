@@ -83,6 +83,8 @@ namespace NEKCS {
 
 		MtpDatatypeVariant(const nek::mtp::MtpDatatypeVariant& data);
 
+		NikonMtpDatatypeCode GetType() { return m_type; };
+
 		System::Boolean TryGetInt8([Out] System::SByte% data) { return TryGet(data); };
 		System::Boolean TryGetUInt8([Out] System::Byte% data) { return TryGet(data); };
 		System::Boolean TryGetInt16([Out] System::Int16% data) { return TryGet(data); };
@@ -140,7 +142,7 @@ namespace NEKCS {
 		NikonDevicePropDescDS() {};
 	};
 	public ref struct NikonDevicePropDescDS_Variant : NikonDevicePropDescDS<MtpDatatypeVariant^> {
-		NikonDevicePropDescDS_Variant(const nek::mtp::MtpDevicePropDescDS& desc);
+		NikonDevicePropDescDS_Variant(const nek::mtp::MtpDevicePropDescDSV& desc);
 
 		template<typename T> System::Boolean TryGet([Out] NikonDevicePropDescDS<T>^% desc);
 
