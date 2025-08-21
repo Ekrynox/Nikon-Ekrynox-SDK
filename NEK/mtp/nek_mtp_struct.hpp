@@ -3,11 +3,11 @@
 #include "../utils/nek_int128.hpp"
 #include "nek_mtp_enum.hpp"
 
-#include <stdexcept>
-#include <stdint.h>
 #include <string>
 #include <variant>
 #include <vector>
+#include <cstdint>
+#include <utility>
 
 
 
@@ -99,6 +99,20 @@ namespace nek::mtp {
 			return false;
 			} ()) || ...);
 	}
+	template<typename Target, typename... Sources> bool TryGetAs(const MtpDatatypeVariant& data, Target& newdata) {
+		if (auto* d = std::get_if<Target>(&data)) {
+			newdata = *d;
+			return true;
+		}
+		return (([&] {
+			if (auto* d = std::get_if<Sources>(&data)) {
+				if (!std::in_range<Target>(*d)) return false;
+				newdata = static_cast<Target>(*d);
+				return true;
+			}
+			return false;
+			} ()) || ...);
+	}
 	template<typename Target, typename... Sources> bool TryGetAsArray(const MtpDatatypeVariant& data, MtpDatatypeVariant& newdata) {
 		if (auto* d = std::get_if<std::vector<Target>>(&data)) {
 			newdata = *d;
@@ -112,6 +126,24 @@ namespace nek::mtp {
 					newarr[i] = static_cast<Target>(d->at(i));
 				}
 				newdata = newarr;
+				return true;
+			}
+			return false;
+			} ()) || ...);
+	}
+	template<typename Target, typename... Sources> bool TryGetAsArray(const MtpDatatypeVariant& data, std::vector<Target>& newdata) {
+		if (auto* d = std::get_if<std::vector<Target>>(&data)) {
+			newdata = *d;
+			return true;
+		}
+		return (([&] {
+			if (auto* d = std::get_if<std::vector<Sources>>(&data)) {
+				newdata = std::vector<Target>(d->size());
+				for (size_t i = 0; i < d->size(); i++) {
+					if (!std::in_range<Target>(d->at(i))) return false;
+					newdata[i] = static_cast<Target>(d->at(i));
+				}
+
 				return true;
 			}
 			return false;
@@ -195,7 +227,7 @@ namespace nek::mtp {
 			else if (this->FormFlag == MtpFormtypeCode::Enum) {
 				if (MtpEnumFormV* enumVar = std::get_if<MtpEnumFormV>(&this->FORM)) {
 					MtpEnumForm<T> converted = MtpEnumForm<T>(0);
-					for (auto i : *enumVar) {
+					for (MtpDatatypeVariant i : *enumVar) {
 						converted.push_back(std::get<T>(i));
 					}
 					desc.FORM = converted;
