@@ -77,6 +77,9 @@
     <ClCompile Include="mtp\nek_mtp_utils.cpp">
       <Filter>Source Files\mtp</Filter>
     </ClCompile>
+    <ClCompile Include="mtp\nek_mtp_struct.cpp">
+      <Filter>Source Files\mtp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NEK.rc">

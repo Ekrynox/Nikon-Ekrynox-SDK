@@ -1,4 +1,5 @@
 #pragma once
+#include "../nek.hpp"
 #include "../utils/nek_int128.hpp"
 #include "nek_mtp_enum.hpp"
 
@@ -79,6 +80,11 @@ namespace nek::mtp {
 
 
 	using MtpDatatypeVariant = std::variant<std::monostate, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, int128, uint128, std::vector<int8_t>, std::vector<uint8_t>, std::vector<int16_t>, std::vector<uint16_t>, std::vector<int32_t>, std::vector<uint32_t>, std::vector<int64_t>, std::vector<uint64_t>, std::vector<int128>, std::vector<uint128>, std::wstring>;
+	NEK_API bool TryGetInteger(const MtpDatatypeVariant& data, int64_t& value);
+	NEK_API bool TryGetUInteger(const MtpDatatypeVariant& data, uint64_t& value);
+	NEK_API bool TryGetArrayInteger(const MtpDatatypeVariant& data, std::vector<int64_t>& value);
+	NEK_API bool TryGetArrayUInteger(const MtpDatatypeVariant& data, std::vector<uint64_t>& value);
+
 	
 	template<typename T>
 	struct MtpRangeForm_ {
@@ -165,6 +171,10 @@ namespace nek::mtp {
 
 			return true;
 		}
+		NEK_API bool TryGetInteger(MtpDevicePropDescDS<int64_t>& desc);
+		NEK_API bool TryGetUInteger(MtpDevicePropDescDS<uint64_t>& desc);
+		NEK_API bool TryGetArrayInteger(MtpDevicePropDescDS<std::vector<int64_t>>& desc);
+		NEK_API bool TryGetArrayUInteger(MtpDevicePropDescDS<std::vector<uint64_t>>& desc);
 	};
 	using MtpDevicePropDescDSV = struct MtpDevicePropDescDSV_;
 
