@@ -8,107 +8,19 @@ using namespace nek::mtp;
 
 bool nek::mtp::TryGetInteger(const MtpDatatypeVariant& data, int64_t& value) {
 	value = 0;
-
-	if (auto* v = std::get_if<int8_t>(&data)) {
-		value = *v;
-		return true;
-	}
-	else if (auto* v = std::get_if<int16_t>(&data)) {
-		value = *v;
-		return true;
-	}
-	else if (auto* v = std::get_if<int32_t>(&data)) {
-		value = *v;
-		return true;
-	}
-	else if (auto* v = std::get_if<int64_t>(&data)) {
-		value = *v;
-		return true;
-	}
-
-	return false;
+	return TryGetAs<int64_t, int8_t, int16_t, int32_t>(data, value);
 }
 bool nek::mtp::TryGetUInteger(const MtpDatatypeVariant& data, uint64_t& value) {
 	value = 0;
-
-	if (auto* v = std::get_if<uint8_t>(&data)) {
-		value = *v;
-		return true;
-	}
-	else if (auto* v = std::get_if<uint16_t>(&data)) {
-		value = *v;
-		return true;
-	}
-	else if (auto* v = std::get_if<uint32_t>(&data)) {
-		value = *v;
-		return true;
-	}
-	else if (auto* v = std::get_if<uint64_t>(&data)) {
-		value = *v;
-		return true;
-	}
-
-	return false;
+	return TryGetAs<uint64_t, uint8_t, uint16_t, uint32_t>(data, value);
 }
 bool nek::mtp::TryGetArrayInteger(const MtpDatatypeVariant& data, std::vector<int64_t>& value) {
 	value = std::vector<int64_t>(0);
-
-	if (auto* v = std::get_if<std::vector<int8_t>>(&data)) {
-		for (auto i : *v) {
-			value.push_back(i);
-		}
-		return true;
-	}
-	else if (auto* v = std::get_if<std::vector<int16_t>>(&data)) {
-		for (auto i : *v) {
-			value.push_back(i);
-		}
-		return true;
-	}
-	else if (auto* v = std::get_if<std::vector<int32_t>>(&data)) {
-		for (auto i : *v) {
-			value.push_back(i);
-		}
-		return true;
-	}
-	else if (auto* v = std::get_if<std::vector<int64_t>>(&data)) {
-		for (auto i : *v) {
-			value.push_back(i);
-		}
-		return true;
-	}
-
-	return false;
+	return TryGetAsArray<int64_t, int8_t, int16_t, int32_t>(data, value);
 }
 bool nek::mtp::TryGetArrayUInteger(const MtpDatatypeVariant& data, std::vector<uint64_t>& value) {
 	value = std::vector<uint64_t>(0);
-
-	if (auto* v = std::get_if<std::vector<uint8_t>>(&data)) {
-		for (auto i : *v) {
-			value.push_back(i);
-		}
-		return true;
-	}
-	else if (auto* v = std::get_if<std::vector<uint16_t>>(&data)) {
-		for (auto i : *v) {
-			value.push_back(i);
-		}
-		return true;
-	}
-	else if (auto* v = std::get_if<std::vector<uint32_t>>(&data)) {
-		for (auto i : *v) {
-			value.push_back(i);
-		}
-		return true;
-	}
-	else if (auto* v = std::get_if<std::vector<uint64_t>>(&data)) {
-		for (auto i : *v) {
-			value.push_back(i);
-		}
-		return true;
-	}
-
-	return false;
+	return TryGetAsArray<uint64_t, uint8_t, uint16_t, uint32_t>(data, value);
 }
 
 
@@ -143,7 +55,7 @@ bool MtpDevicePropDescDSV::TryGetInteger(MtpDevicePropDescDS<int64_t>& desc) {
 	else if (this->FormFlag == MtpFormtypeCode::Enum) {
 		if (MtpEnumFormV* enumVar = std::get_if<MtpEnumFormV>(&this->FORM)) {
 			MtpEnumForm<int64_t> converted = MtpEnumForm<int64_t>(0);
-			for (auto i : *enumVar) {
+			for (MtpDatatypeVariant i : *enumVar) {
 				int64_t v;
 				if (nek::mtp::TryGetInteger(i, v)) {
 					converted.push_back(v);
@@ -189,7 +101,7 @@ bool MtpDevicePropDescDSV::TryGetUInteger(MtpDevicePropDescDS<uint64_t>& desc) {
 	else if (this->FormFlag == MtpFormtypeCode::Enum) {
 		if (MtpEnumFormV* enumVar = std::get_if<MtpEnumFormV>(&this->FORM)) {
 			MtpEnumForm<uint64_t> converted = MtpEnumForm<uint64_t>(0);
-			for (auto i : *enumVar) {
+			for (MtpDatatypeVariant i : *enumVar) {
 				uint64_t v;
 				if (nek::mtp::TryGetUInteger(i, v)) {
 					converted.push_back(v);
@@ -235,7 +147,7 @@ bool MtpDevicePropDescDSV::TryGetArrayInteger(MtpDevicePropDescDS<std::vector<in
 	else if (this->FormFlag == MtpFormtypeCode::Enum) {
 		if (MtpEnumFormV* enumVar = std::get_if<MtpEnumFormV>(&this->FORM)) {
 			MtpEnumForm<std::vector<int64_t>> converted = MtpEnumForm<std::vector<int64_t>>(0);
-			for (auto i : *enumVar) {
+			for (MtpDatatypeVariant i : *enumVar) {
 				std::vector<int64_t> v;
 				if (nek::mtp::TryGetArrayInteger(i, v)) {
 					converted.push_back(v);
@@ -281,7 +193,7 @@ bool MtpDevicePropDescDSV::TryGetArrayUInteger(MtpDevicePropDescDS<std::vector<u
 	else if (this->FormFlag == MtpFormtypeCode::Enum) {
 		if (MtpEnumFormV* enumVar = std::get_if<MtpEnumFormV>(&this->FORM)) {
 			MtpEnumForm<std::vector<uint64_t>> converted = MtpEnumForm<std::vector<uint64_t>>(0);
-			for (auto i : *enumVar) {
+			for (MtpDatatypeVariant i : *enumVar) {
 				std::vector<uint64_t> v;
 				if (nek::mtp::TryGetArrayUInteger(i, v)) {
 					converted.push_back(v);

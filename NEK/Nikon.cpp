@@ -193,14 +193,14 @@ void NikonCamera::threadTask() {
 	while (running_) {
 		mutexTasks_.lock();
 		if (tasksEvent_.size() > 0) {
-			auto task = tasksEvent_.front();
+			std::function<void ()> task = tasksEvent_.front();
 			tasksEvent_.pop_front();
 			mutexTasks_.unlock();
 
 			task();
 		}
 		else if (tasks_.size() > 0) {
-			auto task = tasks_.front();
+			std::function<void ()> task = tasks_.front();
 			tasks_.pop_front();
 			mutexTasks_.unlock();
 
