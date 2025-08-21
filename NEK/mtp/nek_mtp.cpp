@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "nek_mtp.hpp"
 
 #include <algorithm>
@@ -357,7 +359,7 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 	command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_READ_DATA.fmtid);
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_READ_DATA.pid);
 	command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
-	optimalSize = min(optimalSize, totalSize);
+	optimalSize = std::min(optimalSize, totalSize);
 	uint8_t* buffer = new uint8_t[optimalSize];
 	result.data.resize(totalSize);
 	command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_READ, optimalSize);
@@ -511,7 +513,7 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WOR
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_WRITE_DATA.pid);
 		command->SetStringValue(WPD_PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
 
-		optimalSize = (ULONG)min(optimalSize, data.size() - offset);
+		optimalSize = std::min(optimalSize, (ULONG)(data.size() - offset));
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_NUM_BYTES_TO_WRITE, optimalSize);
 		command->SetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, data.data() + offset, optimalSize);
 
@@ -1640,4 +1642,82 @@ std::vector<uint8_t> MtpDevice::SetDevicePropValue_(MtpDatatypeVariant data) {
 	}
 
 	return rawdata;
+}
+
+void MtpDevice::SetDevicePropValueTypesafe(uint16_t devicePropCode, MtpDatatypeVariant data) {
+	uint16_t dataType = MtpDatatypeCode::Undefined;
+	mutexDeviceInfo_.lock();
+	if (devicePropDataType_.find(devicePropCode) == devicePropDataType_.end()) {
+		mutexDeviceInfo_.unlock();
+		dataType = GetDevicePropDesc(devicePropCode).DataType;
+	}
+	else {
+		dataType = devicePropDataType_[devicePropCode];
+		mutexDeviceInfo_.unlock();
+	}
+
+	MtpDatatypeVariant newdata;
+	if (SetDevicePropValueTypesafe_(dataType, data, newdata)) return SetDevicePropValue(devicePropCode, newdata);
+
+	throw MtpException(MtpOperationCode::SetDevicePropValue, MtpResponseCode::Invalid_DeviceProp_Format);
+}
+bool MtpDevice::SetDevicePropValueTypesafe_(const uint16_t dataType, const MtpDatatypeVariant& data, MtpDatatypeVariant& newdata) {
+	switch (dataType) {
+	case MtpDatatypeCode::Int8:
+		return TryGetAs<int8_t, int16_t, int32_t, int64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::Int16:
+		return TryGetAs<int16_t, int8_t, int32_t, int64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::Int32:
+		return TryGetAs<int32_t, int8_t, int16_t, int64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::Int64:
+		return TryGetAs<int64_t, int8_t, int16_t, int32_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::UInt8:
+		return TryGetAs<uint8_t, uint16_t, uint32_t, uint64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::UInt16:
+		return TryGetAs<uint16_t, uint8_t, uint32_t, uint64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::UInt32:
+		return TryGetAs<uint32_t, uint8_t, uint16_t, uint64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::UInt64:
+		return TryGetAs<uint64_t, uint8_t, uint16_t, uint32_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::ArrayInt8:
+		return TryGetAsArray<int8_t, int16_t, int32_t, int64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::ArrayInt16:
+		return TryGetAsArray<int16_t, int8_t, int32_t, int64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::ArrayInt32:
+		return TryGetAsArray<int32_t, int8_t, int16_t, int64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::ArrayInt64:
+		return TryGetAsArray<int64_t, int8_t, int16_t, int32_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::ArrayUInt8:
+		return TryGetAsArray<uint8_t, uint16_t, uint32_t, uint64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::ArrayUInt16:
+		return TryGetAsArray<uint16_t, uint8_t, uint32_t, uint64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::ArrayUInt32:
+		return TryGetAsArray<uint32_t, uint8_t, uint16_t, uint64_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::ArrayUInt64:
+		return TryGetAsArray<uint64_t, uint8_t, uint16_t, uint32_t>(data, newdata);
+		break;
+	case MtpDatatypeCode::String:
+		if (auto* d = std::get_if<std::wstring>(&data)) {
+			newdata = *d;
+			return true;
+		}
+		break;
+	}
+
+	return false;
 }

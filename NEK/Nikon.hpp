@@ -24,6 +24,7 @@ namespace nek {
 		NEK_API mtp::MtpDevicePropDescDSV GetDevicePropDesc(uint32_t devicePropCode);
 		NEK_API mtp::MtpDatatypeVariant GetDevicePropValue(uint32_t devicePropCode);
 		NEK_API void SetDevicePropValue(uint32_t devicePropCode, mtp::MtpDatatypeVariant data);
+		NEK_API void SetDevicePropValueTypesafe(uint32_t devicePropCode, mtp::MtpDatatypeVariant data);
 
 
 		NEK_API uint32_t DeviceReady();
