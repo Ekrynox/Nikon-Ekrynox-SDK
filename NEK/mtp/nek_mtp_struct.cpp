@@ -28,7 +28,6 @@ bool nek::mtp::TryGetInteger(const MtpDatatypeVariant& data, int64_t& value) {
 
 	return false;
 }
-
 bool nek::mtp::TryGetUInteger(const MtpDatatypeVariant& data, uint64_t& value) {
 	value = 0;
 
@@ -51,7 +50,6 @@ bool nek::mtp::TryGetUInteger(const MtpDatatypeVariant& data, uint64_t& value) {
 
 	return false;
 }
-
 bool nek::mtp::TryGetArrayInteger(const MtpDatatypeVariant& data, std::vector<int64_t>& value) {
 	value = std::vector<int64_t>(0);
 
@@ -82,7 +80,6 @@ bool nek::mtp::TryGetArrayInteger(const MtpDatatypeVariant& data, std::vector<in
 
 	return false;
 }
-
 bool nek::mtp::TryGetArrayUInteger(const MtpDatatypeVariant& data, std::vector<uint64_t>& value) {
 	value = std::vector<uint64_t>(0);
 

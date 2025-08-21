@@ -391,6 +391,29 @@ void NikonCamera::SetDevicePropValue(uint32_t devicePropCode, mtp::MtpDatatypeVa
 
 	return mtp::MtpDevice::SetDevicePropValue(devicePropCode, data);
 }
+void NikonCamera::SetDevicePropValueTypesafe(uint32_t devicePropCode, mtp::MtpDatatypeVariant data) {
+	uint16_t dataType = mtp::MtpDatatypeCode::Undefined;
+	mutexDeviceInfo_.lock();
+	if (devicePropDataType_.find(devicePropCode) == devicePropDataType_.end()) {
+		mutexDeviceInfo_.unlock();
+		dataType = GetDevicePropDesc(devicePropCode).DataType;
+	}
+	else {
+		dataType = devicePropDataType_[devicePropCode];
+		mutexDeviceInfo_.unlock();
+	}
+
+	mtp::MtpDatatypeVariant newdata;
+	if (SetDevicePropValueTypesafe_(dataType, data, newdata)) return SetDevicePropValue(devicePropCode, newdata);
+
+	mutexDeviceInfo_.lock();
+	if (std::find(deviceInfo_.OperationsSupported.begin(), deviceInfo_.OperationsSupported.end(), NikonMtpOperationCode::SetDevicePropValueEx) != deviceInfo_.OperationsSupported.end()) {
+		mutexDeviceInfo_.unlock();
+		throw mtp::MtpException(NikonMtpOperationCode::SetDevicePropValueEx, NikonMtpResponseCode::Invalid_DeviceProp_Format);
+	}
+	mutexDeviceInfo_.unlock();
+	throw mtp::MtpException(NikonMtpOperationCode::SetDevicePropValue, NikonMtpResponseCode::Invalid_DeviceProp_Format);
+}
 
 
 uint32_t NikonCamera::DeviceReady() {
