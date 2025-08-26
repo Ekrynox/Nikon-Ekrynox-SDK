@@ -243,7 +243,7 @@ void MtpDevice::additionalThreadsTask() {
 
 
 
-MtpResponse MtpDevice::SendCommand_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params) {
+MtpResponse MtpDevice::SendCommand_(CComPtr<IPortableDevice> device, uint16_t operationCode, MtpParams params) {
 	MtpResponse result = MtpResponse();
 	HRESULT hr;
 
@@ -296,7 +296,7 @@ MtpResponse MtpDevice::SendCommand_(CComPtr<IPortableDevice> device, WORD operat
 	return result;
 }
 
-MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params) {
+MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, uint16_t operationCode, MtpParams params) {
 	MtpResponse result = MtpResponse();
 	HRESULT hr;
 
@@ -451,7 +451,7 @@ MtpResponse MtpDevice::SendCommandAndRead_(CComPtr<IPortableDevice> device, WORD
 	return result;
 }
 
-MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, WORD operationCode, MtpParams params, std::vector<uint8_t> data) {
+MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, uint16_t operationCode, MtpParams params, std::vector<uint8_t> data) {
 	MtpResponse result = MtpResponse();
 	HRESULT hr;
 
@@ -655,7 +655,7 @@ void MtpDevice::startThreads() {
 }
 
 
-MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
+MtpResponse MtpDevice::SendCommand(uint16_t operationCode, MtpParams params) {
 	if (!isConnected()) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
@@ -684,7 +684,7 @@ MtpResponse MtpDevice::SendCommand(WORD operationCode, MtpParams params) {
 	}
 	return sendTaskWithResult<MtpResponse>(func);
 }
-MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) {
+MtpResponse MtpDevice::SendCommandAndRead(uint16_t operationCode, MtpParams params) {
 	if (!isConnected()) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
@@ -714,7 +714,7 @@ MtpResponse MtpDevice::SendCommandAndRead(WORD operationCode, MtpParams params) 
 	}
 	return sendTaskWithResult<MtpResponse>(func);
 }
-MtpResponse MtpDevice::SendCommandAndWrite(WORD operationCode, MtpParams params, std::vector<uint8_t> data) {
+MtpResponse MtpDevice::SendCommandAndWrite(uint16_t operationCode, MtpParams params, std::vector<uint8_t> data) {
 	if (!isConnected()) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}

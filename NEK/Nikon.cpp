@@ -242,8 +242,8 @@ void NikonCamera::startThreads() {
 
 
 
-mtp::MtpDeviceInfoDS NikonCamera::GetDeviceInfo() {
-	auto deviceInfo = mtp::MtpDevice::GetDeviceInfo();
+NikonDeviceInfoDS NikonCamera::GetDeviceInfo() {
+	NikonDeviceInfoDS deviceInfo = mtp::MtpDevice::GetDeviceInfo();
 
 	//Additional VendorCodes
 	if (std::find(deviceInfo.OperationsSupported.begin(), deviceInfo.OperationsSupported.end(), NikonMtpOperationCode::GetVendorPropCodes) != deviceInfo.OperationsSupported.end()) {
@@ -256,10 +256,10 @@ mtp::MtpDeviceInfoDS NikonCamera::GetDeviceInfo() {
 
 		uint32_t len = *(uint32_t*)response.data.data();
 		size_t offset = sizeof(uint32_t);
-		uint16_t code;
+		uint32_t code;
 
 		for (uint32_t i = 0; i < len; i++) {
-			code = *(uint16_t*)(response.data.data() + offset);
+			code = static_cast<uint32_t>(*(uint16_t*)(response.data.data() + offset));
 			offset += sizeof(uint16_t);
 
 			if (std::find(deviceInfo.DevicePropertiesSupported.begin(), deviceInfo.DevicePropertiesSupported.end(), code) == deviceInfo.DevicePropertiesSupported.end()) {
