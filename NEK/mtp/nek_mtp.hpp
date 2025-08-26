@@ -35,6 +35,7 @@ namespace nek::mtp {
 	public:
 		NEK_API static MtpManager& Instance();
 
+		NEK_API std::vector<std::wstring> listMtpDevicesPath();
 		NEK_API std::map<std::wstring, MtpDeviceInfoDS> listMtpDevices();
 		NEK_API size_t countMtpDevices();
 		NEK_API bool isDeviceConnected(std::wstring devicePath);

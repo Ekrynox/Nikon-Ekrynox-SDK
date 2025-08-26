@@ -13,19 +13,20 @@ using namespace nek;
 
 std::map<std::wstring, mtp::MtpDeviceInfoDS> NikonCamera::listNikonCameras(bool onlyOn) {
 	mtp::MtpManager* deviceManager = &nek::mtp::MtpManager::Instance();
-	auto cameras = deviceManager->listMtpDevices();
+	auto wpdDevices = deviceManager->listMtpDevicesPath();
 	std::map<std::wstring, mtp::MtpDeviceInfoDS> nikonCameras;
 
-	for (auto &camera : cameras) {
+	for (auto & wpdDevice : wpdDevices) {
 		//Check if Nikon
-		std::wstring id(camera.first);
+		std::wstring id(wpdDevice);
 		std::transform(id.begin(), id.end(), id.begin(), ::towlower);
 		if (id.find(L"vid_04b0") != std::wstring::npos) {
+			auto deviceInfo = NikonCamera(wpdDevice).GetDeviceInfo();
 			if (onlyOn == false) {
-				nikonCameras.insert(camera);
+				nikonCameras.insert(std::pair(wpdDevice, deviceInfo));
 			}
-			else if (std::find(camera.second.OperationsSupported.begin(), camera.second.OperationsSupported.end(), NikonMtpOperationCode::InitiateCaptureRecInSdram) != camera.second.OperationsSupported.end()) {
-				nikonCameras.insert(camera);
+			else if (std::find(deviceInfo.OperationsSupported.begin(), deviceInfo.OperationsSupported.end(), NikonMtpOperationCode::InitiateCaptureRecInSdram) != deviceInfo.OperationsSupported.end()) {
+				nikonCameras.insert(std::pair(wpdDevice, deviceInfo));
 			}
 		}
 	}
