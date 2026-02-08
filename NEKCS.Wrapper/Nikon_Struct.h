@@ -91,25 +91,104 @@ namespace NEKCS {
 
 
 	public ref struct NikonObjectInfoDS {
-		System::UInt32 StorageID = 0;
-		NikonMtpObjectFormatCode ObjectFormat = (NikonMtpObjectFormatCode)0;
-		System::UInt16 ProtectionStatus = 0;
-		System::UInt32 ObjectCompressedSize = 0;
-		NikonMtpObjectFormatCode ThumbFormat = (NikonMtpObjectFormatCode)0;
-		System::UInt32 ThumbCompressedSize = 0;
-		System::UInt32 ThumbPixWidth = 0;
-		System::UInt32 ThumbPixHeight = 0;
-		System::UInt32 ImagePixWidth = 0;
-		System::UInt32 ImagePixHeight = 0;
-		System::UInt32 ImageBitDepth = 0;
-		System::UInt32 ParentObject = 0;
-		System::UInt16 AssociationType = 0;
-		System::UInt32 AssociationDesc = 0;
-		System::UInt32 SequenceNumber = 0;
-		System::String^ Filename = "";
-		System::String^ CaptureDate = "";
-		System::String^ ModificationDate = "";
-		System::Byte Keywords = 0;
+	private:
+		System::UInt32 _storageID = 0;
+		NikonMtpObjectFormatCode _objectFormat = (NikonMtpObjectFormatCode)0;
+		System::UInt16 _protectionStatus = 0;
+		System::UInt32 _objectCompressedSize = 0;
+		NikonMtpObjectFormatCode _thumbFormat = (NikonMtpObjectFormatCode)0;
+		System::UInt32 _thumbCompressedSize = 0;
+		System::UInt32 _thumbPixWidth = 0;
+		System::UInt32 _thumbPixHeight = 0;
+		System::UInt32 _imagePixWidth = 0;
+		System::UInt32 _imagePixHeight = 0;
+		System::UInt32 _imageBitDepth = 0;
+		System::UInt32 _parentObject = 0;
+		System::UInt16 _associationType = 0;
+		System::UInt32 _associationDesc = 0;
+		System::UInt32 _sequenceNumber = 0;
+		System::String^ _filename = "";
+		System::String^ _captureDate = "";
+		System::String^ _modificationDate = "";
+		System::Byte _keywords = 0;
+
+	public:
+		property System::UInt32 StorageID {
+			System::UInt32 get() { return _storageID; }
+			void set(System::UInt32 value) { _storageID = value; }
+		}
+		property NikonMtpObjectFormatCode ObjectFormat {
+			NikonMtpObjectFormatCode get() { return _objectFormat; }
+			void set(NikonMtpObjectFormatCode value) { _objectFormat = value; }
+		}
+		property System::UInt16 ProtectionStatus {
+			System::UInt16 get() { return _protectionStatus; }
+			void set(System::UInt16 value) { _protectionStatus = value; }
+		}
+		property System::UInt32 ObjectCompressedSize {
+			System::UInt32 get() { return _objectCompressedSize; }
+			void set(System::UInt32 value) { _objectCompressedSize = value; }
+		}
+		property NikonMtpObjectFormatCode ThumbFormat {
+			NikonMtpObjectFormatCode get() { return _thumbFormat; }
+			void set(NikonMtpObjectFormatCode value) { _thumbFormat = value; }
+		}
+		property System::UInt32 ThumbCompressedSize {
+			System::UInt32 get() { return _thumbCompressedSize; }
+			void set(System::UInt32 value) { _thumbCompressedSize = value; }
+		}
+		property System::UInt32 ThumbPixWidth {
+			System::UInt32 get() { return _thumbPixWidth; }
+			void set(System::UInt32 value) { _thumbPixWidth = value; }
+		}
+		property System::UInt32 ThumbPixHeight {
+			System::UInt32 get() { return _thumbPixHeight; }
+			void set(System::UInt32 value) { _thumbPixHeight = value; }
+		}
+		property System::UInt32 ImagePixWidth {
+			System::UInt32 get() { return _imagePixWidth; }
+			void set(System::UInt32 value) { _imagePixWidth = value; }
+		}
+		property System::UInt32 ImagePixHeight {
+			System::UInt32 get() { return _imagePixHeight; }
+			void set(System::UInt32 value) { _imagePixHeight = value; }
+		}
+		property System::UInt32 ImageBitDepth {
+			System::UInt32 get() { return _imageBitDepth; }
+			void set(System::UInt32 value) { _imageBitDepth = value; }
+		}
+		property System::UInt32 ParentObject {
+			System::UInt32 get() { return _parentObject; }
+			void set(System::UInt32 value) { _parentObject = value; }
+		}
+		property System::UInt16 AssociationType {
+			System::UInt16 get() { return _associationType; }
+			void set(System::UInt16 value) { _associationType = value; }
+		}
+		property System::UInt32 AssociationDesc {
+			System::UInt32 get() { return _associationDesc; }
+			void set(System::UInt32 value) { _associationDesc = value; }
+		}
+		property System::UInt32 SequenceNumber {
+			System::UInt32 get() { return _sequenceNumber; }
+			void set(System::UInt32 value) { _sequenceNumber = value; }
+		}
+		property System::String^ Filename {
+			System::String^ get() { return _filename; }
+			void set(System::String^ value) { _filename = value; }
+		}
+		property System::String^ CaptureDate {
+			System::String^ get() { return _captureDate; }
+			void set(System::String^ value) { _captureDate = value; }
+		}
+		property System::String^ ModificationDate {
+			System::String^ get() { return _modificationDate; }
+			void set(System::String^ value) { _modificationDate = value; }
+		}
+		property System::Byte Keywords {
+			System::Byte get() { return _keywords; }
+			void set(System::Byte value) { _keywords = value; }
+		}
 
 		NikonObjectInfoDS();
 		NikonObjectInfoDS(const nek::mtp::MtpObjectInfoDS& native);

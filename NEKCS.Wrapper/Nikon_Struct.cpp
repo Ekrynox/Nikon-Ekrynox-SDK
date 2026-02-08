@@ -67,47 +67,47 @@ NikonDeviceInfoDS::NikonDeviceInfoDS(const nek::NikonDeviceInfoDS& native) {
 
 //NikonObjectInfoDS
 NikonObjectInfoDS::NikonObjectInfoDS() {
-	StorageID = 0;
-	ObjectFormat = (NikonMtpObjectFormatCode)0;
-	ProtectionStatus = 0;
-	ObjectCompressedSize = 0;
-	ThumbFormat = (NikonMtpObjectFormatCode)0;
-	ThumbCompressedSize = 0;
-	ThumbPixWidth = 0;
-	ThumbPixHeight = 0;
-	ImagePixWidth = 0;
-	ImagePixHeight = 0;
-	ImageBitDepth = 0;
-	ParentObject = 0;
-	AssociationType = 0;
-	AssociationDesc = 0;
-	SequenceNumber = 0;
-	Filename = "";
-	CaptureDate = "";
-	ModificationDate = "";
-	Keywords = 0;
+	_storageID = 0;
+	_objectFormat = (NikonMtpObjectFormatCode)0;
+	_protectionStatus = 0;
+	_objectCompressedSize = 0;
+	_thumbFormat = (NikonMtpObjectFormatCode)0;
+	_thumbCompressedSize = 0;
+	_thumbPixWidth = 0;
+	_thumbPixHeight = 0;
+	_imagePixWidth = 0;
+	_imagePixHeight = 0;
+	_imageBitDepth = 0;
+	_parentObject = 0;
+	_associationType = 0;
+	_associationDesc = 0;
+	_sequenceNumber = 0;
+	_filename = "";
+	_captureDate = "";
+	_modificationDate = "";
+	_keywords = 0;
 };
 
 NikonObjectInfoDS::NikonObjectInfoDS(const nek::mtp::MtpObjectInfoDS& native) {
-	StorageID = native.StorageID;
-	ObjectFormat = (NikonMtpObjectFormatCode)native.ObjectFormat;
-	ProtectionStatus = native.ProtectionStatus;
-	ObjectCompressedSize = native.ObjectCompressedSize;
-	ThumbFormat = (NikonMtpObjectFormatCode)native.ThumbFormat;
-	ThumbCompressedSize = native.ThumbCompressedSize;
-	ThumbPixWidth = native.ThumbPixWidth;
-	ThumbPixHeight = native.ThumbPixHeight;
-	ImagePixWidth = native.ImagePixWidth;
-	ImagePixHeight = native.ImagePixHeight;
-	ImageBitDepth = native.ImageBitDepth;
-	ParentObject = native.ParentObject;
-	AssociationType = native.AssociationType;
-	AssociationDesc = native.AssociationDesc;
-	SequenceNumber = native.SequenceNumber;
-	Filename = gcnew System::String(native.Filename.c_str());
-	CaptureDate = gcnew System::String(native.CaptureDate.c_str());
-	ModificationDate = gcnew System::String(native.ModificationDate.c_str());
-	Keywords = native.Keywords;
+	_storageID = native.StorageID;
+	_objectFormat = (NikonMtpObjectFormatCode)native.ObjectFormat;
+	_protectionStatus = native.ProtectionStatus;
+	_objectCompressedSize = native.ObjectCompressedSize;
+	_thumbFormat = (NikonMtpObjectFormatCode)native.ThumbFormat;
+	_thumbCompressedSize = native.ThumbCompressedSize;
+	_thumbPixWidth = native.ThumbPixWidth;
+	_thumbPixHeight = native.ThumbPixHeight;
+	_imagePixWidth = native.ImagePixWidth;
+	_imagePixHeight = native.ImagePixHeight;
+	_imageBitDepth = native.ImageBitDepth;
+	_parentObject = native.ParentObject;
+	_associationType = native.AssociationType;
+	_associationDesc = native.AssociationDesc;
+	_sequenceNumber = native.SequenceNumber;
+	_filename = gcnew System::String(native.Filename.c_str());
+	_captureDate = gcnew System::String(native.CaptureDate.c_str());
+	_modificationDate = gcnew System::String(native.ModificationDate.c_str());
+	_keywords = native.Keywords;
 };
 
 
