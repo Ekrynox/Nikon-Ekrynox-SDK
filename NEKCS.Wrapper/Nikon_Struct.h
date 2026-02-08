@@ -265,23 +265,76 @@ namespace NEKCS {
 
 	generic<typename T>
 	public ref struct NikonMtpRangeForm {
-		T min;
-		T max;
-		T step;
+	internal:
+		T _min;
+		T _max;
+		T _step;
+
+	public:
+		property T Min {
+			T get() { return _min; }
+			void set(T value) { _min = value; }
+		}
+		property T Max {
+			T get() { return _max; }
+			void set(T value) { _max = value; }
+		}
+		property T Step {
+			T get() { return _step; }
+			void set(T value) { _step = value; }
+		}
+		NikonMtpRangeForm() {};
 	};
 
 	generic<typename T>
 	public ref struct NikonDevicePropDescDS {
-		NikonMtpDevicePropCode DevicePropertyCode = (NikonMtpDevicePropCode)0;
-		NikonMtpDatatypeCode DataType = NikonMtpDatatypeCode::Undefined;
-		System::Byte GetSet = 0;
+	internal:
+		NikonMtpDevicePropCode _devicePropertyCode = (NikonMtpDevicePropCode)0;
+		NikonMtpDatatypeCode _dataType = NikonMtpDatatypeCode::Undefined;
+		System::Byte _getSet = 0;
 
-		T FactoryDefaultValue;
-		T CurrentValue;
-		NikonMtpFormtypeCode FormFlag = NikonMtpFormtypeCode::Empty;
+		T _factoryDefaultValue;
+		T _currentValue;
+		NikonMtpFormtypeCode _formFlag = NikonMtpFormtypeCode::Empty;
 
-		NikonMtpRangeForm<T>^ RangeFORM = nullptr;
-		array<T>^ EnumFORM = nullptr;
+		NikonMtpRangeForm<T>^ _rangeFORM = nullptr;
+		array<T>^ _enumFORM = nullptr;
+
+	public:
+		property NikonMtpDevicePropCode DevicePropertyCode {
+			NikonMtpDevicePropCode get() { return _devicePropertyCode; }
+			void set(NikonMtpDevicePropCode value) { _devicePropertyCode = value; }
+		}
+		property NikonMtpDatatypeCode DataType {
+			NikonMtpDatatypeCode get() { return _dataType; }
+			void set(NikonMtpDatatypeCode value) { _dataType = value; }
+		}
+		property System::Byte GetSet {
+			System::Byte get() { return _getSet; }
+			void set(System::Byte value) { _getSet = value; }
+		}
+
+		property T FactoryDefaultValue {
+			T get() { return _factoryDefaultValue; }
+			void set(T value) { _factoryDefaultValue = value; }
+		}
+		property T CurrentValue {
+			T get() { return _currentValue; }
+			void set(T value) { _currentValue = value; }
+		}
+		property NikonMtpFormtypeCode FormFlag {
+			NikonMtpFormtypeCode get() { return _formFlag; }
+			void set(NikonMtpFormtypeCode value) { _formFlag = value; }
+		}
+
+		property NikonMtpRangeForm<T>^ RangeFORM {
+			NikonMtpRangeForm<T>^ get() { return _rangeFORM; }
+			void set(NikonMtpRangeForm<T>^ value) { _rangeFORM = value; }
+		}
+		property array<T>^ EnumFORM {
+			array<T>^ get() { return _enumFORM; }
+			void set(array<T>^ value) { _enumFORM = value; }
+		}
 
 		NikonDevicePropDescDS() {};
 	};
