@@ -11,20 +11,79 @@ using namespace System::Runtime::InteropServices;
 namespace NEKCS {
 
 	public ref struct NikonDeviceInfoDS {
-		System::UInt16 StandardVersion = 0;
-		System::UInt32 VendorExtensionID = 0;
-		System::UInt16 VendorExtensionVersion = 0;
-		System::String^ VendorExtensionDesc = "";
-		System::UInt16 FunctionalMode = 0;
-		System::Collections::Generic::List<NikonMtpOperationCode>^ OperationsSupported;
-		System::Collections::Generic::List<NikonMtpEventCode>^ EventsSupported;
-		System::Collections::Generic::List<NikonMtpDevicePropCode>^ DevicePropertiesSupported;
-		System::Collections::Generic::List<System::UInt16>^ CaptureFormats;
-		System::Collections::Generic::List<System::UInt16>^ ImageFormats;
-		System::String^ Manufacture = "";
-		System::String^ Model = "";
-		System::String^ DeviceVersion = "";
-		System::String^ SerialNumber = "";
+	private:
+		System::UInt16 _standardVersion = 0;
+		System::UInt32 _vendorExtensionID = 0;
+		System::UInt16 _vendorExtensionVersion = 0;
+		System::String^ _vendorExtensionDesc = "";
+		System::UInt16 _functionalMode = 0;
+		System::Collections::Generic::List<NikonMtpOperationCode>^ _operationsSupported;
+		System::Collections::Generic::List<NikonMtpEventCode>^ _eventsSupported;
+		System::Collections::Generic::List<NikonMtpDevicePropCode>^ _devicePropertiesSupported;
+		System::Collections::Generic::List<System::UInt16>^ _captureFormats;
+		System::Collections::Generic::List<System::UInt16>^ _imageFormats;
+		System::String^ _manufacture = "";
+		System::String^ _model = "";
+		System::String^ _deviceVersion = "";
+		System::String^ _serialNumber = "";
+
+	public:
+		property System::UInt16 StandardVersion{
+			System::UInt16 get() { return _standardVersion; }
+			void set(System::UInt16 value) { _standardVersion = value; }
+		}
+		property System::UInt32 VendorExtensionID{
+			System::UInt32 get() { return _vendorExtensionID; }
+			void set(System::UInt32 value) { _vendorExtensionID = value; }
+		}
+		property System::UInt16 VendorExtensionVersion{
+			System::UInt16 get() { return _vendorExtensionVersion; }
+			void set(System::UInt16 value) { _vendorExtensionVersion = value; }
+		}
+		property System::String^ VendorExtensionDesc{
+			System::String ^ get() { return _vendorExtensionDesc; }
+			void set(System::String ^ value) { _vendorExtensionDesc = value; }
+		}
+		property System::UInt16 FunctionalMode {
+			System::UInt16 get() { return _functionalMode; }
+			void set(System::UInt16 value) { _functionalMode = value; }
+		}
+		property System::Collections::Generic::List<NikonMtpOperationCode>^ OperationsSupported {
+			System::Collections::Generic::List<NikonMtpOperationCode>^ get() { return _operationsSupported; }
+			void set(System::Collections::Generic::List<NikonMtpOperationCode>^ value) { _operationsSupported = value; }
+		}
+		property System::Collections::Generic::List<NikonMtpEventCode>^ EventsSupported {
+			System::Collections::Generic::List<NikonMtpEventCode>^ get() { return _eventsSupported; }
+			void set(System::Collections::Generic::List<NikonMtpEventCode>^ value) { _eventsSupported = value; }
+		}
+		property System::Collections::Generic::List<NikonMtpDevicePropCode>^ DevicePropertiesSupported {
+			System::Collections::Generic::List<NikonMtpDevicePropCode>^ get() { return _devicePropertiesSupported; }
+			void set(System::Collections::Generic::List<NikonMtpDevicePropCode>^ value) { _devicePropertiesSupported = value; }
+		}
+		property System::Collections::Generic::List<System::UInt16>^ CaptureFormats {
+			System::Collections::Generic::List<System::UInt16>^ get() { return _captureFormats; }
+			void set(System::Collections::Generic::List<System::UInt16>^ value) { _captureFormats = value; }
+		}
+		property System::Collections::Generic::List<System::UInt16>^ ImageFormats {
+			System::Collections::Generic::List<System::UInt16>^ get() { return _imageFormats; }
+			void set(System::Collections::Generic::List<System::UInt16>^ value) { _imageFormats = value; }
+		}
+		property System::String^ Manufacture {
+			System::String^ get() { return _manufacture; }
+			void set(System::String^ value) { _manufacture = value; }
+		}
+		property System::String^ Model {
+			System::String^ get() { return _model; }
+			void set(System::String^ value) { _model = value; }
+		}
+		property System::String^ DeviceVersion {
+			System::String^ get() { return _deviceVersion; }
+			void set(System::String^ value) { _deviceVersion = value; }
+		}
+		property System::String^ SerialNumber {
+			System::String^ get() { return _serialNumber; }
+			void set(System::String^ value) { _serialNumber = value; }
+		}
 
 		NikonDeviceInfoDS();
 		NikonDeviceInfoDS(const nek::NikonDeviceInfoDS& native);

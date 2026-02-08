@@ -13,54 +13,54 @@ using namespace NEKCS;
 
 //NikonDeviceInfoDS
 NikonDeviceInfoDS::NikonDeviceInfoDS() {
-	StandardVersion = 0;
-	VendorExtensionID = 0;
-	VendorExtensionVersion = 0;
-	VendorExtensionDesc = gcnew System::String("");
-	FunctionalMode = 0;
-	OperationsSupported = gcnew System::Collections::Generic::List<NikonMtpOperationCode>(0);
-	EventsSupported = gcnew System::Collections::Generic::List<NikonMtpEventCode>(0);
-	DevicePropertiesSupported = gcnew System::Collections::Generic::List<NikonMtpDevicePropCode>(0);
-	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
-	ImageFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
-	Manufacture = gcnew System::String("");
-	Model = gcnew System::String("");
-	DeviceVersion = gcnew System::String("");
-	SerialNumber = gcnew System::String("");
+	_standardVersion = 0;
+	_vendorExtensionID = 0;
+	_vendorExtensionVersion = 0;
+	_vendorExtensionDesc = gcnew System::String("");
+	_functionalMode = 0;
+	_operationsSupported = gcnew System::Collections::Generic::List<NikonMtpOperationCode>(0);
+	_eventsSupported = gcnew System::Collections::Generic::List<NikonMtpEventCode>(0);
+	_devicePropertiesSupported = gcnew System::Collections::Generic::List<NikonMtpDevicePropCode>(0);
+	_captureFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
+	_imageFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
+	_manufacture = gcnew System::String("");
+	_model = gcnew System::String("");
+	_deviceVersion = gcnew System::String("");
+	_serialNumber = gcnew System::String("");
 };
 
 NikonDeviceInfoDS::NikonDeviceInfoDS(const nek::NikonDeviceInfoDS& native) {
-	StandardVersion = native.StandardVersion;
-	VendorExtensionID = native.VendorExtensionID;
-	VendorExtensionVersion = native.VendorExtensionVersion;
-	VendorExtensionDesc = gcnew System::String(native.VendorExtensionDesc.c_str());
-	FunctionalMode = native.FunctionalMode;
+	_standardVersion = native.StandardVersion;
+	_vendorExtensionID = native.VendorExtensionID;
+	_vendorExtensionVersion = native.VendorExtensionVersion;
+	_vendorExtensionDesc = gcnew System::String(native.VendorExtensionDesc.c_str());
+	_functionalMode = native.FunctionalMode;
 
-	OperationsSupported = gcnew System::Collections::Generic::List<NikonMtpOperationCode>(0);
+	_operationsSupported = gcnew System::Collections::Generic::List<NikonMtpOperationCode>(0);
 	for (auto el : native.OperationsSupported) {
-		OperationsSupported->Add((NikonMtpOperationCode)el);
+		_operationsSupported->Add((NikonMtpOperationCode)el);
 	}
-	EventsSupported = gcnew System::Collections::Generic::List<NikonMtpEventCode>(0);
+	_eventsSupported = gcnew System::Collections::Generic::List<NikonMtpEventCode>(0);
 	for (auto el : native.EventsSupported) {
-		EventsSupported->Add((NikonMtpEventCode)el);
+		_eventsSupported->Add((NikonMtpEventCode)el);
 	}
-	DevicePropertiesSupported = gcnew System::Collections::Generic::List<NikonMtpDevicePropCode>(0);
+	_devicePropertiesSupported = gcnew System::Collections::Generic::List<NikonMtpDevicePropCode>(0);
 	for (auto el : native.DevicePropertiesSupported) {
-		DevicePropertiesSupported->Add((NikonMtpDevicePropCode)el);
+		_devicePropertiesSupported->Add((NikonMtpDevicePropCode)el);
 	}
-	CaptureFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
+	_captureFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
 	for (auto el : native.CaptureFormats) {
-		CaptureFormats->Add(el);
+		_captureFormats->Add(el);
 	}
-	ImageFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
+	_imageFormats = gcnew System::Collections::Generic::List<System::UInt16>(0);
 	for (auto el : native.ImageFormats) {
-		ImageFormats->Add(el);
+		_imageFormats->Add(el);
 	}
 
-	Manufacture = gcnew System::String(native.Manufacture.c_str());
-	Model = gcnew System::String(native.Model.c_str());
-	DeviceVersion = gcnew System::String(native.DeviceVersion.c_str());
-	SerialNumber = gcnew System::String(native.SerialNumber.c_str());
+	_manufacture = gcnew System::String(native.Manufacture.c_str());
+	_model = gcnew System::String(native.Model.c_str());
+	_deviceVersion = gcnew System::String(native.DeviceVersion.c_str());
+	_serialNumber = gcnew System::String(native.SerialNumber.c_str());
 };
 
 
