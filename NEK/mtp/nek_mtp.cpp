@@ -631,7 +631,7 @@ MtpResponse MtpDevice::SendCommandAndWrite_(CComPtr<IPortableDevice> device, uin
 
 
 bool MtpDevice::isConnected() const { 
-	return connected_ && running_;
+	return (this != nullptr) && connected_ && running_;
 }
 
 void MtpDevice::initCom() {
@@ -1201,8 +1201,10 @@ MtpDevicePropDescDSV MtpDevice::GetDevicePropDesc_(MtpResponse& response) {
 			offset += sizeof(char16_t) * len;
 			result.CurrentValue = std::wstring(str.begin(), str.end());
 		}
-		throw std::runtime_error("Unknown Type");
 		break;
+		default:
+			throw std::runtime_error("Unknown Type");
+			break;
 	}
 
 	result.FormFlag = *(uint8_t*)(response.data.data() + offset);
