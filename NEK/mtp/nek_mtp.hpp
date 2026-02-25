@@ -15,6 +15,7 @@
 #include <thread>
 #include <vector>
 
+#define NOMINMAX
 #include <atlbase.h>
 #include <PortableDeviceApi.h>
 #include <PortableDevice.h>
