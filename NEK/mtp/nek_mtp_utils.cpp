@@ -93,7 +93,7 @@ MtpParams::~MtpParams() {
 	pv_.clear();
 }
 
-CComPtr<IPortableDevicePropVariantCollection> MtpParams::GetCollection() {
+CComPtr<IPortableDevicePropVariantCollection> MtpParams::GetCollection() const {
 	CComPtr<IPortableDevicePropVariantCollection> paramsCollection;
 	HRESULT hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&paramsCollection));
 	if (FAILED(hr)) {

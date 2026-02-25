@@ -4,6 +4,7 @@
 #include <future>
 #include <vector>
 
+#define NOMINMAX
 #include <atlbase.h>
 #include <PortableDeviceApi.h>
 #include <PortableDevice.h>
@@ -41,7 +42,7 @@ namespace nek::mtp {
 		NEK_API MtpParams() {};
 		NEK_API ~MtpParams();
 
-		NEK_API CComPtr<IPortableDevicePropVariantCollection> GetCollection();
+		NEK_API CComPtr<IPortableDevicePropVariantCollection> GetCollection() const;
 
 		NEK_API void addUint32(uint32_t param);
 		NEK_API void addUint16(uint16_t param);
