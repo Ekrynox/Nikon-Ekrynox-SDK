@@ -12,6 +12,7 @@ namespace nek::mtp {
 
 		virtual void connect() = 0;
 		virtual void disconnect() = 0;
+		virtual bool isConnected() const = 0;
 
 		virtual MtpResponse sendCommand(uint16_t operationCode, const MtpParams& params) = 0;
 		virtual MtpResponse sendCommandAndRead(uint16_t operationCode, const MtpParams& params) = 0;

@@ -25,13 +25,23 @@ namespace nek::mtp::backend::wpd {
 
 		running_ = true;
 		commandThread_ = std::thread(&WpdMtpTransport::commandLoop, this);
+
+		std::unique_lock lk(commandMutex_);
+		commandCV_.wait(lk, [this] { return this->isConnected(); });
+		lk.unlock();
 	}
 
 	void WpdMtpTransport::disconnect() {
 		if (!running_) return; //TODO: Throw an error like device already disconnected
 		running_ = false;
-
+		commandCV_.notify_all();
 		commandThread_.join();
+	}
+
+	bool WpdMtpTransport::isConnected() const {
+		if (!running_) return false;
+		if (device_ == nullptr) return false;
+		return true;
 	}
 
 
@@ -142,6 +152,7 @@ namespace nek::mtp::backend::wpd {
 	void WpdMtpTransport::commandLoop() {
 		initCom();
 		initDevice();
+		commandCV_.notify_all();
 
 		while (running_) {
 			commandMutex_.lock();
@@ -154,6 +165,10 @@ namespace nek::mtp::backend::wpd {
 			commandCV_.wait(lk, [this] { return !this->running_ || this->command_ != nullptr; });
 			lk.unlock();
 		}
+
+		device_.Release();
+		deviceClient_.Release();
+		CoUninitialize();
 	}
 
 
