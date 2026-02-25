@@ -29,6 +29,7 @@ namespace nek::mtp::backend::wpd {
 
 		NEK_API void connect() override;
 		NEK_API void disconnect() override;
+		NEK_API bool isConnected() const override;
 
 		NEK_API MtpResponse sendCommand(uint16_t operationCode, const MtpParams& params) override;
 		NEK_API MtpResponse sendCommandAndRead(uint16_t operationCode, const MtpParams& params) override;

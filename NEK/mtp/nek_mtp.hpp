@@ -1,6 +1,7 @@
 #pragma once
 #include "../nek.hpp"
 #include "../utils/nek_threading.hpp"
+#include "nek_mtp_transport.hpp"
 #include "nek_mtp_utils.hpp"
 #include "nek_mtp_enum.hpp"
 #include "nek_mtp_struct.hpp"
@@ -56,7 +57,7 @@ namespace nek::mtp {
 
 	class MtpDevice : protected nek::utils::MultiThreadedClass {
 	public:
-		NEK_API MtpDevice(std::wstring devicePath, uint8_t additionalThreadsNb = 0);
+		NEK_API MtpDevice(std::shared_ptr<IMtpTransport> backend, uint8_t additionalThreadsNb = 0);
 		NEK_API ~MtpDevice();
 
 		NEK_API bool isConnected() const;
@@ -82,21 +83,8 @@ namespace nek::mtp {
 
 	protected:
 		MtpDevice();
-		virtual void mainThreadTask();
-		virtual void additionalThreadsTask();
 
-		static MtpResponse SendCommand_(CComPtr<IPortableDevice> device, uint16_t operationCode, MtpParams params);
-		static MtpResponse SendCommandAndRead_(CComPtr<IPortableDevice> device, uint16_t operationCode, MtpParams params);
-		static MtpResponse SendCommandAndWrite_(CComPtr<IPortableDevice> device, uint16_t operationCode, MtpParams params, std::vector<uint8_t> data);
-
-		void initCom();
-		void initDevice();
-		virtual void startThreads();
-
-		std::wstring devicePath_;
-		CComPtr<IPortableDeviceValues> deviceClient_;
-		CComPtr<IPortableDevice> device_;
-		std::atomic<bool> connected_;
+		std::shared_ptr<IMtpTransport> backend_;
 
 		MtpDeviceInfoDS deviceInfo_;
 		std::map<uint32_t, uint16_t> devicePropDataType_;
