@@ -57,10 +57,11 @@ namespace nek::mtp {
 
 	class MtpDevice : protected nek::utils::MultiThreadedClass {
 	public:
-		NEK_API MtpDevice(std::shared_ptr<backend::IMtpTransport> backend, uint8_t additionalThreadsNb = 0);
+		NEK_API MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect = true, uint8_t additionalThreadsNb = 0);
 		NEK_API ~MtpDevice();
 
 		NEK_API bool isConnected() const;
+		NEK_API void Connect();
 		NEK_API void Disconnect();
 
 		NEK_API MtpResponse SendCommand(uint16_t operationCode, MtpParams params);
@@ -84,7 +85,7 @@ namespace nek::mtp {
 	protected:
 		MtpDevice();
 
-		std::shared_ptr<backend::IMtpTransport> backend_;
+		std::unique_ptr<backend::IMtpTransport> backend_;
 
 		MtpDeviceInfoDS deviceInfo_;
 		std::map<uint32_t, uint16_t> devicePropDataType_;
