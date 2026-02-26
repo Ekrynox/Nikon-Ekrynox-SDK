@@ -1,6 +1,6 @@
 #pragma once
 #include "../../nek.hpp"
-#include "../nek_mtp_transport.hpp"
+#include "nek_mtp_backend.hpp"
 
 #include <atomic>
 #include <mutex>
@@ -22,7 +22,7 @@
 
 namespace nek::mtp::backend::wpd {
 
-	class WpdMtpTransport : public nek::mtp::IMtpTransport {
+	class WpdMtpTransport : public IMtpTransport {
 	public:
 		NEK_API WpdMtpTransport(const std::wstring& devicePath);
 		NEK_API ~WpdMtpTransport();

@@ -63,8 +63,8 @@
     <ClInclude Include="mtp\backend\nek_wpd.hpp">
       <Filter>Header Files\mtp\backend</Filter>
     </ClInclude>
-    <ClInclude Include="mtp\nek_mtp_transport.hpp">
-      <Filter>Header Files\mtp</Filter>
+    <ClInclude Include="mtp\backend\nek_mtp_backend.hpp">
+      <Filter>Header Files\mtp\backend</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

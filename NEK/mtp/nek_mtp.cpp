@@ -217,7 +217,7 @@ size_t MtpManager::countMtpDevices() {
 
 
 //MtpDevice
-MtpDevice::MtpDevice(std::shared_ptr<IMtpTransport> backend, uint8_t additionalThreadsNb) : backend_(std::move(backend)) {
+MtpDevice::MtpDevice(std::shared_ptr<backend::IMtpTransport> backend, uint8_t additionalThreadsNb) : backend_(std::move(backend)) {
 	eventCookie_ = nullptr;
 	eventCallback_ = new nek::mtp::MtpEventCallback();
 	additionalThreadsNb_ = additionalThreadsNb;
