@@ -148,7 +148,7 @@ std::map<std::wstring, MtpDeviceInfoDS> MtpManager::listMtpDevices() {
 
 			for (DWORD i = 0; i < devicesNb; i++) {
 				if (devices[i] != 0) {
-					wpdDevices.insert(std::pair(std::wstring(devices[i]), MtpDevice(std::make_shared<backend::wpd::WpdMtpTransport>(devices[i])).GetDeviceInfo()));
+					wpdDevices.insert(std::pair(std::wstring(devices[i]), MtpDevice(std::make_unique<backend::wpd::WpdMtpTransport>(devices[i])).GetDeviceInfo()));
 					CoTaskMemFree(devices[i]);
 				}
 			}
@@ -217,12 +217,12 @@ size_t MtpManager::countMtpDevices() {
 
 
 //MtpDevice
-MtpDevice::MtpDevice(std::shared_ptr<backend::IMtpTransport> backend, uint8_t additionalThreadsNb) : backend_(std::move(backend)) {
+MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect, uint8_t additionalThreadsNb) : backend_(std::move(backend)) {
 	eventCookie_ = nullptr;
 	eventCallback_ = new nek::mtp::MtpEventCallback();
 	additionalThreadsNb_ = additionalThreadsNb;
 
-	if (!backend_->isConnected()) backend_->connect();
+	if (autoConnect) backend_->connect();
 }
 
 MtpDevice::MtpDevice() : backend_(nullptr) { //TODO delete
@@ -239,11 +239,19 @@ MtpDevice::~MtpDevice() {
 
 
 bool MtpDevice::isConnected() const { 
-	return (backend_ != nullptr) && backend_->isConnected();
+	return backend_->isConnected();
+}
+
+void MtpDevice::Connect() {
+	if (backend_->isConnected()) {
+		return; //Already connected
+	}
+
+	backend_->connect();
 }
 
 void MtpDevice::Disconnect() {
-	if (!isConnected()) {
+	if (!backend_->isConnected()) {
 		return; //Already disconnected
 	}
 
