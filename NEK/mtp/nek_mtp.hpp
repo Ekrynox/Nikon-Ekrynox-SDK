@@ -1,7 +1,7 @@
 #pragma once
 #include "../nek.hpp"
 #include "../utils/nek_threading.hpp"
-#include "nek_mtp_transport.hpp"
+#include "backend/nek_mtp_backend.hpp"
 #include "nek_mtp_utils.hpp"
 #include "nek_mtp_enum.hpp"
 #include "nek_mtp_struct.hpp"
@@ -57,7 +57,7 @@ namespace nek::mtp {
 
 	class MtpDevice : protected nek::utils::MultiThreadedClass {
 	public:
-		NEK_API MtpDevice(std::shared_ptr<IMtpTransport> backend, uint8_t additionalThreadsNb = 0);
+		NEK_API MtpDevice(std::shared_ptr<backend::IMtpTransport> backend, uint8_t additionalThreadsNb = 0);
 		NEK_API ~MtpDevice();
 
 		NEK_API bool isConnected() const;
@@ -84,7 +84,7 @@ namespace nek::mtp {
 	protected:
 		MtpDevice();
 
-		std::shared_ptr<IMtpTransport> backend_;
+		std::shared_ptr<backend::IMtpTransport> backend_;
 
 		MtpDeviceInfoDS deviceInfo_;
 		std::map<uint32_t, uint16_t> devicePropDataType_;

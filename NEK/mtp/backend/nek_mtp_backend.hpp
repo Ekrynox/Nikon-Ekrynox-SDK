@@ -1,10 +1,10 @@
 #pragma once
 
-#include "nek_mtp_utils.hpp"
+#include "../nek_mtp_utils.hpp"
 
 
 
-namespace nek::mtp {
+namespace nek::mtp::backend {
 
 	class IMtpTransport {
 	public:

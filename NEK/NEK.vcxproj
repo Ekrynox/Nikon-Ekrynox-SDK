@@ -84,7 +84,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="mtp\nek_mtp_transport.hpp" />
+    <ClInclude Include="mtp\backend\nek_mtp_backend.hpp" />
     <ClInclude Include="mtp\nek_mtp.hpp" />
     <ClInclude Include="mtp\nek_mtp_enum.hpp" />
     <ClInclude Include="mtp\nek_mtp_except.hpp" />
