@@ -20,9 +20,9 @@
 
 namespace nek::mtp {
 
-	class MtpDevice : protected nek::utils::MultiThreadedClass {
+	class MtpDevice {
 	public:
-		NEK_API MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect = true, uint8_t additionalThreadsNb = 0);
+		NEK_API MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect = true);
 		NEK_API MtpDevice(MtpDevice&& other) noexcept;
 		NEK_API ~MtpDevice();
 
@@ -49,19 +49,13 @@ namespace nek::mtp {
 
 
 	protected:
-		MtpDevice();
-
 		std::unique_ptr<backend::IMtpTransport> backend_;
 
 		MtpDeviceInfoDS deviceInfo_;
 		std::map<uint32_t, uint16_t> devicePropDataType_;
 
 		CComPtr<MtpEventCallback> eventCallback_;
-		PWSTR eventCookie_;
-		std::mutex mutexDevice_;
 		std::mutex mutexDeviceInfo_;
-
-		uint8_t additionalThreadsNb_;
 
 
 		MtpDevicePropDescDSV GetDevicePropDesc_(MtpResponse& response);

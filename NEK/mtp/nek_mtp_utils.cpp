@@ -10,81 +10,6 @@ using namespace nek::mtp;
 
 
 
-//MtpResponseParams
-MtpReponseParams::MtpReponseParams() {
-	pv_ = std::vector<PROPVARIANT>();
-}
-
-MtpReponseParams::MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection> paramsCollection) {
-	pv_ = std::vector<PROPVARIANT>();
-	SetCollection(paramsCollection);
-}
-
-MtpReponseParams::MtpReponseParams(CComPtr<IPortableDeviceValues> eventParameters) {
-	pv_ = std::vector<PROPVARIANT>();
-	SetCollection(eventParameters);
-}
-
-MtpReponseParams::MtpReponseParams(const MtpReponseParams& other) {
-	pv_ = std::vector<PROPVARIANT>();
-	for (const auto& pv : other.pv_) {
-		PROPVARIANT newPv;
-		PropVariantInit(&newPv);
-		PropVariantCopy(&newPv, &pv);
-		pv_.push_back(newPv);
-	}
-}
-
-MtpReponseParams& MtpReponseParams::operator=(const MtpReponseParams& other) {
-	if (this != &other) {
-		for (auto& pv : pv_) {
-			PropVariantClear(&pv);
-		}
-		pv_.clear();
-		for (const auto& pv : other.pv_) {
-			PROPVARIANT newPv;
-			PropVariantInit(&newPv);
-			PropVariantCopy(&newPv, &pv);
-			this->pv_.push_back(newPv);
-		}
-	}
-	return *this;
-}
-
-MtpReponseParams::~MtpReponseParams() {
-	for (auto& pv : pv_) {
-		PropVariantClear(&pv);
-	}
-	pv_.clear();
-}
-
-void MtpReponseParams::SetCollection(CComPtr<IPortableDevicePropVariantCollection> paramsCollection) {
-	pv_.clear();
-	DWORD size = 0;
-	paramsCollection->GetCount(&size);
-	for (DWORD i = 0; i < size; i++) {
-		PROPVARIANT pv;
-		PropVariantInit(&pv);
-		paramsCollection->GetAt(i, &pv);
-		pv_.push_back(pv);
-	}
-}
-
-void MtpReponseParams::SetCollection(CComPtr<IPortableDeviceValues> eventParameters) {
-	pv_.clear();
-	DWORD size = 0;
-	eventParameters->GetCount(&size);
-	for (DWORD i = 0; i < size; i++) {
-		PROPERTYKEY pk;
-		PROPVARIANT pv;
-		PropVariantInit(&pv);
-		eventParameters->GetAt(i, &pk, &pv);
-		pv_.push_back(pv);
-	}
-}
-
-
-
 //MtpParams
 MtpParams::~MtpParams() {
 	for (auto& pv : pv_) {
@@ -128,17 +53,6 @@ void MtpParams::addInt16(int16_t value) {
 	PROPVARIANT pv;
 	InitPropVariantFromInt16(value, &pv);
 	pv_.push_back(pv);
-}
-
-
-
-//MtpResponse
-MtpResponse::MtpResponse() {
-	responseCode = 0;
-}
-
-MtpReponseParams& MtpResponse::GetParams() {
-	return responseParams_;
 }
 
 
