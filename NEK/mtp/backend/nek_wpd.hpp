@@ -55,4 +55,11 @@ namespace nek::mtp::backend::wpd {
 		CComPtr<IPortableDevice> device_;
 	};
 
+
+
+	class WpdMtpBackendProvider : public IMtpBackendProvider {
+		NEK_API std::vector<MtpConnectionInfo> listDevices();
+		NEK_API size_t countDevices();
+	};
+
 }

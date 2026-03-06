@@ -508,4 +508,93 @@ namespace nek::mtp::backend::wpd {
 		return result;
 	}
 
+
+
+
+
+	std::vector<MtpConnectionInfo> WpdMtpBackendProvider::listDevices() {
+		auto result = std::vector<MtpConnectionInfo>();
+
+		HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+		bool weInitialized = (hr == S_OK);
+
+		//Device Manager
+		CComPtr<IPortableDeviceManager> deviceManager;
+		hr = CoCreateInstance(CLSID_PortableDeviceManager, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceManager));
+		if (SUCCEEDED(hr)) {
+			DWORD devicesNb = 0;
+			PWSTR* devices = nullptr;
+			HRESULT hr;
+
+			//Update WPD devices list
+			deviceManager->RefreshDeviceList();
+
+			//Get the number of WPD devices
+			hr = deviceManager->GetDevices(NULL, &devicesNb);
+			if (FAILED(hr)) {
+				//throw MtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr); TODO
+			}
+
+			//At least one device
+			if (devicesNb > 0) {
+				devices = new PWSTR[devicesNb]();
+				HRESULT hr = deviceManager->GetDevices(devices, &devicesNb);
+				if (FAILED(hr)) {
+					delete[] devices;
+					//throw MtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr); TODO
+				}
+
+				for (DWORD i = 0; i < devicesNb; i++) {
+					MtpConnectionInfo info;
+					info.usbPath = devices[i];
+					info.transport = std::make_unique<WpdMtpTransport>(devices[i]);
+					result.push_back(std::move(info));
+
+					CoTaskMemFree(devices[i]);
+				}
+
+				delete[] devices;
+			}
+
+			deviceManager.Release();
+		}
+
+		if (weInitialized) CoUninitialize();
+
+		return result;
+	}
+
+	size_t WpdMtpBackendProvider::countDevices() {
+		size_t result = 0;
+
+		HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+		bool weInitialized = (hr == S_OK);
+
+		//Device Manager
+		CComPtr<IPortableDeviceManager> deviceManager;
+		hr = CoCreateInstance(CLSID_PortableDeviceManager, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceManager));
+		if (SUCCEEDED(hr)) {
+			DWORD devicesNb = 0;
+			PWSTR* devices = nullptr;
+			HRESULT hr;
+
+			//Update WPD devices list
+			deviceManager->RefreshDeviceList();
+
+			//Get the number of WPD devices
+			hr = deviceManager->GetDevices(NULL, &devicesNb);
+			if (FAILED(hr)) {
+				//throw MtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr); TODO
+			}
+
+			result = devicesNb;
+
+			deviceManager.Release();
+		}
+
+		if (weInitialized) CoUninitialize();
+
+		return result;
+	}
+
 }
