@@ -23,6 +23,7 @@ namespace nek::mtp {
 	class MtpDevice : protected nek::utils::MultiThreadedClass {
 	public:
 		NEK_API MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect = true, uint8_t additionalThreadsNb = 0);
+		NEK_API MtpDevice(MtpDevice&& other) noexcept;
 		NEK_API ~MtpDevice();
 
 		NEK_API bool isConnected() const;
@@ -67,6 +68,21 @@ namespace nek::mtp {
 		MtpDatatypeVariant GetDevicePropValue_(MtpResponse& response, uint16_t dataType);
 		std::vector<uint8_t> SetDevicePropValue_(MtpDatatypeVariant data);
 		bool SetDevicePropValueTypesafe_(const uint16_t dataType, const MtpDatatypeVariant& data, MtpDatatypeVariant& newdata);
+	};
+
+
+
+	class MtpManager {
+	public:
+		NEK_API MtpManager();
+		NEK_API void registerBackend(std::unique_ptr<backend::IMtpBackendProvider> backend);
+
+		NEK_API std::vector<backend::MtpConnectionInfo> listAllDevices();
+		NEK_API std::vector<MtpDevice> getAllDevices();
+		NEK_API size_t countAllDevices();
+
+	private:
+		std::vector<std::unique_ptr<backend::IMtpBackendProvider>> backends_;
 	};
 
 }
