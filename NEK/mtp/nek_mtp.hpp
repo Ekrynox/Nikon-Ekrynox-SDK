@@ -16,44 +16,9 @@
 #include <thread>
 #include <vector>
 
-#define NOMINMAX
-#include <atlbase.h>
-#include <PortableDeviceApi.h>
-#include <PortableDevice.h>
-#include <WpdMtpExtensions.h>
-
-
-
-#define CLIENT_NAME			L"Nikon Ekrynox SDK"
-#define CLIENT_MAJOR_VER	1
-#define CLIENT_MINOR_VER	0
-#define CLIENT_REVISION		0
-
 
 
 namespace nek::mtp {
-
-	class MtpManager : protected nek::utils::ThreadedClass {
-	public:
-		NEK_API static MtpManager& Instance();
-
-		NEK_API std::vector<std::wstring> listMtpDevicesPath();
-		NEK_API std::map<std::wstring, MtpDeviceInfoDS> listMtpDevices();
-		NEK_API size_t countMtpDevices();
-		NEK_API bool isDeviceConnected(std::wstring devicePath);
-
-	private:
-		MtpManager& operator= (const MtpManager&) = delete;
-		MtpManager(const MtpManager&) = delete;
-		MtpManager();
-		~MtpManager() { nek::utils::ThreadedClass::~ThreadedClass(); };
-		void threadTask();
-
-		CComPtr<IPortableDeviceManager> deviceManager_;
-		std::mutex mutexDevice_;
-	};
-
-
 
 	class MtpDevice : protected nek::utils::MultiThreadedClass {
 	public:
