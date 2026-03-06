@@ -12,6 +12,45 @@ using namespace nek::mtp;
 
 
 
+//MtpManager
+MtpManager::MtpManager() : backends_(0) {
+	MtpManager::registerBackend(std::make_unique<backend::wpd::WpdMtpBackendProvider>());
+}
+
+void MtpManager::registerBackend(std::unique_ptr<backend::IMtpBackendProvider> backend) {
+	backends_.push_back(std::move(backend));
+}
+
+std::vector<backend::MtpConnectionInfo> MtpManager::listAllDevices() {
+	auto result = std::vector<backend::MtpConnectionInfo>();
+	for (auto& b : backends_) {
+		for (auto& d : b->listDevices()) {
+			result.push_back(std::move(d));
+		}
+	}
+	return result;
+}
+
+std::vector<MtpDevice> MtpManager::getAllDevices() {
+	auto result = std::vector<MtpDevice>();
+	for (auto& b : backends_) {
+		for (auto& d : b->listDevices()) {
+			result.push_back(MtpDevice(std::move(d.transport), false));
+		}
+	}
+	return result;
+}
+
+size_t MtpManager::countAllDevices() {
+	size_t result = 0;
+	for (auto& b : backends_) {
+		result += b->countDevices();
+	}
+	return result;
+}
+
+
+
 //MtpDevice
 MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect, uint8_t additionalThreadsNb) : backend_(std::move(backend)) {
 	eventCookie_ = nullptr;
@@ -19,6 +58,12 @@ MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoC
 	additionalThreadsNb_ = additionalThreadsNb;
 
 	if (autoConnect) backend_->connect();
+}
+
+nek::mtp::MtpDevice::MtpDevice(MtpDevice&& other) noexcept {
+	backend_ = std::move(other.backend_);
+	eventCallback_ = std::move(other.eventCallback_);
+	eventCookie_ = std::move(other.eventCookie_);
 }
 
 MtpDevice::MtpDevice() : backend_(nullptr) { //TODO delete
