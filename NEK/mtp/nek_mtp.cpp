@@ -35,7 +35,7 @@ std::vector<MtpDevice> MtpManager::getAllDevices() {
 	auto result = std::vector<MtpDevice>();
 	for (auto& b : backends_) {
 		for (auto& d : b->listDevices()) {
-			result.push_back(MtpDevice(std::move(d.transport), false));
+			result.push_back(std::move(MtpDevice(std::move(d.transport), false)));
 		}
 	}
 	return result;
@@ -52,10 +52,8 @@ size_t MtpManager::countAllDevices() {
 
 
 //MtpDevice
-MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect, uint8_t additionalThreadsNb) : backend_(std::move(backend)) {
-	eventCookie_ = nullptr;
+MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect) : backend_(std::move(backend)) {
 	eventCallback_ = new nek::mtp::MtpEventCallback();
-	additionalThreadsNb_ = additionalThreadsNb;
 
 	if (autoConnect) backend_->connect();
 }
@@ -63,17 +61,10 @@ MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoC
 nek::mtp::MtpDevice::MtpDevice(MtpDevice&& other) noexcept {
 	backend_ = std::move(other.backend_);
 	eventCallback_ = std::move(other.eventCallback_);
-	eventCookie_ = std::move(other.eventCookie_);
-}
-
-MtpDevice::MtpDevice() : backend_(nullptr) { //TODO delete
-	eventCookie_ = nullptr;
-	eventCallback_ = new nek::mtp::MtpEventCallback();
-	additionalThreadsNb_ = 0;
 }
 
 MtpDevice::~MtpDevice() {
-	Disconnect();
+	if (backend_ != nullptr) Disconnect();
 	eventCallback_.Release();
 };
 

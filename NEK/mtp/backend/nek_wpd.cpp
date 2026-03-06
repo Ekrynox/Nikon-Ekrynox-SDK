@@ -173,7 +173,7 @@ namespace nek::mtp::backend::wpd {
 
 
 	MtpResponse WpdMtpTransport::sendCommand_(uint16_t operationCode, const MtpParams& params) {
-		MtpResponse result = MtpResponse();
+		MtpResponse result;
 		HRESULT hr;
 
 		CComPtr<IPortableDeviceValues> command;
@@ -217,7 +217,16 @@ namespace nek::mtp::backend::wpd {
 			//throw MtpDeviceException(MtpExPhase::OPERATION_RESPONSE, hr); TODO
 		}
 
-		result.GetParams().SetCollection(parametersCollection);
+		DWORD nbParams = 0;
+		PROPVARIANT pv;
+		PropVariantInit(&pv);
+		parametersCollection->GetCount(&nbParams);
+		for (DWORD i = 0; i < nbParams; i++) {
+			hr = parametersCollection->GetAt(i, &pv);
+			result.parameters.push_back(pv.uintVal);
+		}
+		PropVariantClear(&pv);
+
 		parametersCollection.Release();
 		command.Release();
 		commandResult.Release();
@@ -226,7 +235,7 @@ namespace nek::mtp::backend::wpd {
 	}
 
 	MtpResponse WpdMtpTransport::sendCommandAndRead_(uint16_t operationCode, const MtpParams& params) {
-		MtpResponse result = MtpResponse();
+		MtpResponse result;
 		HRESULT hr;
 
 		CComPtr<IPortableDeviceValues> command;
@@ -371,7 +380,16 @@ namespace nek::mtp::backend::wpd {
 			commandResult.Release();
 			//throw MtpDeviceException(MtpExPhase::ENDREAD_RESPONSE, hr); TODO
 		}
-		result.GetParams().SetCollection(parametersCollection);
+
+		DWORD nbParams = 0;
+		PROPVARIANT pv;
+		PropVariantInit(&pv);
+		parametersCollection->GetCount(&nbParams);
+		for (DWORD i = 0; i < nbParams; i++) {
+			hr = parametersCollection->GetAt(i, &pv);
+			result.parameters.push_back(pv.uintVal);
+		}
+		PropVariantClear(&pv);
 
 		parametersCollection.Release();
 		CoTaskMemFree(context);
@@ -381,7 +399,7 @@ namespace nek::mtp::backend::wpd {
 	}
 
 	MtpResponse WpdMtpTransport::sendCommandAndWrite_(uint16_t operationCode, const MtpParams& params, const std::vector<uint8_t>& data) {
-		MtpResponse result = MtpResponse();
+		MtpResponse result;
 		HRESULT hr;
 
 		CComPtr<IPortableDeviceValues> command;
@@ -499,7 +517,16 @@ namespace nek::mtp::backend::wpd {
 			CoTaskMemFree(context);
 			//throw MtpDeviceException(MtpExPhase::ENDWRITE_RESPONSE, hr); TODO
 		}
-		result.GetParams().SetCollection(parametersCollection);
+		
+		DWORD nbParams = 0;
+		PROPVARIANT pv;
+		PropVariantInit(&pv);
+		parametersCollection->GetCount(&nbParams);
+		for (DWORD i = 0; i < nbParams; i++) {
+			hr = parametersCollection->GetAt(i, &pv);
+			result.parameters.push_back(pv.uintVal);
+		}
+		PropVariantClear(&pv);
 
 		parametersCollection.Release();
 		command.Release();

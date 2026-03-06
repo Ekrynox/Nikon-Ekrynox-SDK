@@ -53,6 +53,8 @@ namespace nek::mtp::backend::wpd {
 		std::wstring devicePath_;
 		CComPtr<IPortableDeviceValues> deviceClient_;
 		CComPtr<IPortableDevice> device_;
+
+		PWSTR eventCookie_;
 	};
 
 

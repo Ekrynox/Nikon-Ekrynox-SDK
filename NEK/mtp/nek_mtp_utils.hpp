@@ -15,28 +15,6 @@
 
 namespace nek::mtp {
 
-	class MtpReponseParams {
-	public:
-		NEK_API MtpReponseParams();
-		NEK_API MtpReponseParams(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
-		NEK_API MtpReponseParams(CComPtr<IPortableDeviceValues> eventParameters);
-		NEK_API MtpReponseParams(const MtpReponseParams& other);
-		NEK_API MtpReponseParams& operator=(const MtpReponseParams& other);
-		NEK_API ~MtpReponseParams();
-
-		NEK_API void SetCollection(CComPtr<IPortableDevicePropVariantCollection> paramsCollection);
-		NEK_API void SetCollection(CComPtr<IPortableDeviceValues> eventParameters);
-
-		/*uint32_t getUint32(size_t pos);
-		uint16_t getUint16(size_t param);
-		int32_t getInt32(size_t pos);
-		int16_t getInt16(size_t pos);*/
-
-	protected:
-		std::vector<PROPVARIANT> pv_;
-	};
-
-
 	class MtpParams {
 	public:
 		NEK_API MtpParams() {};
@@ -54,18 +32,12 @@ namespace nek::mtp {
 	};
 
 
-	class MtpResponse {
-	public:
-		NEK_API MtpResponse();
-
-		NEK_API MtpReponseParams& GetParams();
-
+	struct MtpResponse_ {
 		uint16_t responseCode;
+		std::vector<uint32_t> parameters;
 		std::vector<uint8_t> data;
-
-	private:
-		MtpReponseParams responseParams_;
 	};
+	typedef struct MtpResponse_ MtpResponse;
 
 
 	class MtpEvent {
