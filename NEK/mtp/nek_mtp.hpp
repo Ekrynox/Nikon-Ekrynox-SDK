@@ -54,7 +54,6 @@ namespace nek::mtp {
 		MtpDeviceInfoDS deviceInfo_;
 		std::map<uint32_t, uint16_t> devicePropDataType_;
 
-		CComPtr<MtpEventCallback> eventCallback_;
 		std::mutex mutexDeviceInfo_;
 
 
