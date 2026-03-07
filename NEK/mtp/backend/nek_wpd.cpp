@@ -1,6 +1,7 @@
 #include "nek_wpd.hpp"
 
 #include "../nek_mtp_enum.hpp"
+#include "../nek_mtp_except.hpp"
 
 #include <algorithm>
 #include <future>
@@ -15,11 +16,11 @@ namespace nek::mtp::backend::wpd {
 		command_ = nullptr;
 		eventCookie_ = nullptr;
 		eventManager_ = new WpdMtpEventManager();
-		eventCallback_ = nullptr;
+		eventNextId = 0;
 	}
 
 	WpdMtpTransport::~WpdMtpTransport() {
-		unregisterEventCallback();
+		unsubscribe();
 		disconnect();
 		eventManager_.Release();
 	}
@@ -586,12 +587,11 @@ namespace nek::mtp::backend::wpd {
 
 
 
-	void WpdMtpTransport::registerEventCallback(std::function<void(MtpEvent)>* eventCallback) {
-		if (!running_) return; //TODO: Throw an error like device not connected
+	size_t WpdMtpTransport::subscribe(Handler eventCallback) {
+		if (!running_) throw MtpDeviceException(DEVICE_NOT_CONNECTED, DEVICE_DISCONNECTED); //TODO: Throw an error like device not connected
+		std::lock_guard lock(eventMutex_);
 
-		if (eventCookie_ == nullptr && eventCallback == nullptr) {
-			eventCallback_ = eventCallback;
-
+		if (eventCookie_ == nullptr) {
 			std::unique_lock lk(commandMutex_);
 			commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
 
@@ -610,13 +610,19 @@ namespace nek::mtp::backend::wpd {
 			lk.unlock();
 			commandCV_.notify_all();
 
-			return f.get();
+			f.get();
 		}
+
+		eventCallbacks_[eventNextId] = std::move(eventCallback);
+		return eventNextId++;
 	}
 
-	void WpdMtpTransport::unregisterEventCallback() {
-		if (running_) {
-			if (eventCookie_ != nullptr && eventCallback_ != nullptr) {
+	void WpdMtpTransport::unsubscribe(size_t id) {
+		std::lock_guard lock(eventMutex_);
+		if (eventCallbacks_.contains(id)) eventCallbacks_.erase(id);
+
+		if (eventCallbacks_.size() == 0 && eventCookie_ != nullptr) {
+			if (running_) {
 				std::unique_lock lk(commandMutex_);
 				commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
 
@@ -626,7 +632,6 @@ namespace nek::mtp::backend::wpd {
 					try {
 						this->device_->Unadvise(this->eventCookie_);
 						this->eventCookie_ = nullptr;
-						this->eventCallback_ = nullptr;
 						p.set_value();
 					}
 					catch (...) {
@@ -639,10 +644,42 @@ namespace nek::mtp::backend::wpd {
 
 				return f.get();
 			}
+			else {
+				this->eventCookie_ = nullptr;
+			}
 		}
-		else {
-			this->eventCookie_ = nullptr;
-			this->eventCallback_ = nullptr;
+	}
+
+	void WpdMtpTransport::unsubscribe() {
+		std::lock_guard lock(eventMutex_);
+		eventCallbacks_.clear();
+
+		if (eventCookie_ != nullptr) {
+			if (running_) {
+				std::unique_lock lk(commandMutex_);
+				commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
+
+				auto p = std::promise<void>();
+				auto f = p.get_future();
+				command_ = new std::function([this, &p] {
+					try {
+						this->device_->Unadvise(this->eventCookie_);
+						this->eventCookie_ = nullptr;
+						p.set_value();
+					}
+					catch (...) {
+						p.set_exception(std::current_exception());
+					}
+					});
+
+				lk.unlock();
+				commandCV_.notify_all();
+
+				return f.get();
+			}
+			else {
+				this->eventCookie_ = nullptr;
+			}
 		}
 	}
 

@@ -93,15 +93,12 @@
     <ClInclude Include="mtp\backend\nek_wpd.hpp" />
     <ClInclude Include="nek.hpp" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="utils\nek_int128.hpp" />
-    <ClInclude Include="utils\nek_threading.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mtp\backend\nek_wpd.cpp" />
     <ClCompile Include="mtp\nek_mtp.cpp" />
     <ClCompile Include="mtp\nek_mtp_except.cpp" />
     <ClCompile Include="mtp\nek_mtp_struct.cpp" />
-    <ClCompile Include="utils\nek_threading.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NEK.rc" />

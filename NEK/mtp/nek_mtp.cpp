@@ -53,7 +53,10 @@ size_t MtpManager::countAllDevices() {
 
 //MtpDevice
 MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect) : backend_(std::move(backend)) {
-	if (autoConnect) backend_->connect();
+	if (autoConnect) {
+		if (!backend_->isConnected()) backend_->connect();
+		else backend_->subscribe(nullptr);
+	}
 }
 
 nek::mtp::MtpDevice::MtpDevice(MtpDevice&& other) noexcept {
@@ -72,12 +75,11 @@ bool MtpDevice::isConnected() const {
 
 void MtpDevice::Connect() {
 	if (backend_->isConnected()) {
-		backend_->registerEventCallback(nullptr);
 		return; //Already connected
 	}
 
 	backend_->connect();
-	backend_->registerEventCallback(nullptr);
+	backend_->subscribe(nullptr);
 }
 
 void MtpDevice::Disconnect() {
@@ -85,7 +87,6 @@ void MtpDevice::Disconnect() {
 		return; //Already disconnected
 	}
 
-	backend_->unregisterEventCallback();
 	backend_->disconnect();
 	
 	//eventCallback_->OnEvent(nek::mtp::MtpEvent(MtpEventCode::DeviceInfoChanged)); // Notify Disconnection: DeviceInfoChanged TODO

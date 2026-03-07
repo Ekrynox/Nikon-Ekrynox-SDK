@@ -1,6 +1,5 @@
 #pragma once
 #include "../nek.hpp"
-#include "../utils/nek_threading.hpp"
 #include "backend/nek_mtp_backend.hpp"
 #include "nek_mtp_utils.hpp"
 #include "nek_mtp_enum.hpp"
