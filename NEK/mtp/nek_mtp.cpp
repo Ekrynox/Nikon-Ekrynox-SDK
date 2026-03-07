@@ -93,19 +93,19 @@ void MtpDevice::Disconnect() {
 }
 
 
-MtpResponse MtpDevice::SendCommand(uint16_t operationCode, MtpParams params) {
+MtpResponse MtpDevice::SendCommand(uint16_t operationCode, const std::vector<uint32_t>& params) {
 	if (!isConnected()) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
 	return backend_->sendCommand(operationCode, params);
 }
-MtpResponse MtpDevice::SendCommandAndRead(uint16_t operationCode, MtpParams params) {
+MtpResponse MtpDevice::SendCommandAndRead(uint16_t operationCode, const std::vector<uint32_t>& params) {
 	if (!isConnected()) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
 	return backend_->sendCommandAndRead(operationCode, params);
 }
-MtpResponse MtpDevice::SendCommandAndWrite(uint16_t operationCode, MtpParams params, std::vector<uint8_t> data) {
+MtpResponse MtpDevice::SendCommandAndWrite(uint16_t operationCode, const std::vector<uint32_t>& params, std::vector<uint8_t> data) {
 	if (!isConnected()) {
 		throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED);
 	}
@@ -119,7 +119,7 @@ void MtpDevice::UnregisterCallback(size_t id) { return eventCallback_->Unregiste
 
 
 MtpDeviceInfoDS MtpDevice::GetDeviceInfo() {
-	MtpParams params;
+	std::vector<uint32_t> params;
 	MtpResponse response = SendCommandAndRead(MtpOperationCode::GetDeviceInfo, params);
 
 	if (response.responseCode != MtpResponseCode::OK) {
@@ -208,8 +208,7 @@ MtpDeviceInfoDS MtpDevice::GetDeviceInfo() {
 
 
 MtpObjectInfoDS MtpDevice::GetObjectInfo(uint32_t handle) {
-	MtpParams params;
-	params.addUint32(handle);
+	std::vector<uint32_t> params = { handle };
 	MtpResponse response = SendCommandAndRead(MtpOperationCode::GetObjectInfo, params);
 
 	if (response.responseCode != MtpResponseCode::OK) {
@@ -277,8 +276,7 @@ MtpObjectInfoDS MtpDevice::GetObjectInfo(uint32_t handle) {
 
 
 MtpDevicePropDescDSV MtpDevice::GetDevicePropDesc(uint16_t devicePropCode) {
-	MtpParams params;
-	params.addUint32(static_cast<uint32_t>(devicePropCode));
+	std::vector<uint32_t> params = { static_cast<uint32_t>(devicePropCode) };
 	MtpResponse response = SendCommandAndRead(MtpOperationCode::GetDevicePropDesc, params);
 
 	if (response.responseCode != MtpResponseCode::OK) {
@@ -1073,8 +1071,7 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue(uint16_t devicePropCode) {
 	uint16_t dataType = devicePropDataType_[devicePropCode];
 	mutexDeviceInfo_.unlock();
 
-	MtpParams params;
-	params.addUint32(static_cast<uint32_t>(devicePropCode));
+	std::vector<uint32_t> params = { static_cast<uint32_t>(devicePropCode) };
 	MtpResponse response = SendCommandAndRead(MtpOperationCode::GetDevicePropValue, params);
 
 	if (response.responseCode != MtpResponseCode::OK) {
@@ -1224,8 +1221,7 @@ MtpDatatypeVariant MtpDevice::GetDevicePropValue_(MtpResponse& response, uint16_
 void MtpDevice::SetDevicePropValue(uint16_t devicePropCode, MtpDatatypeVariant data) {
 	std::vector<uint8_t> rawdata = SetDevicePropValue_(data);
 
-	MtpParams params;
-	params.addUint32(static_cast<uint32_t>(devicePropCode));
+	std::vector<uint32_t> params = { static_cast<uint32_t>(devicePropCode) };
 	MtpResponse response = SendCommandAndWrite(MtpOperationCode::SetDevicePropValue, params, rawdata);
 
 	if (response.responseCode != MtpResponseCode::OK) {

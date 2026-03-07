@@ -10,53 +10,6 @@ using namespace nek::mtp;
 
 
 
-//MtpParams
-MtpParams::~MtpParams() {
-	for (auto& pv : pv_) {
-		PropVariantClear(&pv);
-	}
-	pv_.clear();
-}
-
-CComPtr<IPortableDevicePropVariantCollection> MtpParams::GetCollection() const {
-	CComPtr<IPortableDevicePropVariantCollection> paramsCollection;
-	HRESULT hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&paramsCollection));
-	if (FAILED(hr)) {
-		throw std::runtime_error("Failed to create Prop Variant Collection: " + hr);
-	}
-	for (const auto& pv : pv_) {
-		paramsCollection->Add(&pv);
-	}
-
-	return paramsCollection;
-}
-
-void MtpParams::addUint32(uint32_t value) {
-	PROPVARIANT pv;
-	InitPropVariantFromUInt32(value, &pv);
-	pv_.push_back(pv);
-}
-
-void MtpParams::addUint16(uint16_t value) {
-	PROPVARIANT pv;
-	InitPropVariantFromUInt16(value, &pv);
-	pv_.push_back(pv);
-}
-
-void MtpParams::addInt32(int32_t value) {
-	PROPVARIANT pv;
-	InitPropVariantFromInt32(value, &pv);
-	pv_.push_back(pv);
-}
-
-void MtpParams::addInt16(int16_t value) {
-	PROPVARIANT pv;
-	InitPropVariantFromInt16(value, &pv);
-	pv_.push_back(pv);
-}
-
-
-
 //MtpEvent
 MtpEvent::MtpEvent(uint16_t eventCode) {
 	this->eventCode = eventCode;

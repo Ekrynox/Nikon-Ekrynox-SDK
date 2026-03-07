@@ -11,6 +11,7 @@
 #include <atlbase.h>
 #include <PortableDeviceApi.h>
 #include <PortableDevice.h>
+#include <propvarutil.h>
 #include <WpdMtpExtensions.h>
 
 #define CLIENT_NAME			L"Nikon Ekrynox SDK"
@@ -31,18 +32,18 @@ namespace nek::mtp::backend::wpd {
 		NEK_API void disconnect() override;
 		NEK_API bool isConnected() const override;
 
-		NEK_API MtpResponse sendCommand(uint16_t operationCode, const MtpParams& params) override;
-		NEK_API MtpResponse sendCommandAndRead(uint16_t operationCode, const MtpParams& params) override;
-		NEK_API MtpResponse sendCommandAndWrite(uint16_t operationCode, const MtpParams& params, const std::vector<uint8_t>& data) override;
+		NEK_API MtpResponse sendCommand(uint16_t operationCode, const std::vector<uint32_t>& params) override;
+		NEK_API MtpResponse sendCommandAndRead(uint16_t operationCode, const std::vector<uint32_t>& params) override;
+		NEK_API MtpResponse sendCommandAndWrite(uint16_t operationCode, const std::vector<uint32_t>& params, const std::vector<uint8_t>& data) override;
 
 	private:
 		void initCom();
 		void initDevice();
 		void commandLoop();
 
-		MtpResponse sendCommand_(uint16_t operationCode, const MtpParams& params);
-		MtpResponse sendCommandAndRead_(uint16_t operationCode, const MtpParams& params);
-		MtpResponse sendCommandAndWrite_(uint16_t operationCode, const MtpParams& params, const std::vector<uint8_t>& data);
+		MtpResponse sendCommand_(uint16_t operationCode, const std::vector<uint32_t>& params);
+		MtpResponse sendCommandAndRead_(uint16_t operationCode, const std::vector<uint32_t>& params);
+		MtpResponse sendCommandAndWrite_(uint16_t operationCode, const std::vector<uint32_t>& params, const std::vector<uint8_t>& data);
 
 		std::atomic_bool running_;
 		std::mutex commandMutex_;
