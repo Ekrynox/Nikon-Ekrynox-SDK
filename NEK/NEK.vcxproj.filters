@@ -36,12 +36,6 @@
     <ClInclude Include="nek.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils\nek_threading.hpp">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\nek_int128.hpp">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
     <ClInclude Include="mtp\nek_mtp.hpp">
       <Filter>Header Files\mtp</Filter>
     </ClInclude>
@@ -68,9 +62,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="utils\nek_threading.cpp">
-      <Filter>Source Files\utils</Filter>
-    </ClCompile>
     <ClCompile Include="mtp\nek_mtp.cpp">
       <Filter>Source Files\mtp</Filter>
     </ClCompile>

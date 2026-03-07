@@ -15,10 +15,10 @@
 #include <propvarutil.h>
 #include <WpdMtpExtensions.h>
 
-#define CLIENT_NAME			L"Nikon Ekrynox SDK"
-#define CLIENT_MAJOR_VER	1
-#define CLIENT_MINOR_VER	0
-#define CLIENT_REVISION		0
+constexpr auto CLIENT_NAME = L"Nikon Ekrynox SDK";
+constexpr auto CLIENT_MAJOR_VER = 1;
+constexpr auto CLIENT_MINOR_VER = 0;
+constexpr auto CLIENT_REVISION = 0;
 
 
 
@@ -37,8 +37,9 @@ namespace nek::mtp::backend::wpd {
 		NEK_API MtpResponse sendCommandAndRead(uint16_t operationCode, const std::vector<uint32_t>& params) override;
 		NEK_API MtpResponse sendCommandAndWrite(uint16_t operationCode, const std::vector<uint32_t>& params, const std::vector<uint8_t>& data) override;
 
-		NEK_API void registerEventCallback(std::function<void(MtpEvent)>* eventCallback) override;
-		NEK_API void unregisterEventCallback() override;
+		NEK_API size_t subscribe(Handler eventCallback) override;
+		NEK_API void unsubscribe(size_t id) override;
+		NEK_API void unsubscribe() override;
 
 	private:
 		void initCom();
@@ -66,12 +67,14 @@ namespace nek::mtp::backend::wpd {
 			ULONG Release(void) override;
 			HRESULT OnEvent(IPortableDeviceValues* pEventParameters) override;
 		private:
-			ULONG ref_;
+			ULONG ref_ = 0;
 		};
+
 		PWSTR eventCookie_;
 		CComPtr<WpdMtpEventManager> eventManager_;
-		std::function<void(MtpEvent)>* eventCallback_;
-
+		std::unordered_map<size_t, Handler> eventCallbacks_;
+		size_t eventNextId;
+		std::mutex eventMutex_;
 	};
 
 
