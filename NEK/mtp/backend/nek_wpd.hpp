@@ -3,6 +3,7 @@
 #include "nek_mtp_backend.hpp"
 
 #include <atomic>
+#include <functional>
 #include <mutex>
 #include <thread>
 
@@ -36,6 +37,9 @@ namespace nek::mtp::backend::wpd {
 		NEK_API MtpResponse sendCommandAndRead(uint16_t operationCode, const std::vector<uint32_t>& params) override;
 		NEK_API MtpResponse sendCommandAndWrite(uint16_t operationCode, const std::vector<uint32_t>& params, const std::vector<uint8_t>& data) override;
 
+		NEK_API void registerEventCallback(std::function<void(MtpEvent)>* eventCallback) override;
+		NEK_API void unregisterEventCallback() override;
+
 	private:
 		void initCom();
 		void initDevice();
@@ -55,7 +59,19 @@ namespace nek::mtp::backend::wpd {
 		CComPtr<IPortableDeviceValues> deviceClient_;
 		CComPtr<IPortableDevice> device_;
 
+		class WpdMtpEventManager : public IPortableDeviceEventCallback {
+		public:
+			HRESULT QueryInterface(REFIID riid, void** ppvObject) override;
+			ULONG AddRef(void) override;
+			ULONG Release(void) override;
+			HRESULT OnEvent(IPortableDeviceValues* pEventParameters) override;
+		private:
+			ULONG ref_;
+		};
 		PWSTR eventCookie_;
+		CComPtr<WpdMtpEventManager> eventManager_;
+		std::function<void(MtpEvent)>* eventCallback_;
+
 	};
 
 

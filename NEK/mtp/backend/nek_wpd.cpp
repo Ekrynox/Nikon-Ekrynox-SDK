@@ -3,6 +3,7 @@
 #include "../nek_mtp_enum.hpp"
 
 #include <algorithm>
+#include <future>
 
 
 
@@ -12,10 +13,15 @@ namespace nek::mtp::backend::wpd {
 		this->devicePath_ = devicePath;
 		running_ = false;
 		command_ = nullptr;
+		eventCookie_ = nullptr;
+		eventManager_ = new WpdMtpEventManager();
+		eventCallback_ = nullptr;
 	}
 
 	WpdMtpTransport::~WpdMtpTransport() {
+		unregisterEventCallback();
 		disconnect();
+		eventManager_.Release();
 	}
 
 
@@ -578,6 +584,91 @@ namespace nek::mtp::backend::wpd {
 		return result;
 	}
 
+
+
+	void WpdMtpTransport::registerEventCallback(std::function<void(MtpEvent)>* eventCallback) {
+		if (!running_) return; //TODO: Throw an error like device not connected
+
+		if (eventCookie_ == nullptr && eventCallback == nullptr) {
+			eventCallback_ = eventCallback;
+
+			std::unique_lock lk(commandMutex_);
+			commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
+
+			auto p = std::promise<void>();
+			auto f = p.get_future();
+			command_ = new std::function([this, &p] {
+				try {
+					this->device_->Advise(0, this->eventManager_, nullptr, &this->eventCookie_);
+					p.set_value();
+				}
+				catch (...) {
+					p.set_exception(std::current_exception());
+				}
+				});
+
+			lk.unlock();
+			commandCV_.notify_all();
+
+			return f.get();
+		}
+	}
+
+	void WpdMtpTransport::unregisterEventCallback() {
+		if (running_) {
+			if (eventCookie_ != nullptr && eventCallback_ != nullptr) {
+				std::unique_lock lk(commandMutex_);
+				commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
+
+				auto p = std::promise<void>();
+				auto f = p.get_future();
+				command_ = new std::function([this, &p] {
+					try {
+						this->device_->Unadvise(this->eventCookie_);
+						this->eventCookie_ = nullptr;
+						this->eventCallback_ = nullptr;
+						p.set_value();
+					}
+					catch (...) {
+						p.set_exception(std::current_exception());
+					}
+					});
+
+				lk.unlock();
+				commandCV_.notify_all();
+
+				return f.get();
+			}
+		}
+		else {
+			this->eventCookie_ = nullptr;
+			this->eventCallback_ = nullptr;
+		}
+	}
+
+
+
+	HRESULT WpdMtpTransport::WpdMtpEventManager::QueryInterface(REFIID riid, void** ppvObject) {
+		static const QITAB qitab[] = { QITABENT(WpdMtpEventManager, IPortableDeviceEventCallback), { }, };
+		return QISearch(this, qitab, riid, ppvObject);
+	}
+
+	ULONG WpdMtpTransport::WpdMtpEventManager::AddRef(void) {
+		return InterlockedIncrement(&ref_);
+	}
+
+	ULONG WpdMtpTransport::WpdMtpEventManager::Release(void) {
+		ULONG ref = _InterlockedDecrement(&ref_);
+		if (ref == 0) {
+			delete this;
+		}
+
+		return ref;
+	}
+
+	HRESULT WpdMtpTransport::WpdMtpEventManager::OnEvent(IPortableDeviceValues* pEventParameters) {
+		return E_NOTIMPL;
+	}
 
 
 

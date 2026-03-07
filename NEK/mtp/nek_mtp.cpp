@@ -53,19 +53,15 @@ size_t MtpManager::countAllDevices() {
 
 //MtpDevice
 MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect) : backend_(std::move(backend)) {
-	eventCallback_ = new nek::mtp::MtpEventCallback();
-
 	if (autoConnect) backend_->connect();
 }
 
 nek::mtp::MtpDevice::MtpDevice(MtpDevice&& other) noexcept {
 	backend_ = std::move(other.backend_);
-	eventCallback_ = std::move(other.eventCallback_);
 }
 
 MtpDevice::~MtpDevice() {
 	if (backend_ != nullptr) Disconnect();
-	eventCallback_.Release();
 };
 
 
@@ -76,10 +72,12 @@ bool MtpDevice::isConnected() const {
 
 void MtpDevice::Connect() {
 	if (backend_->isConnected()) {
+		backend_->registerEventCallback(nullptr);
 		return; //Already connected
 	}
 
 	backend_->connect();
+	backend_->registerEventCallback(nullptr);
 }
 
 void MtpDevice::Disconnect() {
@@ -87,9 +85,10 @@ void MtpDevice::Disconnect() {
 		return; //Already disconnected
 	}
 
+	backend_->unregisterEventCallback();
 	backend_->disconnect();
 	
-	eventCallback_->OnEvent(nek::mtp::MtpEvent(MtpEventCode::DeviceInfoChanged)); // Notify Disconnection: DeviceInfoChanged
+	//eventCallback_->OnEvent(nek::mtp::MtpEvent(MtpEventCode::DeviceInfoChanged)); // Notify Disconnection: DeviceInfoChanged TODO
 }
 
 
@@ -113,8 +112,8 @@ MtpResponse MtpDevice::SendCommandAndWrite(uint16_t operationCode, const std::ve
 }
 
 
-size_t MtpDevice::RegisterCallback(std::function<void(MtpEvent)> callback) { return eventCallback_->RegisterCallback(callback); }
-void MtpDevice::UnregisterCallback(size_t id) { return eventCallback_->UnregisterCallback(id); }
+size_t MtpDevice::RegisterCallback(std::function<void(MtpEvent)> callback) { return 0; } //TODO
+void MtpDevice::UnregisterCallback(size_t id) { } //TODO
 
 
 
