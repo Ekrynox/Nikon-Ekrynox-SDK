@@ -15,23 +15,6 @@
 
 namespace nek::mtp {
 
-	class MtpParams {
-	public:
-		NEK_API MtpParams() {};
-		NEK_API ~MtpParams();
-
-		NEK_API CComPtr<IPortableDevicePropVariantCollection> GetCollection() const;
-
-		NEK_API void addUint32(uint32_t param);
-		NEK_API void addUint16(uint16_t param);
-		NEK_API void addInt32(int32_t param);
-		NEK_API void addInt16(int16_t param);
-
-	protected:
-		std::vector<PROPVARIANT> pv_;
-	};
-
-
 	struct MtpResponse_ {
 		uint16_t responseCode;
 		std::vector<uint32_t> parameters;

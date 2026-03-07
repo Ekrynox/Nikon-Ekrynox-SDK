@@ -30,9 +30,9 @@ namespace nek::mtp {
 		NEK_API void Connect();
 		NEK_API void Disconnect();
 
-		NEK_API MtpResponse SendCommand(uint16_t operationCode, MtpParams params);
-		NEK_API MtpResponse SendCommandAndRead(uint16_t operationCode, MtpParams params);
-		NEK_API MtpResponse SendCommandAndWrite(uint16_t operationCode, MtpParams params, std::vector<uint8_t> data);
+		NEK_API MtpResponse SendCommand(uint16_t operationCode, const std::vector<uint32_t>& params);
+		NEK_API MtpResponse SendCommandAndRead(uint16_t operationCode, const std::vector<uint32_t>& params);
+		NEK_API MtpResponse SendCommandAndWrite(uint16_t operationCode, const std::vector<uint32_t>& params, std::vector<uint8_t> data);
 
 		NEK_API size_t RegisterCallback(std::function<void(MtpEvent)> callback);
 		NEK_API void UnregisterCallback(size_t id);

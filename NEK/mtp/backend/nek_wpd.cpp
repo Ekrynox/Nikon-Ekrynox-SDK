@@ -46,7 +46,7 @@ namespace nek::mtp::backend::wpd {
 
 
 
-	MtpResponse WpdMtpTransport::sendCommand(uint16_t operationCode, const MtpParams& params) {
+	MtpResponse WpdMtpTransport::sendCommand(uint16_t operationCode, const std::vector<uint32_t>& params) {
 		std::unique_lock lk(commandMutex_);
 		commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
 
@@ -67,7 +67,7 @@ namespace nek::mtp::backend::wpd {
 		return f.get();
 	}
 
-	MtpResponse WpdMtpTransport::sendCommandAndRead(uint16_t operationCode, const MtpParams& params) {
+	MtpResponse WpdMtpTransport::sendCommandAndRead(uint16_t operationCode, const std::vector<uint32_t>& params) {
 		std::unique_lock lk(commandMutex_);
 		commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
 
@@ -88,7 +88,7 @@ namespace nek::mtp::backend::wpd {
 		return f.get();
 	}
 
-	MtpResponse WpdMtpTransport::sendCommandAndWrite(uint16_t operationCode, const MtpParams& params, const std::vector<uint8_t>& data) {
+	MtpResponse WpdMtpTransport::sendCommandAndWrite(uint16_t operationCode, const std::vector<uint32_t>& params, const std::vector<uint8_t>& data) {
 		std::unique_lock lk(commandMutex_);
 		commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
 
@@ -172,7 +172,7 @@ namespace nek::mtp::backend::wpd {
 	}
 
 
-	MtpResponse WpdMtpTransport::sendCommand_(uint16_t operationCode, const MtpParams& params) {
+	MtpResponse WpdMtpTransport::sendCommand_(uint16_t operationCode, const std::vector<uint32_t>& params) {
 		MtpResponse result;
 		HRESULT hr;
 
@@ -188,7 +188,23 @@ namespace nek::mtp::backend::wpd {
 
 		// Set operation code and parameters
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPERATION_CODE, operationCode);
-		command->SetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, params.GetCollection());
+
+		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
+		PROPVARIANT pv;
+		hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&parametersCollection));
+		if (FAILED(hr)) {
+			throw std::runtime_error("Failed to create Prop Variant Collection: " + hr);
+		}
+		for (auto param : params) {
+			hr = InitPropVariantFromUInt32(param, &pv);
+			if (FAILED(hr)) {
+				throw std::runtime_error("Failed to create Prop Variant: " + hr);
+			}
+			parametersCollection->Add(&pv);
+			PropVariantClear(&pv);
+		}
+		command->SetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, parametersCollection);
+		parametersCollection.Release();
 
 		// Send command
 		CComPtr<IPortableDeviceValues> commandResult;
@@ -209,7 +225,6 @@ namespace nek::mtp::backend::wpd {
 		}
 
 		// Extract response parameters
-		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
 		hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
 		if (FAILED(hr)) {
 			command.Release();
@@ -218,11 +233,10 @@ namespace nek::mtp::backend::wpd {
 		}
 
 		DWORD nbParams = 0;
-		PROPVARIANT pv;
 		PropVariantInit(&pv);
 		parametersCollection->GetCount(&nbParams);
 		for (DWORD i = 0; i < nbParams; i++) {
-			hr = parametersCollection->GetAt(i, &pv);
+			parametersCollection->GetAt(i, &pv);
 			result.parameters.push_back(pv.uintVal);
 		}
 		PropVariantClear(&pv);
@@ -234,7 +248,7 @@ namespace nek::mtp::backend::wpd {
 		return result;
 	}
 
-	MtpResponse WpdMtpTransport::sendCommandAndRead_(uint16_t operationCode, const MtpParams& params) {
+	MtpResponse WpdMtpTransport::sendCommandAndRead_(uint16_t operationCode, const std::vector<uint32_t>& params) {
 		MtpResponse result;
 		HRESULT hr;
 
@@ -250,7 +264,23 @@ namespace nek::mtp::backend::wpd {
 
 		// Set operation code and parameters
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPERATION_CODE, operationCode);
-		command->SetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, params.GetCollection());
+
+		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
+		PROPVARIANT pv;
+		hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&parametersCollection));
+		if (FAILED(hr)) {
+			throw std::runtime_error("Failed to create Prop Variant Collection: " + hr);
+		}
+		for (auto param : params) {
+			hr = InitPropVariantFromUInt32(param, &pv);
+			if (FAILED(hr)) {
+				throw std::runtime_error("Failed to create Prop Variant: " + hr);
+			}
+			parametersCollection->Add(&pv);
+			PropVariantClear(&pv);
+		}
+		command->SetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, parametersCollection);
+		parametersCollection.Release();
 
 		// Send command
 		CComPtr<IPortableDeviceValues> commandResult;
@@ -372,7 +402,6 @@ namespace nek::mtp::backend::wpd {
 		}
 
 		// Extract response parameters
-		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
 		hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
 		if (FAILED(hr)) {
 			CoTaskMemFree(context);
@@ -382,11 +411,10 @@ namespace nek::mtp::backend::wpd {
 		}
 
 		DWORD nbParams = 0;
-		PROPVARIANT pv;
 		PropVariantInit(&pv);
 		parametersCollection->GetCount(&nbParams);
 		for (DWORD i = 0; i < nbParams; i++) {
-			hr = parametersCollection->GetAt(i, &pv);
+			parametersCollection->GetAt(i, &pv);
 			result.parameters.push_back(pv.uintVal);
 		}
 		PropVariantClear(&pv);
@@ -398,7 +426,7 @@ namespace nek::mtp::backend::wpd {
 		return result;
 	}
 
-	MtpResponse WpdMtpTransport::sendCommandAndWrite_(uint16_t operationCode, const MtpParams& params, const std::vector<uint8_t>& data) {
+	MtpResponse WpdMtpTransport::sendCommandAndWrite_(uint16_t operationCode, const std::vector<uint32_t>& params, const std::vector<uint8_t>& data) {
 		MtpResponse result;
 		HRESULT hr;
 
@@ -414,7 +442,24 @@ namespace nek::mtp::backend::wpd {
 
 		// Set operation code and parameters
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPERATION_CODE, operationCode);
-		command->SetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, params.GetCollection());
+
+		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
+		PROPVARIANT pv;
+		hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&parametersCollection));
+		if (FAILED(hr)) {
+			throw std::runtime_error("Failed to create Prop Variant Collection: " + hr);
+		}
+		for (auto param : params) {
+			hr = InitPropVariantFromUInt32(param, &pv);
+			if (FAILED(hr)) {
+				throw std::runtime_error("Failed to create Prop Variant: " + hr);
+			}
+			parametersCollection->Add(&pv);
+			PropVariantClear(&pv);
+		}
+		command->SetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, parametersCollection);
+		parametersCollection.Release();
+
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_TRANSFER_TOTAL_DATA_SIZE, (ULONG)data.size());
 
 		// Send command
@@ -509,7 +554,6 @@ namespace nek::mtp::backend::wpd {
 		}
 
 		// Extract response parameters
-		CComPtr<IPortableDevicePropVariantCollection> parametersCollection;
 		hr = commandResult->GetIPortableDevicePropVariantCollectionValue(WPD_PROPERTY_MTP_EXT_RESPONSE_PARAMS, &parametersCollection);
 		if (FAILED(hr)) {
 			command.Release();
@@ -519,11 +563,10 @@ namespace nek::mtp::backend::wpd {
 		}
 		
 		DWORD nbParams = 0;
-		PROPVARIANT pv;
 		PropVariantInit(&pv);
 		parametersCollection->GetCount(&nbParams);
 		for (DWORD i = 0; i < nbParams; i++) {
-			hr = parametersCollection->GetAt(i, &pv);
+			parametersCollection->GetAt(i, &pv);
 			result.parameters.push_back(pv.uintVal);
 		}
 		PropVariantClear(&pv);

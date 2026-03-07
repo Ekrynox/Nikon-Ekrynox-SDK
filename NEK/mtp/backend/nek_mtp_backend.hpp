@@ -18,9 +18,9 @@ namespace nek::mtp::backend {
 		virtual void disconnect() = 0;
 		virtual bool isConnected() const = 0;
 
-		virtual MtpResponse sendCommand(uint16_t operationCode, const MtpParams& params) = 0;
-		virtual MtpResponse sendCommandAndRead(uint16_t operationCode, const MtpParams& params) = 0;
-		virtual MtpResponse sendCommandAndWrite(uint16_t operationCode, const MtpParams& params, const std::vector<uint8_t>& data) = 0;
+		virtual MtpResponse sendCommand(uint16_t operationCode, const std::vector<uint32_t>& params) = 0;
+		virtual MtpResponse sendCommandAndRead(uint16_t operationCode, const std::vector<uint32_t>& params) = 0;
+		virtual MtpResponse sendCommandAndWrite(uint16_t operationCode, const std::vector<uint32_t>& params, const std::vector<uint8_t>& data) = 0;
 	};
 
 
