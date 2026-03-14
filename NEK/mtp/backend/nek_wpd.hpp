@@ -39,7 +39,7 @@ namespace nek::mtp::backend::wpd {
 		NEK_API MtpResponse sendCommandAndRead(uint16_t operationCode, const std::vector<uint32_t>& params) override;
 		NEK_API MtpResponse sendCommandAndWrite(uint16_t operationCode, const std::vector<uint32_t>& params, const std::vector<uint8_t>& data) override;
 
-		NEK_API size_t subscribe(Handler eventCallback) override;
+		NEK_API size_t subscribe(Handler const& eventCallback) override;
 		NEK_API void unsubscribe(size_t id) override;
 		NEK_API void unsubscribe() override;
 
@@ -47,6 +47,9 @@ namespace nek::mtp::backend::wpd {
 		void initCom();
 		void initDevice();
 		void commandLoop();
+
+		void startEventCapture();
+		void stopEventCapture();
 
 		MtpResponse sendCommand_(uint16_t operationCode, const std::vector<uint32_t>& params);
 		MtpResponse sendCommandAndRead_(uint16_t operationCode, const std::vector<uint32_t>& params);
@@ -70,6 +73,7 @@ namespace nek::mtp::backend::wpd {
 			HRESULT __stdcall OnEvent(IPortableDeviceValues* pEventParameters) override;
 
 			std::unordered_map<size_t, Handler> eventCallbacks_;
+			size_t eventNextId_;
 			std::mutex eventMutex_;
 
 		private:
@@ -78,7 +82,6 @@ namespace nek::mtp::backend::wpd {
 
 		PWSTR eventCookie_;
 		CComPtr<WpdMtpEventManager> eventManager_;
-		size_t eventNextId;
 	};
 
 

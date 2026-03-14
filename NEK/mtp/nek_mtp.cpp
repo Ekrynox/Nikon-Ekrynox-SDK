@@ -12,22 +12,25 @@ using namespace nek::mtp;
 
 #pragma region MtpDevice
 
-MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect) : backend_(std::move(backend)) {
-	if (autoConnect) {
-		if (!backend_->isConnected()) backend_->connect();
-		else backend_->subscribe(nullptr); //TODO
-	}
+MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect) : backend_(std::move(backend)), backendCallbackId_(std::nullopt) {
+	std::lock_guard lock(eventMutex_);
+	eventCallbacks_.clear();
+	eventNextId_ = 0;
+
+	if (autoConnect) Connect();
 }
 
 MtpDevice::MtpDevice(const backend::MtpConnectionInfo& connectionInfo, bool autoConnect) {
 	auto backends = MtpManager().tryCreateTransport(connectionInfo);
 	if (backends.size() == 0) throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED); //TODO chnage to a more explicit error
-
 	backend_ = std::move(backends[0]);
-	if (autoConnect) {
-		if (!backend_->isConnected()) backend_->connect();
-		else backend_->subscribe(nullptr); //TODO
-	}
+	backendCallbackId_ = std::nullopt;
+
+	std::lock_guard lock(eventMutex_);
+	eventCallbacks_.clear();
+	eventNextId_ = 0;
+
+	if (autoConnect) Connect();
 }
 
 nek::mtp::MtpDevice::MtpDevice(MtpDevice&& other) noexcept {
@@ -35,7 +38,7 @@ nek::mtp::MtpDevice::MtpDevice(MtpDevice&& other) noexcept {
 }
 
 MtpDevice::~MtpDevice() {
-	if (backend_ != nullptr) Disconnect();
+	Disconnect();
 };
 
 
@@ -46,22 +49,18 @@ bool MtpDevice::isConnected() const {
 }
 
 void MtpDevice::Connect() {
-	if (backend_->isConnected()) {
-		return; //Already connected
-	}
-
-	backend_->connect();
-	backend_->subscribe(nullptr); //TODO
+	if (!backend_->isConnected()) backend_->connect();
+	if (!backendCallbackId_.has_value()) backendCallbackId_ = backend_->subscribe([this](const MtpEvent& event) { return this->OnEvent(event); });
 }
 
 void MtpDevice::Disconnect() {
-	if (!backend_->isConnected()) {
-		return; //Already disconnected
-	}
+	if (backend_ == nullptr || !backend_->isConnected()) return; //Already disconnected
 
+	if (backendCallbackId_.has_value()) backend_->unsubscribe(backendCallbackId_.value());
+	backendCallbackId_ = std::nullopt;
 	backend_->disconnect();
 	
-	//eventCallback_->OnEvent(nek::mtp::MtpEvent(MtpEventCode::DeviceInfoChanged)); // Notify Disconnection: DeviceInfoChanged TODO
+	OnEvent(nek::mtp::MtpEvent(MtpEventCode::DeviceInfoChanged)); // Notify Disconnection: DeviceInfoChanged
 }
 
 
@@ -85,8 +84,26 @@ MtpResponse MtpDevice::SendCommandAndWrite(uint16_t operationCode, const std::ve
 }
 
 
-size_t MtpDevice::RegisterCallback(std::function<void(MtpEvent)> callback) { return 0; } //TODO
-void MtpDevice::UnregisterCallback(size_t id) { } //TODO
+size_t MtpDevice::RegisterCallback(Callback const& callback) {
+	std::lock_guard lock(eventMutex_);
+	eventCallbacks_[eventNextId_] = std::move(callback);
+	return eventNextId_++;
+}
+
+void MtpDevice::UnregisterCallback(size_t id) {
+	std::lock_guard lock(eventMutex_);
+	if (eventCallbacks_.contains(id)) eventCallbacks_.erase(id);
+}
+
+void MtpDevice::OnEvent(const MtpEvent& event) {
+	MtpEvent eventCopy = event;
+	std::async(std::launch::async, [this, eventCopy] {
+		std::lock_guard lock(eventMutex_);
+		for (auto& [id, callBack] : eventCallbacks_) {
+			if (callBack) callBack(eventCopy);
+		}
+	});
+}
 
 
 

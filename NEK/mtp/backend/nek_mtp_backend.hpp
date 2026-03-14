@@ -26,7 +26,7 @@ namespace nek::mtp::backend {
 		virtual MtpResponse sendCommandAndWrite(uint16_t operationCode, const std::vector<uint32_t>& params, const std::vector<uint8_t>& data) = 0;
 
 		using Handler = std::function<void(const MtpEvent&)>;
-		virtual size_t subscribe(Handler eventCallback) = 0;
+		virtual size_t subscribe(Handler const& eventCallback) = 0;
 		virtual void unsubscribe(size_t id) = 0;
 		virtual void unsubscribe() = 0;
 	};

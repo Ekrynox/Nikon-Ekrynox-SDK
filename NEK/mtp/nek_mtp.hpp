@@ -34,7 +34,8 @@ namespace nek::mtp {
 		NEK_API MtpResponse SendCommandAndRead(uint16_t operationCode, const std::vector<uint32_t>& params);
 		NEK_API MtpResponse SendCommandAndWrite(uint16_t operationCode, const std::vector<uint32_t>& params, std::vector<uint8_t> data);
 
-		NEK_API size_t RegisterCallback(std::function<void(MtpEvent)> callback);
+		using Callback = std::function<void(const MtpEvent&)>;
+		NEK_API size_t RegisterCallback(Callback const& callback);
 		NEK_API void UnregisterCallback(size_t id);
 
 
@@ -50,12 +51,19 @@ namespace nek::mtp {
 
 	protected:
 		std::unique_ptr<backend::IMtpTransport> backend_;
+		std::optional<size_t> backendCallbackId_;
 
 		MtpDeviceInfoDS deviceInfo_;
-		std::map<uint32_t, uint16_t> devicePropDataType_;
-
 		std::mutex mutexDeviceInfo_;
 
+		std::map<uint32_t, uint16_t> devicePropDataType_;
+
+		std::unordered_map<size_t, Callback> eventCallbacks_;
+		size_t eventNextId_;
+		std::mutex eventMutex_;
+		
+		void OnEvent(const MtpEvent& event);
+		
 
 		MtpDevicePropDescDSV GetDevicePropDesc_(MtpResponse& response);
 		MtpDatatypeVariant GetDevicePropValue_(MtpResponse& response, uint16_t dataType);

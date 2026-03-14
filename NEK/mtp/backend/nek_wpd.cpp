@@ -18,7 +18,9 @@ namespace nek::mtp::backend::wpd {
 		command_ = nullptr;
 		eventCookie_ = nullptr;
 		eventManager_ = new WpdMtpEventManager();
-		eventNextId = 0;
+		std::lock_guard lock(eventManager_->eventMutex_);
+		eventManager_->eventCallbacks_.clear();
+		eventManager_->eventNextId_ = 0;
 	}
 
 	WpdMtpTransport::~WpdMtpTransport() {
@@ -42,10 +44,17 @@ namespace nek::mtp::backend::wpd {
 		std::unique_lock lk(commandMutex_);
 		commandCV_.wait(lk, [this] { return this->isConnected(); });
 		lk.unlock();
+
+		std::lock_guard lock(eventManager_->eventMutex_);
+		if (eventManager_->eventCallbacks_.size() > 0) startEventCapture();
 	}
 
 	void WpdMtpTransport::disconnect() {
 		if (!running_) return; //TODO: Throw an error like device already disconnected
+
+		std::lock_guard lock(eventManager_->eventMutex_);
+		if (eventManager_->eventCallbacks_.size() == 0) stopEventCapture();
+
 		running_ = false;
 		commandCV_.notify_all();
 		commandThread_.join();
@@ -132,9 +141,7 @@ namespace nek::mtp::backend::wpd {
 		}
 
 		//Device Client
-		if (deviceClient_ != nullptr) {
-			return; //Already initialized
-		}
+		if (deviceClient_ != nullptr) return; //Already initialized
 		hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
 		if (FAILED(hr)) {
 			throw WpdMtpDeviceException(MtpExPhase::DEVICECLIENT_INIT, hr);
@@ -143,12 +150,11 @@ namespace nek::mtp::backend::wpd {
 		deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
 		deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, CLIENT_MINOR_VER);
 		deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, CLIENT_REVISION);
+		deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_DESIRED_ACCESS, GENERIC_READ | GENERIC_WRITE);
 	}
 
 	void WpdMtpTransport::initDevice() {
-		if (device_ != nullptr) {
-			return; //Already connected
-		}
+		if (device_ != nullptr) return; //Already connected
 
 		HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device_));
 		if (FAILED(hr)) {
@@ -182,6 +188,61 @@ namespace nek::mtp::backend::wpd {
 		device_.Release();
 		deviceClient_.Release();
 		CoUninitialize();
+	}
+
+
+	void WpdMtpTransport::startEventCapture() {
+		if (eventCookie_ == nullptr) {
+			std::unique_lock lk(commandMutex_);
+			commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
+
+			auto p = std::promise<void>();
+			auto f = p.get_future();
+			command_ = new std::function([this, &p] {
+				try {
+					this->device_->Advise(0, this->eventManager_, nullptr, &this->eventCookie_);
+					p.set_value();
+				}
+				catch (...) {
+					p.set_exception(std::current_exception());
+				}
+				});
+
+			lk.unlock();
+			commandCV_.notify_all();
+
+			f.get();
+		}
+	}
+
+	void WpdMtpTransport::stopEventCapture() {
+		if (eventCookie_ != nullptr) {
+			if (running_) {
+				std::unique_lock lk(commandMutex_);
+				commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
+
+				auto p = std::promise<void>();
+				auto f = p.get_future();
+				command_ = new std::function([this, &p] {
+					try {
+						this->device_->Unadvise(this->eventCookie_);
+						this->eventCookie_ = nullptr;
+						p.set_value();
+					}
+					catch (...) {
+						p.set_exception(std::current_exception());
+					}
+					});
+
+				lk.unlock();
+				commandCV_.notify_all();
+
+				return f.get();
+			}
+			else {
+				this->eventCookie_ = nullptr;
+			}
+		}
 	}
 
 
@@ -593,100 +654,28 @@ namespace nek::mtp::backend::wpd {
 
 
 
-	size_t WpdMtpTransport::subscribe(Handler eventCallback) {
+	size_t WpdMtpTransport::subscribe(Handler const& eventCallback) {
 		if (!running_) throw MtpDeviceException(DEVICE_NOT_CONNECTED, DEVICE_DISCONNECTED); //TODO: Throw an error like device not connected
 		std::lock_guard lock(eventManager_->eventMutex_);
+		eventManager_->eventCallbacks_[eventManager_->eventNextId_] = std::move(eventCallback);
 
-		if (eventCookie_ == nullptr) {
-			std::unique_lock lk(commandMutex_);
-			commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
+		startEventCapture();
 
-			auto p = std::promise<void>();
-			auto f = p.get_future();
-			command_ = new std::function([this, &p] {
-				try {
-					this->device_->Advise(0, this->eventManager_, nullptr, &this->eventCookie_);
-					p.set_value();
-				}
-				catch (...) {
-					p.set_exception(std::current_exception());
-				}
-				});
-
-			lk.unlock();
-			commandCV_.notify_all();
-
-			f.get();
-		}
-
-		eventManager_->eventCallbacks_[eventNextId] = std::move(eventCallback);
-		return eventNextId++;
+		return eventManager_->eventNextId_++;
 	}
 
 	void WpdMtpTransport::unsubscribe(size_t id) {
 		std::lock_guard lock(eventManager_->eventMutex_);
 		if (eventManager_->eventCallbacks_.contains(id)) eventManager_->eventCallbacks_.erase(id);
 
-		if (eventManager_->eventCallbacks_.size() == 0 && eventCookie_ != nullptr) {
-			if (running_) {
-				std::unique_lock lk(commandMutex_);
-				commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
-
-				auto p = std::promise<void>();
-				auto f = p.get_future();
-				command_ = new std::function([this, &p] {
-					try {
-						this->device_->Unadvise(this->eventCookie_);
-						this->eventCookie_ = nullptr;
-						p.set_value();
-					}
-					catch (...) {
-						p.set_exception(std::current_exception());
-					}
-					});
-
-				lk.unlock();
-				commandCV_.notify_all();
-
-				return f.get();
-			}
-			else {
-				this->eventCookie_ = nullptr;
-			}
-		}
+		if (eventManager_->eventCallbacks_.size() == 0) stopEventCapture();
 	}
 
 	void WpdMtpTransport::unsubscribe() {
 		std::lock_guard lock(eventManager_->eventMutex_);
 		eventManager_->eventCallbacks_.clear();
 
-		if (eventCookie_ != nullptr) {
-			if (running_) {
-				std::unique_lock lk(commandMutex_);
-				commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
-
-				auto p = std::promise<void>();
-				auto f = p.get_future();
-				command_ = new std::function([this, &p] {
-					try {
-						this->device_->Unadvise(this->eventCookie_);
-						this->eventCookie_ = nullptr;
-						p.set_value();
-					}
-					catch (...) {
-						p.set_exception(std::current_exception());
-					}
-					});
-
-				lk.unlock();
-				commandCV_.notify_all();
-
-				return f.get();
-			}
-			else {
-				this->eventCookie_ = nullptr;
-			}
-		}
+		stopEventCapture();
 	}
 
 
@@ -710,46 +699,15 @@ namespace nek::mtp::backend::wpd {
 	}
 
 	HRESULT __stdcall WpdMtpTransport::WpdMtpEventManager::OnEvent(IPortableDeviceValues* pEventParameters) {
-		if (pEventParameters == NULL) return S_OK;
-
 		MtpEvent event;
+		event.eventCode = MtpEventCode::Undefined;
+		event.parameters = std::vector<uint32_t>(0);
 
-		GUID eventGUID = GUID_NULL;
-		HRESULT hr = pEventParameters->GetGuidValue(WPD_EVENT_PARAMETER_EVENT_ID, &eventGUID);
-
-		if (eventGUID == WPD_EVENT_DEVICE_CAPABILITIES_UPDATED) {
-			event.eventCode = MtpEventCode::DeviceInfoChanged;
-		}
-		else if (eventGUID == WPD_EVENT_DEVICE_REMOVED) {
-
-		}
-		else if (eventGUID == WPD_EVENT_DEVICE_RESET) {
-
-		}
-		else if (eventGUID == WPD_EVENT_OBJECT_ADDED) {
-
-		}
-		else if (eventGUID == WPD_EVENT_OBJECT_REMOVED) {
-
-		}
-		else if (eventGUID == WPD_EVENT_OBJECT_TRANSFER_REQUESTED) {
-
-		}
-		else if (eventGUID == WPD_EVENT_OBJECT_UPDATED) {
-
-		}
-		else if (eventGUID == WPD_EVENT_SERVICE_METHOD_COMPLETE) {
-
-		}
-		else if (eventGUID == WPD_EVENT_STORAGE_FORMAT) {
-
+		for (auto& [id, callback] : eventCallbacks_) {
+			if (callback) callback(event);
 		}
 
-		for (const auto& ec : eventCallbacks_) {
-			ec.second(event);
-		}
-
-		return hr;
+		return S_OK; //TODO: implement a way to fix the mapping of WPD events
 	}
 
 #pragma endregion
@@ -925,7 +883,7 @@ namespace nek::mtp::backend::wpd {
 
 		default:
 			return UNKNOW_ERR;
-			}
+		}
 	}
 
 #pragma endregion
