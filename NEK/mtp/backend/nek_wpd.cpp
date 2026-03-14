@@ -74,7 +74,7 @@ namespace nek::mtp::backend::wpd {
 
 		auto p = std::promise<MtpResponse>();
 		auto f = p.get_future();
-		command_ = new std::function([this, &p, operationCode, &params] {
+		command_ = new std::function([this, &p, operationCode, params] {
 			try {
 				p.set_value(this->sendCommand_(operationCode, params));
 			}
@@ -95,7 +95,7 @@ namespace nek::mtp::backend::wpd {
 
 		auto p = std::promise<MtpResponse>();
 		auto f = p.get_future();
-		command_ = new std::function([this, &p, operationCode, &params] {
+		command_ = new std::function([this, &p, operationCode, params] {
 			try {
 				p.set_value(this->sendCommandAndRead_(operationCode, params));
 			}
@@ -116,7 +116,7 @@ namespace nek::mtp::backend::wpd {
 
 		auto p = std::promise<MtpResponse>();
 		auto f = p.get_future();
-		command_ = new std::function([this, &p, operationCode, &params, &data] {
+		command_ = new std::function([this, &p, operationCode, params, data] {
 			try {
 				p.set_value(this->sendCommandAndWrite_(operationCode, params, data));
 			}

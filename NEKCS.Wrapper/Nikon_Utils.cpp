@@ -23,13 +23,13 @@ MtpResponse::MtpResponse(nek::mtp::MtpResponse response) {
 	_parameters = gcnew array<System::UInt32>(static_cast<int>(response.parameters.size()));
 	if (_parameters->Length > 0) {
 		pin_ptr<System::UInt32> dataptr = &_parameters[0];
-		std::memcpy(dataptr, response.parameters.data(), response.parameters.size());
+		std::memcpy(dataptr, response.parameters.data(), response.parameters.size() * sizeof(uint32_t));
 	}
 
 	_data = gcnew array<System::Byte>(static_cast<int>(response.data.size()));
 	if (_data->Length > 0) {
 		pin_ptr<System::Byte> dataptr = &_data[0];
-		std::memcpy(dataptr, response.data.data(), response.data.size());
+		std::memcpy(dataptr, response.data.data(), response.data.size() * sizeof(uint8_t));
 	}
 }
 

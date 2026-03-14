@@ -92,7 +92,7 @@ MtpResponse^ NikonCamera::SendCommand(NikonMtpOperationCode operationCode, array
 	paramsc.resize(params->Length);
 	if (params->Length > 0) {
 		pin_ptr<System::UInt32> dataptr = &params[0];
-		std::memcpy(paramsc.data(), dataptr, params->Length);
+		std::memcpy(paramsc.data(), dataptr, params->Length * sizeof(uint32_t));
 	}
 
 	try {
@@ -107,7 +107,7 @@ MtpResponse^ NikonCamera::SendCommandAndRead(NikonMtpOperationCode operationCode
 	paramsc.resize(params->Length);
 	if (params->Length > 0) {
 		pin_ptr<System::UInt32> dataptr = &params[0];
-		std::memcpy(paramsc.data(), dataptr, params->Length);
+		std::memcpy(paramsc.data(), dataptr, params->Length * sizeof(uint32_t));
 	}
 
 	try {
@@ -122,14 +122,14 @@ MtpResponse^ NikonCamera::SendCommandAndWrite(NikonMtpOperationCode operationCod
 	paramsc.resize(params->Length);
 	if (params->Length > 0) {
 		pin_ptr<System::UInt32> dataptr = &params[0];
-		std::memcpy(paramsc.data(), dataptr, params->Length);
+		std::memcpy(paramsc.data(), dataptr, params->Length * sizeof(uint32_t));
 	}
 
 	std::vector<uint8_t> datac = std::vector<uint8_t>();
 	datac.resize(data->Length);
 	if (data->Length > 0) {
 		pin_ptr<System::Byte> dataptr = &data[0];
-		std::memcpy(datac.data(), dataptr, data->Length);
+		std::memcpy(datac.data(), dataptr, params->Length * sizeof(uint8_t));
 	}
 
 	try {
