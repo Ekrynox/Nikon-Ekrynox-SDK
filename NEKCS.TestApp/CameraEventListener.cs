@@ -35,12 +35,12 @@ namespace NEKCS.TestApp
             _syncContext?.Post(_ =>
             {
                 NEKCS.NikonMtpEventCode ecode = e.EventCode;
-                this.EventList.Text += "Event: " + Enum.GetName(typeof(NEKCS.NikonMtpEventCode), ecode);
+                this.EventList.Text += "Event: " + Enum.GetName(typeof(NEKCS.NikonMtpEventCode), ecode) + $" 0x{((int)ecode):X}";
                 foreach (var item in e.Parameters)
                 {
                     if (ecode == NEKCS.NikonMtpEventCode.DevicePropChanged)
                     {
-                        this.EventList.Text += " -> " + Enum.GetName(typeof(NEKCS.NikonMtpDevicePropCode), item);
+                        this.EventList.Text += " -> " + Enum.GetName(typeof(NEKCS.NikonMtpDevicePropCode), item) + $" 0x{((int)item):X}";
                         //var desc = this.camera.GetDevicePropDesc((NEKCS.NikonMtpDevicePropCode)item);
                     }
                     else
