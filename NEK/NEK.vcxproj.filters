@@ -60,6 +60,9 @@
     <ClInclude Include="mtp\backend\nek_mtp_backend.hpp">
       <Filter>Header Files\mtp\backend</Filter>
     </ClInclude>
+    <ClInclude Include="utils\nek_int128.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mtp\nek_mtp.cpp">

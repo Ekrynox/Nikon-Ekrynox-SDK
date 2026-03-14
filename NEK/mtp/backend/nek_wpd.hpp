@@ -1,6 +1,7 @@
 #pragma once
 #include "../../nek.hpp"
 #include "nek_mtp_backend.hpp"
+#include "../nek_mtp_except.hpp"
 
 #include <atomic>
 #include <functional>
@@ -88,6 +89,16 @@ namespace nek::mtp::backend::wpd {
 
 		NEK_API std::vector<MtpConnectionInfo> listDevices();
 		NEK_API size_t countDevices();
+	};
+
+
+
+	class WpdMtpDeviceException : public MtpDeviceException {
+	public:
+		NEK_API WpdMtpDeviceException(MtpExPhase phase, HRESULT hr);
+
+	private:
+		static MtpExCode computeCode(MtpExPhase phase, HRESULT hr);
 	};
 
 }
