@@ -27,6 +27,10 @@ namespace nek::mtp::backend::wpd {
 		eventManager_.Release();
 	}
 
+	std::unique_ptr<IMtpTransport> WpdMtpTransport::clone() const {
+		return std::make_unique<WpdMtpTransport>(this->devicePath_);
+	}
+
 
 
 	void WpdMtpTransport::connect() {

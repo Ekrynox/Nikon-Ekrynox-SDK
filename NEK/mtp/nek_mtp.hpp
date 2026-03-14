@@ -26,8 +26,8 @@ namespace nek::mtp {
 		NEK_API ~MtpDevice();
 
 		NEK_API bool isConnected() const;
-		NEK_API void Connect();
-		NEK_API void Disconnect();
+		NEK_API virtual void Connect();
+		NEK_API virtual void Disconnect();
 
 		NEK_API MtpResponse SendCommand(uint16_t operationCode, const std::vector<uint32_t>& params);
 		NEK_API MtpResponse SendCommandAndRead(uint16_t operationCode, const std::vector<uint32_t>& params);

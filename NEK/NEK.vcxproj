@@ -92,6 +92,9 @@
     <ClInclude Include="mtp\nek_mtp_utils.hpp" />
     <ClInclude Include="mtp\backend\nek_wpd.hpp" />
     <ClInclude Include="nek.hpp" />
+    <ClInclude Include="Nikon.hpp" />
+    <ClInclude Include="nikon_enum.hpp" />
+    <ClInclude Include="nikon_struct.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="utils\nek_int128.hpp" />
   </ItemGroup>
@@ -100,6 +103,7 @@
     <ClCompile Include="mtp\nek_mtp.cpp" />
     <ClCompile Include="mtp\nek_mtp_except.cpp" />
     <ClCompile Include="mtp\nek_mtp_struct.cpp" />
+    <ClCompile Include="Nikon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NEK.rc" />

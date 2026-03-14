@@ -29,6 +29,7 @@ namespace nek::mtp::backend::wpd {
 	public:
 		NEK_API WpdMtpTransport(const std::wstring& devicePath);
 		NEK_API ~WpdMtpTransport();
+		NEK_API std::unique_ptr<IMtpTransport> clone() const override;
 
 		NEK_API void connect() override;
 		NEK_API void disconnect() override;
