@@ -758,8 +758,17 @@ namespace nek::mtp::backend::wpd {
 
 #pragma region WpdMtpBackendProvider
 
-	std::vector<MtpConnectionInfo> WpdMtpBackendProvider::listDevices() {
-		auto result = std::vector<MtpConnectionInfo>();
+	std::unique_ptr<IMtpTransport> nek::mtp::backend::wpd::WpdMtpBackendProvider::tryCreateTransport(const MtpConnectionInfo& connectionInfo) {
+		if (!connectionInfo.usbPath.has_value()) return nullptr;
+		auto devices = listDevices();
+		auto device = std::find_if(devices.begin(), devices.end(), [&connectionInfo](const std::pair<MtpConnectionInfo, std::unique_ptr<IMtpTransport>>& d) { return d.first.usbPath.value() == connectionInfo.usbPath.value(); });
+		if (device == devices.end()) return nullptr;
+
+		return std::move(device->second);
+	}
+
+	std::vector<std::pair<MtpConnectionInfo, std::unique_ptr<IMtpTransport>>> WpdMtpBackendProvider::listDevices() {
+		auto result = std::vector<std::pair<MtpConnectionInfo, std::unique_ptr<IMtpTransport>>>();
 
 		HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 		bool weInitialized = (hr == S_OK);
@@ -791,9 +800,9 @@ namespace nek::mtp::backend::wpd {
 				}
 
 				for (DWORD i = 0; i < devicesNb; i++) {
-					MtpConnectionInfo info;
-					info.usbPath = devices[i];
-					info.transport = std::make_unique<WpdMtpTransport>(devices[i]);
+					std::pair<MtpConnectionInfo, std::unique_ptr<IMtpTransport>> info;
+					info.first.usbPath = devices[i];
+					info.second = std::make_unique<WpdMtpTransport>(devices[i]);
 					result.push_back(std::move(info));
 
 					CoTaskMemFree(devices[i]);

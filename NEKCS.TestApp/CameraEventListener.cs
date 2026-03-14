@@ -18,12 +18,12 @@ namespace NEKCS.TestApp
         private CameraShootingForm? _cameraShootingForm;
 
 
-        public CameraEventListener(string devicePath)
+        public CameraEventListener(NEKCS.MtpConnectionInfo connectionInfo)
         {
             InitializeComponent();
             _syncContext = SynchronizationContext.Current;
 
-            camera = new NEKCS.NikonCamera(devicePath, 2);
+            camera = new NEKCS.NikonCamera(connectionInfo);
             camera.OnMtpEvent += new NEKCS.MtpEventHandler(newCamEvent);
 
             _cameraShootingForm = new CameraShootingForm(camera);
@@ -34,9 +34,9 @@ namespace NEKCS.TestApp
         {
             _syncContext?.Post(_ =>
             {
-                NEKCS.NikonMtpEventCode ecode = (NEKCS.NikonMtpEventCode)e.eventCode;
+                NEKCS.NikonMtpEventCode ecode = e.EventCode;
                 this.EventList.Text += "Event: " + Enum.GetName(typeof(NEKCS.NikonMtpEventCode), ecode);
-                foreach (var item in e.eventParams)
+                foreach (var item in e.Parameters)
                 {
                     if (ecode == NEKCS.NikonMtpEventCode.DevicePropChanged)
                     {

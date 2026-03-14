@@ -1,5 +1,3 @@
-#define NOMINMAX
-
 #include "nek_mtp.hpp"
 #include "backend/nek_wpd.hpp"
 
@@ -12,50 +10,23 @@ using namespace nek::mtp;
 
 
 
-//MtpManager
-MtpManager::MtpManager() : backends_(0) {
-	MtpManager::registerBackend(std::make_unique<backend::wpd::WpdMtpBackendProvider>());
-}
+#pragma region MtpDevice
 
-void MtpManager::registerBackend(std::unique_ptr<backend::IMtpBackendProvider> backend) {
-	backends_.push_back(std::move(backend));
-}
-
-std::vector<backend::MtpConnectionInfo> MtpManager::listAllDevices() {
-	auto result = std::vector<backend::MtpConnectionInfo>();
-	for (auto& b : backends_) {
-		for (auto& d : b->listDevices()) {
-			result.push_back(std::move(d));
-		}
-	}
-	return result;
-}
-
-std::vector<MtpDevice> MtpManager::getAllDevices() {
-	auto result = std::vector<MtpDevice>();
-	for (auto& b : backends_) {
-		for (auto& d : b->listDevices()) {
-			result.push_back(std::move(MtpDevice(std::move(d.transport), false)));
-		}
-	}
-	return result;
-}
-
-size_t MtpManager::countAllDevices() {
-	size_t result = 0;
-	for (auto& b : backends_) {
-		result += b->countDevices();
-	}
-	return result;
-}
-
-
-
-//MtpDevice
 MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect) : backend_(std::move(backend)) {
 	if (autoConnect) {
 		if (!backend_->isConnected()) backend_->connect();
-		else backend_->subscribe(nullptr);
+		else backend_->subscribe(nullptr); //TODO
+	}
+}
+
+MtpDevice::MtpDevice(const backend::MtpConnectionInfo& connectionInfo, bool autoConnect) {
+	auto backends = MtpManager().tryCreateTransport(connectionInfo);
+	if (backends.size() == 0) throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED); //TODO chnage to a more explicit error
+
+	backend_ = std::move(backends[0]);
+	if (autoConnect) {
+		if (!backend_->isConnected()) backend_->connect();
+		else backend_->subscribe(nullptr); //TODO
 	}
 }
 
@@ -70,6 +41,7 @@ MtpDevice::~MtpDevice() {
 
 
 bool MtpDevice::isConnected() const { 
+	if (backend_ == nullptr) return false;
 	return backend_->isConnected();
 }
 
@@ -79,7 +51,7 @@ void MtpDevice::Connect() {
 	}
 
 	backend_->connect();
-	backend_->subscribe(nullptr);
+	backend_->subscribe(nullptr); //TODO
 }
 
 void MtpDevice::Disconnect() {
@@ -1444,3 +1416,58 @@ bool MtpDevice::SetDevicePropValueTypesafe_(const uint16_t dataType, const MtpDa
 
 	return false;
 }
+
+#pragma endregion
+
+
+
+#pragma region MtpManager
+
+MtpManager::MtpManager() : backends_(0) {
+	MtpManager::registerBackend(std::make_unique<backend::wpd::WpdMtpBackendProvider>());
+}
+
+void MtpManager::registerBackend(std::unique_ptr<backend::IMtpBackendProvider> backend) {
+	backends_.push_back(std::move(backend));
+}
+
+std::vector<std::unique_ptr<backend::IMtpTransport>> MtpManager::tryCreateTransport(const backend::MtpConnectionInfo& connectionInfo) {
+	std::vector<std::unique_ptr<backend::IMtpTransport>> result;
+
+	for (const auto& b : backends_) {
+		auto t = b->tryCreateTransport(connectionInfo);
+		if (t != nullptr) result.push_back(std::move(t));
+	}
+
+	return result;
+}
+
+std::vector<std::pair<backend::MtpConnectionInfo, std::unique_ptr<backend::IMtpTransport>>> MtpManager::listAllDevices() {
+	auto result = std::vector<std::pair<backend::MtpConnectionInfo, std::unique_ptr<backend::IMtpTransport>>>();
+	for (auto& b : backends_) {
+		for (auto& d : b->listDevices()) {
+			result.push_back(std::move(d));
+		}
+	}
+	return result;
+}
+
+std::vector<std::pair<backend::MtpConnectionInfo, MtpDevice>> MtpManager::getAllDevices() {
+	auto result = std::vector<std::pair<backend::MtpConnectionInfo, MtpDevice>>();
+	for (auto& b : backends_) {
+		for (auto& d : b->listDevices()) {
+			result.push_back(std::make_pair(d.first, std::move(MtpDevice(std::move(d.second), false))));
+		}
+	}
+	return result;
+}
+
+size_t MtpManager::countAllDevices() {
+	size_t result = 0;
+	for (auto& b : backends_) {
+		result += b->countDevices();
+	}
+	return result;
+}
+
+#pragma endregion

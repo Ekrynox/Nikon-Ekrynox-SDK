@@ -18,15 +18,15 @@ std::vector<std::pair<mtp::backend::MtpConnectionInfo, mtp::MtpDeviceInfoDS>> Ni
 	auto devices = manager.listAllDevices();
 
 	for (auto& d : devices) {
-		if (d.usbPath.has_value()) {
-			auto id = d.usbPath.value();
+		if (d.first.usbPath.has_value()) {
+			std::wstring id = d.first.usbPath.value();
 			std::transform(id.begin(), id.end(), id.begin(), ::towupper);
 			if (id.find(L"VID_04B0") != std::wstring::npos) {
-				auto cam = NikonCamera(d.transport->clone());
+				auto cam = NikonCamera(std::move(d.second));
 				auto info = cam.GetDeviceInfo();
 
 				if (!onlyOn || std::find_if(info.OperationsSupported.begin(), info.OperationsSupported.end(), [](const uint32_t& x) { return x == NikonMtpOperationCode::InitiateCapture || x == NikonMtpOperationCode::InitiateCaptureRecInSdram || x == NikonMtpOperationCode::InitiateCaptureRecInMedia; }) != info.OperationsSupported.end()) {
-					result.push_back(std::make_pair<mtp::backend::MtpConnectionInfo, mtp::MtpDeviceInfoDS>(std::move(d), std::move(info)));
+					result.push_back(std::make_pair(std::move(d.first), std::move(info)));
 				}
 			}
 		}
@@ -37,9 +37,25 @@ std::vector<std::pair<mtp::backend::MtpConnectionInfo, mtp::MtpDeviceInfoDS>> Ni
 
 std::vector<std::pair<NikonCamera, mtp::MtpDeviceInfoDS>> NikonCamera::getNikonCameras(bool onlyOn) {
 	std::vector<std::pair<NikonCamera, mtp::MtpDeviceInfoDS>> result;
-	for (auto& pair : listNikonCameras(onlyOn)) {
-		result.push_back(std::make_pair<NikonCamera, mtp::MtpDeviceInfoDS>(NikonCamera(std::move(pair.first.transport), false), std::move(pair.second)));
+
+	mtp::MtpManager manager;
+	auto devices = manager.listAllDevices();
+
+	for (auto& d : devices) {
+		if (d.first.usbPath.has_value()) {
+			std::wstring id = d.first.usbPath.value();
+			std::transform(id.begin(), id.end(), id.begin(), ::towupper);
+			if (id.find(L"VID_04B0") != std::wstring::npos) {
+				auto cam = NikonCamera(std::move(d.second));
+				auto info = cam.GetDeviceInfo();
+
+				if (!onlyOn || std::find_if(info.OperationsSupported.begin(), info.OperationsSupported.end(), [](const uint32_t& x) { return x == NikonMtpOperationCode::InitiateCapture || x == NikonMtpOperationCode::InitiateCaptureRecInSdram || x == NikonMtpOperationCode::InitiateCaptureRecInMedia; }) != info.OperationsSupported.end()) {
+					result.push_back(std::make_pair(NikonCamera(std::move(d.first), false), std::move(info)));
+				}
+			}
+		}
 	}
+
 	return result;
 }
 
@@ -49,7 +65,7 @@ size_t NikonCamera::countNikonCameras(bool onlyOn) {
 
 
 NikonCamera::NikonCamera(std::unique_ptr<mtp::backend::IMtpTransport> backend, bool autoConnect) : nek::mtp::MtpDevice::MtpDevice(std::move(backend), autoConnect) {}
-NikonCamera::NikonCamera(mtp::backend::MtpConnectionInfo connectionInfo, bool autoConnect) : nek::mtp::MtpDevice::MtpDevice(std::move(connectionInfo.transport), autoConnect) {}
+NikonCamera::NikonCamera(mtp::backend::MtpConnectionInfo connectionInfo, bool autoConnect) : nek::mtp::MtpDevice::MtpDevice(connectionInfo, autoConnect) {}
 
 //TODO
 void NikonCamera::eventThreadTask() {
