@@ -589,7 +589,7 @@ namespace nek::mtp::backend::wpd {
 
 	size_t WpdMtpTransport::subscribe(Handler eventCallback) {
 		if (!running_) throw MtpDeviceException(DEVICE_NOT_CONNECTED, DEVICE_DISCONNECTED); //TODO: Throw an error like device not connected
-		std::lock_guard lock(eventMutex_);
+		std::lock_guard lock(eventManager_->eventMutex_);
 
 		if (eventCookie_ == nullptr) {
 			std::unique_lock lk(commandMutex_);
@@ -613,15 +613,15 @@ namespace nek::mtp::backend::wpd {
 			f.get();
 		}
 
-		eventCallbacks_[eventNextId] = std::move(eventCallback);
+		eventManager_->eventCallbacks_[eventNextId] = std::move(eventCallback);
 		return eventNextId++;
 	}
 
 	void WpdMtpTransport::unsubscribe(size_t id) {
-		std::lock_guard lock(eventMutex_);
-		if (eventCallbacks_.contains(id)) eventCallbacks_.erase(id);
+		std::lock_guard lock(eventManager_->eventMutex_);
+		if (eventManager_->eventCallbacks_.contains(id)) eventManager_->eventCallbacks_.erase(id);
 
-		if (eventCallbacks_.size() == 0 && eventCookie_ != nullptr) {
+		if (eventManager_->eventCallbacks_.size() == 0 && eventCookie_ != nullptr) {
 			if (running_) {
 				std::unique_lock lk(commandMutex_);
 				commandCV_.wait(lk, [this] { return !this->running_ || this->command_ == nullptr; });
@@ -651,8 +651,8 @@ namespace nek::mtp::backend::wpd {
 	}
 
 	void WpdMtpTransport::unsubscribe() {
-		std::lock_guard lock(eventMutex_);
-		eventCallbacks_.clear();
+		std::lock_guard lock(eventManager_->eventMutex_);
+		eventManager_->eventCallbacks_.clear();
 
 		if (eventCookie_ != nullptr) {
 			if (running_) {
@@ -685,16 +685,16 @@ namespace nek::mtp::backend::wpd {
 
 
 
-	HRESULT WpdMtpTransport::WpdMtpEventManager::QueryInterface(REFIID riid, void** ppvObject) {
+	HRESULT __stdcall WpdMtpTransport::WpdMtpEventManager::QueryInterface(REFIID riid, void** ppvObject) {
 		static const QITAB qitab[] = { QITABENT(WpdMtpEventManager, IPortableDeviceEventCallback), { }, };
 		return QISearch(this, qitab, riid, ppvObject);
 	}
 
-	ULONG WpdMtpTransport::WpdMtpEventManager::AddRef(void) {
+	ULONG __stdcall WpdMtpTransport::WpdMtpEventManager::AddRef(void) {
 		return InterlockedIncrement(&ref_);
 	}
 
-	ULONG WpdMtpTransport::WpdMtpEventManager::Release(void) {
+	ULONG __stdcall WpdMtpTransport::WpdMtpEventManager::Release(void) {
 		ULONG ref = _InterlockedDecrement(&ref_);
 		if (ref == 0) {
 			delete this;
@@ -703,8 +703,47 @@ namespace nek::mtp::backend::wpd {
 		return ref;
 	}
 
-	HRESULT WpdMtpTransport::WpdMtpEventManager::OnEvent(IPortableDeviceValues* pEventParameters) {
-		return E_NOTIMPL;
+	HRESULT __stdcall WpdMtpTransport::WpdMtpEventManager::OnEvent(IPortableDeviceValues* pEventParameters) {
+		if (pEventParameters == NULL) return S_OK;
+
+		MtpEvent event;
+
+		GUID eventGUID = GUID_NULL;
+		HRESULT hr = pEventParameters->GetGuidValue(WPD_EVENT_PARAMETER_EVENT_ID, &eventGUID);
+
+		if (eventGUID == WPD_EVENT_DEVICE_CAPABILITIES_UPDATED) {
+			event.eventCode = MtpEventCode::DeviceInfoChanged;
+		}
+		else if (eventGUID == WPD_EVENT_DEVICE_REMOVED) {
+
+		}
+		else if (eventGUID == WPD_EVENT_DEVICE_RESET) {
+
+		}
+		else if (eventGUID == WPD_EVENT_OBJECT_ADDED) {
+
+		}
+		else if (eventGUID == WPD_EVENT_OBJECT_REMOVED) {
+
+		}
+		else if (eventGUID == WPD_EVENT_OBJECT_TRANSFER_REQUESTED) {
+
+		}
+		else if (eventGUID == WPD_EVENT_OBJECT_UPDATED) {
+
+		}
+		else if (eventGUID == WPD_EVENT_SERVICE_METHOD_COMPLETE) {
+
+		}
+		else if (eventGUID == WPD_EVENT_STORAGE_FORMAT) {
+
+		}
+
+		for (const auto& ec : eventCallbacks_) {
+			ec.second(event);
+		}
+
+		return hr;
 	}
 
 
