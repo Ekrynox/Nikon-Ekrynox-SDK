@@ -62,19 +62,21 @@ namespace nek::mtp::backend::wpd {
 
 		class WpdMtpEventManager : public IPortableDeviceEventCallback {
 		public:
-			HRESULT QueryInterface(REFIID riid, void** ppvObject) override;
-			ULONG AddRef(void) override;
-			ULONG Release(void) override;
-			HRESULT OnEvent(IPortableDeviceValues* pEventParameters) override;
+			HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override;
+			ULONG __stdcall AddRef(void) override;
+			ULONG __stdcall Release(void) override;
+			HRESULT __stdcall OnEvent(IPortableDeviceValues* pEventParameters) override;
+
+			std::unordered_map<size_t, Handler> eventCallbacks_;
+			std::mutex eventMutex_;
+
 		private:
 			ULONG ref_ = 0;
 		};
 
 		PWSTR eventCookie_;
 		CComPtr<WpdMtpEventManager> eventManager_;
-		std::unordered_map<size_t, Handler> eventCallbacks_;
 		size_t eventNextId;
-		std::mutex eventMutex_;
 	};
 
 
