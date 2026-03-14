@@ -21,7 +21,7 @@ public:
 
 
 //NikonCamera
-System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ NikonCamera::listNikonCameras(System::Boolean onlyOn) {
+/*System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ NikonCamera::listNikonCameras(System::Boolean onlyOn) {
 	try {
 		System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ result = gcnew System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>(0);
 		for (auto& camera : nek::NikonCamera::listNikonCameras(onlyOn)) {
@@ -33,26 +33,25 @@ System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ N
 		throw gcnew MtpDeviceException(e);
 	}
 };
-System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ NikonCamera::listNikonCameras() { return listNikonCameras(true); }
+System::Collections::Generic::Dictionary<System::String^, NikonDeviceInfoDS^>^ NikonCamera::listNikonCameras() { return listNikonCameras(true); }*/
 
 size_t NikonCamera::countNikonCameras(System::Boolean onlyOn) { return nek::NikonCamera::countNikonCameras(onlyOn); };
 size_t NikonCamera::countNikonCameras() { return countNikonCameras(true); };
 
 
 
-NikonCamera::NikonCamera(System::String^ devicePath, System::Byte additionThreads) {
+NikonCamera::NikonCamera(System::String^ devicePath) {
 	std::wstring str;
 	for each(auto c in devicePath) {
 		str += c;
 	}
 	try {
-		m_nativeClass = new nek::NikonCamera(str, additionThreads);
+		//m_nativeClass = new nek::NikonCamera(str);
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
 	}
 };
-NikonCamera::NikonCamera(System::String^ devicePath) : NikonCamera(devicePath, 0) {};
 NikonCamera::~NikonCamera() { this->!NikonCamera(); };
 NikonCamera::!NikonCamera() {
 	if (m_nativeClass != nullptr) {
@@ -69,31 +68,53 @@ System::Boolean NikonCamera::isConnected() {
 
 
 
-MtpResponse^ NikonCamera::SendCommand(NikonMtpOperationCode operationCode, MtpParams^ params) {
+MtpResponse^ NikonCamera::SendCommand(NikonMtpOperationCode operationCode, array<System::UInt32>^ params) {
+	std::vector<uint32_t> paramsc = std::vector<uint32_t>();
+	paramsc.resize(params->Length);
+	if (params->Length > 0) {
+		pin_ptr<System::UInt32> dataptr = &params[0];
+		std::memcpy(paramsc.data(), dataptr, params->Length);
+	}
+
 	try {
-		return gcnew MtpResponse(m_nativeClass->SendCommand((System::UInt16)operationCode, *params->m_nativeClass));
+		return gcnew MtpResponse(m_nativeClass->SendCommand((System::UInt16)operationCode, paramsc));
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
 	}
 };
-MtpResponse^ NikonCamera::SendCommandAndRead(NikonMtpOperationCode operationCode, MtpParams^ params) {
+MtpResponse^ NikonCamera::SendCommandAndRead(NikonMtpOperationCode operationCode, array<System::UInt32>^ params) {
+	std::vector<uint32_t> paramsc = std::vector<uint32_t>();
+	paramsc.resize(params->Length);
+	if (params->Length > 0) {
+		pin_ptr<System::UInt32> dataptr = &params[0];
+		std::memcpy(paramsc.data(), dataptr, params->Length);
+	}
+
 	try {
-		return gcnew MtpResponse(m_nativeClass->SendCommandAndRead((System::UInt16)operationCode, *params->m_nativeClass));
+		return gcnew MtpResponse(m_nativeClass->SendCommandAndRead((System::UInt16)operationCode, paramsc));
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
 	}
 };
-MtpResponse^ NikonCamera::SendCommandAndWrite(NikonMtpOperationCode operationCode, MtpParams^ params, array<System::Byte>^ data) {
-	std::vector<BYTE> datac = std::vector<BYTE>();
+MtpResponse^ NikonCamera::SendCommandAndWrite(NikonMtpOperationCode operationCode, array<System::UInt32>^ params, array<System::Byte>^ data) {
+	std::vector<uint32_t> paramsc = std::vector<uint32_t>();
+	paramsc.resize(params->Length);
+	if (params->Length > 0) {
+		pin_ptr<System::UInt32> dataptr = &params[0];
+		std::memcpy(paramsc.data(), dataptr, params->Length);
+	}
+
+	std::vector<uint8_t> datac = std::vector<uint8_t>();
 	datac.resize(data->Length);
 	if (data->Length > 0) {
 		pin_ptr<System::Byte> dataptr = &data[0];
 		std::memcpy(datac.data(), dataptr, data->Length);
 	}
+
 	try {
-		return gcnew MtpResponse(m_nativeClass->SendCommandAndWrite((System::UInt16)operationCode, *params->m_nativeClass, datac));
+		return gcnew MtpResponse(m_nativeClass->SendCommandAndWrite((System::UInt16)operationCode, paramsc, datac));
 	}
 	catch (const nek::mtp::MtpDeviceException& e) {
 		throw gcnew MtpDeviceException(e);
