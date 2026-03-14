@@ -93,6 +93,7 @@
     <ClInclude Include="mtp\backend\nek_wpd.hpp" />
     <ClInclude Include="nek.hpp" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="utils\nek_int128.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mtp\backend\nek_wpd.cpp" />

@@ -10,6 +10,8 @@
 
 namespace nek::mtp::backend::wpd {
 
+#pragma region WpdMtpTransport
+
 	WpdMtpTransport::WpdMtpTransport(const std::wstring& devicePath) {
 		this->devicePath_ = devicePath;
 		running_ = false;
@@ -122,7 +124,7 @@ namespace nek::mtp::backend::wpd {
 		//Com context
 		HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 		if (hr == RPC_E_CHANGED_MODE) {
-			//throw MtpDeviceException(MtpExPhase::COM_INIT, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::COM_INIT, hr);
 		}
 
 		//Device Client
@@ -131,7 +133,7 @@ namespace nek::mtp::backend::wpd {
 		}
 		hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceClient_));
 		if (FAILED(hr)) {
-			//throw MtpDeviceException(MtpExPhase::DEVICECLIENT_INIT, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::DEVICECLIENT_INIT, hr);
 		}
 		deviceClient_->SetStringValue(WPD_CLIENT_NAME, CLIENT_NAME);
 		deviceClient_->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, CLIENT_MAJOR_VER);
@@ -146,13 +148,13 @@ namespace nek::mtp::backend::wpd {
 
 		HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&device_));
 		if (FAILED(hr)) {
-			//throw MtpDeviceException(MtpExPhase::DEVICE_INIT, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::DEVICE_INIT, hr);
 		}
 
 		hr = device_->Open(devicePath_.c_str(), deviceClient_);
 		if (FAILED(hr)) {
 			device_.Release();
-			//throw MtpDeviceException(MtpExPhase::DEVICE_INIT, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::DEVICE_INIT, hr);
 		}
 	}
 
@@ -186,7 +188,7 @@ namespace nek::mtp::backend::wpd {
 		CComPtr<IPortableDeviceValues> command;
 		hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
 		if (FAILED(hr)) {
-			//throw MtpDeviceException(MtpExPhase::OPERATION_INIT, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATION_INIT, hr);
 		}
 
 		// Set command category and ID
@@ -218,7 +220,7 @@ namespace nek::mtp::backend::wpd {
 		hr = device_->SendCommand(0, command, &commandResult);
 		if (FAILED(hr)) {
 			command.Release();
-			//throw MtpDeviceException(MtpExPhase::OPERATION_SEND, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATION_SEND, hr);
 		}
 
 		// Extract response code
@@ -228,7 +230,7 @@ namespace nek::mtp::backend::wpd {
 		if (FAILED(hr)) {
 			command.Release();
 			commandResult.Release();
-			//throw MtpDeviceException(MtpExPhase::OPERATION_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATION_RESPONSE, hr);
 		}
 
 		// Extract response parameters
@@ -236,7 +238,7 @@ namespace nek::mtp::backend::wpd {
 		if (FAILED(hr)) {
 			command.Release();
 			commandResult.Release();
-			//throw MtpDeviceException(MtpExPhase::OPERATION_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATION_RESPONSE, hr);
 		}
 
 		DWORD nbParams = 0;
@@ -262,7 +264,7 @@ namespace nek::mtp::backend::wpd {
 		CComPtr<IPortableDeviceValues> command;
 		hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
 		if (FAILED(hr)) {
-			//throw MtpDeviceException(MtpExPhase::OPERATIONREAD_INIT, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATIONREAD_INIT, hr);
 		}
 
 		// Set command category and ID
@@ -294,7 +296,7 @@ namespace nek::mtp::backend::wpd {
 		hr = device_->SendCommand(0, command, &commandResult);
 		if (FAILED(hr)) {
 			command.Release();
-			//throw MtpDeviceException(MtpExPhase::OPERATIONREAD_SEND, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATIONREAD_SEND, hr);
 		}
 
 		LPWSTR context;
@@ -302,7 +304,7 @@ namespace nek::mtp::backend::wpd {
 		if (FAILED(hr)) {
 			command.Release();
 			commandResult.Release();
-			//throw MtpDeviceException(MtpExPhase::OPERATIONREAD_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATIONREAD_RESPONSE, hr);
 		}
 
 		ULONG totalSize;
@@ -310,7 +312,7 @@ namespace nek::mtp::backend::wpd {
 		if (FAILED(hr)) {
 			command.Release();
 			commandResult.Release();
-			//throw MtpDeviceException(MtpExPhase::OPERATIONREAD_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATIONREAD_RESPONSE, hr);
 		}
 
 		ULONG optimalSize;
@@ -318,7 +320,7 @@ namespace nek::mtp::backend::wpd {
 		if (FAILED(hr)) {
 			command.Release();
 			commandResult.Release();
-			//throw MtpDeviceException(MtpExPhase::OPERATIONREAD_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATIONREAD_RESPONSE, hr);
 		}
 
 		command.Release();
@@ -329,7 +331,7 @@ namespace nek::mtp::backend::wpd {
 		hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
 		if (FAILED(hr)) {
 			CoTaskMemFree(context);
-			//throw MtpDeviceException(MtpExPhase::DATAREAD_INIT, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::DATAREAD_INIT, hr);
 		}
 		command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_READ_DATA.fmtid);
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_READ_DATA.pid);
@@ -350,7 +352,7 @@ namespace nek::mtp::backend::wpd {
 				CoTaskMemFree(context);
 				command.Release();
 				commandResult.Release();
-				//throw MtpDeviceException(MtpExPhase::DATAREAD_SEND, hr); TODO
+				throw WpdMtpDeviceException(MtpExPhase::DATAREAD_SEND, hr);
 			}
 			hr = commandResult->GetBufferValue(WPD_PROPERTY_MTP_EXT_TRANSFER_DATA, &b, &bNb);
 			commandResult.Release();
@@ -385,7 +387,7 @@ namespace nek::mtp::backend::wpd {
 		hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
 		if (FAILED(hr)) {
 			CoTaskMemFree(context);
-			//throw MtpDeviceException(MtpExPhase::ENDREAD_INIT, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::ENDREAD_INIT, hr);
 		}
 		command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
 		command->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.pid);
@@ -394,7 +396,7 @@ namespace nek::mtp::backend::wpd {
 		if (FAILED(hr)) {
 			CoTaskMemFree(context);
 			command.Release();
-			//throw MtpDeviceException(MtpExPhase::ENDREAD_SEND, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::ENDREAD_SEND, hr);
 		}
 
 		// Extract response code
@@ -405,7 +407,7 @@ namespace nek::mtp::backend::wpd {
 			CoTaskMemFree(context);
 			command.Release();
 			commandResult.Release();
-			//throw MtpDeviceException(MtpExPhase::ENDREAD_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::ENDREAD_RESPONSE, hr);
 		}
 
 		// Extract response parameters
@@ -414,7 +416,7 @@ namespace nek::mtp::backend::wpd {
 			CoTaskMemFree(context);
 			command.Release();
 			commandResult.Release();
-			//throw MtpDeviceException(MtpExPhase::ENDREAD_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::ENDREAD_RESPONSE, hr);
 		}
 
 		DWORD nbParams = 0;
@@ -440,7 +442,7 @@ namespace nek::mtp::backend::wpd {
 		CComPtr<IPortableDeviceValues> command;
 		hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
 		if (FAILED(hr)) {
-			//throw MtpDeviceException(MtpExPhase::OPERATIONWRITE_INIT, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATIONWRITE_INIT, hr);
 		}
 
 		// Set command category and ID
@@ -475,7 +477,7 @@ namespace nek::mtp::backend::wpd {
 		if (FAILED(hr)) {
 			command.Release();
 			commandResult.Release();
-			//throw MtpDeviceException(MtpExPhase::OPERATIONWRITE_SEND, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATIONWRITE_SEND, hr);
 		}
 
 		LPWSTR context;
@@ -483,7 +485,7 @@ namespace nek::mtp::backend::wpd {
 		if (FAILED(hr)) {
 			command.Release();
 			commandResult.Release();
-			//throw MtpDeviceException(MtpExPhase::OPERATIONWRITE_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATIONWRITE_RESPONSE, hr);
 		}
 
 		ULONG optimalSize;
@@ -492,7 +494,7 @@ namespace nek::mtp::backend::wpd {
 			command.Release();
 			commandResult.Release();
 			CoTaskMemFree(context);
-			//throw MtpDeviceException(MtpExPhase::OPERATIONWRITE_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::OPERATIONWRITE_RESPONSE, hr);
 		}
 
 		command.Release();
@@ -505,7 +507,7 @@ namespace nek::mtp::backend::wpd {
 			hr = CoCreateInstance(CLSID_PortableDeviceValues, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&command));
 			if (FAILED(hr)) {
 				CoTaskMemFree(context);
-				//throw MtpDeviceException(MtpExPhase::DATAWRITE_INIT, hr); TODO
+				throw WpdMtpDeviceException(MtpExPhase::DATAWRITE_INIT, hr);
 			}
 
 			command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_WRITE_DATA.fmtid);
@@ -521,7 +523,7 @@ namespace nek::mtp::backend::wpd {
 				command.Release();
 				commandResult.Release();
 				CoTaskMemFree(context);
-				//throw MtpDeviceException(MtpExPhase::DATAWRITE_SEND, hr); TODO
+				throw WpdMtpDeviceException(MtpExPhase::DATAWRITE_SEND, hr);
 			}
 
 			offset += optimalSize;
@@ -536,7 +538,7 @@ namespace nek::mtp::backend::wpd {
 			command.Release();
 			commandResult.Release();
 			CoTaskMemFree(context);
-			//throw MtpDeviceException(MtpExPhase::ENDWRITE_INIT, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::ENDWRITE_INIT, hr);
 		}
 
 		command->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY, WPD_COMMAND_MTP_EXT_END_DATA_TRANSFER.fmtid);
@@ -546,7 +548,7 @@ namespace nek::mtp::backend::wpd {
 		if (FAILED(hr)) {
 			command.Release();
 			CoTaskMemFree(context);
-			//throw MtpDeviceException(MtpExPhase::ENDWRITE_SEND, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::ENDWRITE_SEND, hr);
 		}
 
 		// Extract response code
@@ -557,7 +559,7 @@ namespace nek::mtp::backend::wpd {
 			command.Release();
 			commandResult.Release();
 			CoTaskMemFree(context);
-			//throw MtpDeviceException(MtpExPhase::ENDWRITE_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::ENDWRITE_RESPONSE, hr);
 		}
 
 		// Extract response parameters
@@ -566,7 +568,7 @@ namespace nek::mtp::backend::wpd {
 			command.Release();
 			commandResult.Release();
 			CoTaskMemFree(context);
-			//throw MtpDeviceException(MtpExPhase::ENDWRITE_RESPONSE, hr); TODO
+			throw WpdMtpDeviceException(MtpExPhase::ENDWRITE_RESPONSE, hr);
 		}
 		
 		DWORD nbParams = 0;
@@ -746,8 +748,11 @@ namespace nek::mtp::backend::wpd {
 		return hr;
 	}
 
+#pragma endregion
 
 
+
+#pragma region WpdMtpBackendProvider
 
 	std::vector<MtpConnectionInfo> WpdMtpBackendProvider::listDevices() {
 		auto result = std::vector<MtpConnectionInfo>();
@@ -769,7 +774,7 @@ namespace nek::mtp::backend::wpd {
 			//Get the number of WPD devices
 			hr = deviceManager->GetDevices(NULL, &devicesNb);
 			if (FAILED(hr)) {
-				//throw MtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr); TODO
+				throw WpdMtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr);
 			}
 
 			//At least one device
@@ -778,7 +783,7 @@ namespace nek::mtp::backend::wpd {
 				HRESULT hr = deviceManager->GetDevices(devices, &devicesNb);
 				if (FAILED(hr)) {
 					delete[] devices;
-					//throw MtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr); TODO
+					throw WpdMtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr);
 				}
 
 				for (DWORD i = 0; i < devicesNb; i++) {
@@ -821,7 +826,7 @@ namespace nek::mtp::backend::wpd {
 			//Get the number of WPD devices
 			hr = deviceManager->GetDevices(NULL, &devicesNb);
 			if (FAILED(hr)) {
-				//throw MtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr); TODO
+				throw WpdMtpDeviceException(MtpExPhase::MANAGER_DEVICELIST, hr);
 			}
 
 			result = devicesNb;
@@ -833,5 +838,83 @@ namespace nek::mtp::backend::wpd {
 
 		return result;
 	}
+
+#pragma endregion
+
+
+
+#pragma region WpdMtpDeviceException
+
+	WpdMtpDeviceException::WpdMtpDeviceException(MtpExPhase phase, HRESULT hr) : MtpDeviceException(phase, computeCode(phase, hr)) {}
+
+	MtpExCode WpdMtpDeviceException::computeCode(MtpExPhase phase, HRESULT hr) {
+		if (hr == S_OK) return NO_ERR;
+		if (hr == E_OUTOFMEMORY) return MEMORY;
+		if (hr == E_UNEXPECTED) return UNEXPECTED;
+		if (hr == E_INVALIDARG) return INVALID_ARG;
+		if (hr == E_POINTER) return INVALID_ARG;
+
+		switch (phase) {
+		case COM_INIT:
+			switch (hr) {
+			case S_FALSE:
+			case RPC_E_CHANGED_MODE:
+				return ALREADY_INITIALIZED;
+			default:
+				return UNKNOW_ERR;
+			}
+
+		case MANAGER_INIT:
+			switch (hr) {
+			case E_NOINTERFACE:
+			case CLASS_E_NOAGGREGATION:
+			case REGDB_E_CLASSNOTREG:
+				return INVALID_ARG;
+			default:
+				return UNKNOW_ERR;
+			}
+
+		case DEVICE_INIT:
+			switch (hr) {
+			case E_WPD_DEVICE_ALREADY_OPENED:
+				return ALREADY_INITIALIZED;
+			default:
+				return UNKNOW_ERR;
+			}
+
+		case OPERATION_RESPONSE:
+		case OPERATIONREAD_RESPONSE:
+		case OPERATIONWRITE_RESPONSE:
+		case ENDREAD_RESPONSE:
+		case ENDWRITE_RESPONSE:
+			switch (hr) {
+			case DISP_E_TYPEMISMATCH:
+				return INVALID_TYPE;
+			case HRESULT_FROM_WIN32(ERROR_NOT_FOUND):
+				return MISSING;
+			default:
+				return UNKNOW_ERR;
+			}
+
+		case OPERATION_SEND:
+		case OPERATIONREAD_SEND:
+		case OPERATIONWRITE_SEND:
+		case DATAWRITE_SEND:
+		case DATAREAD_SEND:
+		case ENDREAD_SEND:
+		case ENDWRITE_SEND:
+			switch (hr) {
+			case UI_E_SHUTDOWN_CALLED:
+				return DEVICE_DISCONNECTED;
+			default:
+				return UNKNOW_ERR;
+			}
+
+		default:
+			return UNKNOW_ERR;
+			}
+	}
+
+#pragma endregion
 
 }
