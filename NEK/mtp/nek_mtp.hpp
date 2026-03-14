@@ -22,6 +22,7 @@ namespace nek::mtp {
 	class MtpDevice {
 	public:
 		NEK_API MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect = true);
+		NEK_API MtpDevice(const backend::MtpConnectionInfo& connectionInfo, bool autoConnect = true);
 		NEK_API MtpDevice(MtpDevice&& other) noexcept;
 		NEK_API ~MtpDevice();
 
@@ -69,8 +70,9 @@ namespace nek::mtp {
 		NEK_API MtpManager();
 		NEK_API void registerBackend(std::unique_ptr<backend::IMtpBackendProvider> backend);
 
-		NEK_API std::vector<backend::MtpConnectionInfo> listAllDevices();
-		NEK_API std::vector<MtpDevice> getAllDevices();
+		NEK_API std::vector<std::unique_ptr<backend::IMtpTransport>> tryCreateTransport(const backend::MtpConnectionInfo& connectionInfo);
+		NEK_API std::vector<std::pair<backend::MtpConnectionInfo, std::unique_ptr<backend::IMtpTransport>>> listAllDevices();
+		NEK_API std::vector<std::pair<backend::MtpConnectionInfo, MtpDevice>> getAllDevices();
 		NEK_API size_t countAllDevices();
 
 	private:

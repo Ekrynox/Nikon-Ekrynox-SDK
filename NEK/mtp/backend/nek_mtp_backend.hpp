@@ -34,8 +34,6 @@ namespace nek::mtp::backend {
 
 	struct MtpConnectionInfo_ {
 		std::optional<std::wstring> usbPath = std::nullopt;
-
-		std::unique_ptr<IMtpTransport> transport = nullptr;
 	};
 	typedef struct MtpConnectionInfo_ MtpConnectionInfo;
 
@@ -44,7 +42,8 @@ namespace nek::mtp::backend {
 	public:
 		virtual ~IMtpBackendProvider() = default;
 
-		virtual std::vector<MtpConnectionInfo> listDevices() = 0;
+		virtual std::unique_ptr<IMtpTransport> tryCreateTransport(const MtpConnectionInfo& connectionInfo) = 0;
+		virtual std::vector<std::pair<MtpConnectionInfo, std::unique_ptr<IMtpTransport>>> listDevices() = 0;
 		virtual size_t countDevices() = 0;
 	};
 
