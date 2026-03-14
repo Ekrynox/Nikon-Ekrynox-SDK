@@ -15,6 +15,7 @@ namespace nek::mtp::backend {
 	class IMtpTransport {
 	public:
 		virtual ~IMtpTransport() = default;
+		virtual std::unique_ptr<IMtpTransport> clone() const = 0;
 
 		virtual void connect() = 0;
 		virtual void disconnect() = 0;

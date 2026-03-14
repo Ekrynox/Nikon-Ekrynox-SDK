@@ -13,10 +13,12 @@ namespace nek {
 
 	class NikonCamera : public nek::mtp::MtpDevice {
 	public:
-		NEK_API static std::map<std::wstring, mtp::MtpDeviceInfoDS> listNikonCameras(bool onlyOn = true);
+		NEK_API static std::vector<std::pair<mtp::backend::MtpConnectionInfo, mtp::MtpDeviceInfoDS>> listNikonCameras(bool onlyOn = true);
+		NEK_API static std::vector<std::pair<NikonCamera, mtp::MtpDeviceInfoDS>>getNikonCameras(bool onlyOn = true);
 		NEK_API static size_t countNikonCameras(bool onlyOn = true);
 
-		NEK_API NikonCamera(std::wstring devicePath, uint8_t additionalThread = 0);
+		NEK_API NikonCamera(std::unique_ptr<mtp::backend::IMtpTransport> backend, bool autoConnect = true);
+		NEK_API NikonCamera(mtp::backend::MtpConnectionInfo connectionInfo, bool autoConnect = true);
 
 
 		NEK_API NikonDeviceInfoDS GetDeviceInfo();
@@ -40,11 +42,7 @@ namespace nek {
 
 
 	private:
-		virtual void mainThreadTask() override;
-		virtual void threadTask() override;
 		void eventThreadTask();
-
-		virtual void startThreads() override;
 
 		NikonDeviceInfoDS deviceInfo_;
 
