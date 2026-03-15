@@ -29,8 +29,11 @@ namespace NEKCS.TestApp
 
             NEKCS.MtpResponse result = camera.SendCommandAndRead(NEKCS.NikonMtpOperationCode.DeleteImagesInSdram, [0]);
 
-            camera.GetDevicePropValue(NikonMtpDevicePropCode.RemoteLiveViewStatus).TryGetUInt8(out var lvstatus);
-            if (lvstatus == 1) camera.EndLiveView();
+            try {
+                camera.GetDevicePropValue(NikonMtpDevicePropCode.RemoteLiveViewStatus).TryGetUInt8(out var lvstatus);
+                if (lvstatus == 1) camera.EndLiveView();
+            }
+            catch {}
 
         }
 
