@@ -34,7 +34,14 @@ MtpDevice::MtpDevice(const backend::MtpConnectionInfo& connectionInfo, bool auto
 }
 
 nek::mtp::MtpDevice::MtpDevice(MtpDevice&& other) noexcept {
+	std::lock_guard lock(eventMutex_);
 	backend_ = std::move(other.backend_);
+	backendCallbackId_ = std::nullopt;
+
+	eventCallbacks_ = std::move(other.eventCallbacks_);
+	eventNextId_ = other.eventNextId_;
+
+	if (isConnected()) Connect();
 }
 
 MtpDevice::~MtpDevice() {
@@ -43,8 +50,9 @@ MtpDevice::~MtpDevice() {
 
 
 
-bool MtpDevice::isConnected() const { 
-	if (backend_ == nullptr) return false;
+bool MtpDevice::isConnected() const {
+	if (this == nullptr) return false;
+	if (!backend_) return false;
 	return backend_->isConnected();
 }
 

@@ -20,8 +20,14 @@ namespace nek {
 		NEK_API NikonCamera(std::unique_ptr<mtp::backend::IMtpTransport> backend, bool autoConnect = true);
 		NEK_API NikonCamera(mtp::backend::MtpConnectionInfo connectionInfo, bool autoConnect = true);
 
+		NEK_API void Connect() override;
+		NEK_API void Disconnect() override;
+
 
 		NEK_API NikonDeviceInfoDS GetDeviceInfo();
+		NEK_API std::vector<mtp::MtpEvent> GetEvent();
+		NEK_API std::vector<mtp::MtpEvent> GetEventEx();
+
 
 
 		NEK_API mtp::MtpDevicePropDescDSV GetDevicePropDesc(uint32_t devicePropCode);
@@ -42,11 +48,9 @@ namespace nek {
 
 
 	private:
-		void eventThreadTask();
+		std::jthread eventPolling;
 
 		NikonDeviceInfoDS deviceInfo_;
-
-		std::deque<std::function<void()>> tasksEvent_;
 	};
 
 }

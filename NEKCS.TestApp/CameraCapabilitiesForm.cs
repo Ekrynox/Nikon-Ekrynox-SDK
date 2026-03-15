@@ -148,7 +148,10 @@ namespace NEKCS.TestApp
             };
 
             this.CameraCapabilities.Text = "";
-            this.CameraCapabilities.Text += JsonSerializer.Serialize(this.camera.GetDeviceInfo(), options);
+            try {
+                this.CameraCapabilities.Text += JsonSerializer.Serialize(this.camera.GetDeviceInfo(), options);
+            }
+            catch (NEKCS.MtpDeviceException e) when (e.Code == MtpExCode.DEVICE_DISCONNECTED) {}
         }
 
         void newCamEvent(NEKCS.NikonCamera cam, NEKCS.MtpEvent e)
