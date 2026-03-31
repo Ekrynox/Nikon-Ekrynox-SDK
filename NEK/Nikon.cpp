@@ -90,7 +90,7 @@ void NikonCamera::Connect() {
 	}
 
 	bool canGetEvent = std::find(info.OperationsSupported.begin(), info.OperationsSupported.end(), NikonMtpOperationCode::GetEvent) != info.OperationsSupported.end();
-	if (canGetEventEx && !canGetEvent) { //Enforce testing as some camera does not correctly repport their capabilities (D3200, ...)
+	if (!canGetEventEx && !canGetEvent) { //Enforce testing as some camera does not correctly repport their capabilities (D3200, ...)
 		try {
 			events = GetEvent();
 			canGetEvent = true;
