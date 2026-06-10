@@ -15,7 +15,7 @@ namespace nek {
 	class NikonCamera : public nek::mtp::MtpDevice {
 	public:
 		NEK_API static std::vector<mtp::backend::MtpConnectionInfo> listNikonCameras(bool onlyOn = true);
-		NEK_API static std::vector<std::tuple<mtp::backend::MtpConnectionInfo, mtp::MtpDeviceInfoDS, std::unique_ptr<NikonCamera>>> getNikonCameras(bool onlyOn = true);
+		NEK_API static std::vector<std::tuple<mtp::backend::MtpConnectionInfo, NikonDeviceInfoDS, std::unique_ptr<NikonCamera>>> getNikonCameras(bool onlyOn = true);
 		NEK_API static size_t countNikonCameras(bool onlyOn = true);
 
 		NEK_API NikonCamera(std::unique_ptr<mtp::backend::IMtpTransport> backend, bool autoConnect = true);

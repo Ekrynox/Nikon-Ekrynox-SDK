@@ -39,19 +39,23 @@ std::vector<mtp::backend::MtpConnectionInfo> NikonCamera::listNikonCameras(bool 
 	return result;
 }
 
-std::vector<std::tuple<mtp::backend::MtpConnectionInfo, mtp::MtpDeviceInfoDS, std::unique_ptr<NikonCamera>>> NikonCamera::getNikonCameras(bool onlyOn) {
-	std::vector<std::tuple<mtp::backend::MtpConnectionInfo, mtp::MtpDeviceInfoDS, std::unique_ptr<NikonCamera>>> result;
+std::vector<std::tuple<mtp::backend::MtpConnectionInfo, NikonDeviceInfoDS, std::unique_ptr<NikonCamera>>> NikonCamera::getNikonCameras(bool onlyOn) {
+	std::vector<std::tuple<mtp::backend::MtpConnectionInfo, NikonDeviceInfoDS, std::unique_ptr<NikonCamera>>> result;
 
 	mtp::MtpManager manager;
-	auto devices = manager.getAllDevices();
+	auto devices = manager.listAllDevices();
 
 	for (auto& d : devices) {
-		if (std::get<0>(d).usbPath.has_value()) {
-			std::wstring id = std::get<0>(d).usbPath.value();
+		if (d.usbPath.has_value()) {
+			std::wstring id = d.usbPath.value();
 			std::transform(id.begin(), id.end(), id.begin(), ::towupper);
 			if (id.find(L"VID_04B0") != std::wstring::npos) {
-				if (!onlyOn || std::find_if(std::get<1>(d).OperationsSupported.begin(), std::get<1>(d).OperationsSupported.end(), [](const uint32_t& x) { return x == NikonMtpOperationCode::InitiateCapture || x == NikonMtpOperationCode::InitiateCaptureRecInSdram || x == NikonMtpOperationCode::InitiateCaptureRecInMedia; }) != std::get<1>(d).OperationsSupported.end()) {
-					result.push_back(std::make_tuple(std::get<0>(d), std::get<1>(d), std::make_unique<NikonCamera>(std::get<0>(d))));
+				auto cam = std::make_unique<NikonCamera>(d, true);
+				auto info = cam->GetDeviceInfo();
+				cam->Disconnect();
+
+				if (!onlyOn || std::find_if(info.OperationsSupported.begin(), info.OperationsSupported.end(), [](const uint32_t& x) { return x == NikonMtpOperationCode::InitiateCapture || x == NikonMtpOperationCode::InitiateCaptureRecInSdram || x == NikonMtpOperationCode::InitiateCaptureRecInMedia; }) != info.OperationsSupported.end()) {
+					result.push_back(std::make_tuple(d, info, std::move(cam)));
 				}
 			}
 		}
@@ -397,7 +401,6 @@ void NikonCamera::SetDevicePropValueTypesafe(uint32_t devicePropCode, mtp::MtpDa
 
 
 uint32_t NikonCamera::DeviceReady() {
-	return NikonMtpResponseCode::OK;
 	std::shared_lock<std::shared_mutex> readlock(deviceReadyPollingMutex);
 	if (deviceReadyWorkerCount.fetch_add(1) == 0) StartDeviceReadyPolling();
 
@@ -408,7 +411,6 @@ uint32_t NikonCamera::DeviceReady() {
 	return deviceReadyPollingResponseCode;
 }
 uint32_t NikonCamera::DeviceReadyWhile(uint32_t whileResponseCode, std::stop_token stopToken, size_t sleepTimems) {
-	return NikonMtpResponseCode::OK;
 	std::shared_lock<std::shared_mutex> readlock(deviceReadyPollingMutex);
 	if (deviceReadyWorkerCount.fetch_add(1) == 0) StartDeviceReadyPolling();
 
@@ -423,7 +425,6 @@ uint32_t NikonCamera::DeviceReadyWhile(uint32_t whileResponseCode, std::stop_tok
 	return deviceReadyPollingResponseCode;
 }
 uint32_t NikonCamera::DeviceReadyWhile(std::vector<uint32_t> whileResponseCodes, std::stop_token stopToken, size_t sleepTimems) {
-	return NikonMtpResponseCode::OK;
 	std::shared_lock<std::shared_mutex> readlock(deviceReadyPollingMutex);
 	if (deviceReadyWorkerCount.fetch_add(1) == 0) StartDeviceReadyPolling();
 
@@ -438,7 +439,6 @@ uint32_t NikonCamera::DeviceReadyWhile(std::vector<uint32_t> whileResponseCodes,
 	return deviceReadyPollingResponseCode;
 }
 uint32_t NikonCamera::DeviceReadyWhileNot(uint32_t whileNotResponseCode, std::stop_token stopToken, size_t sleepTimems) {
-	return NikonMtpResponseCode::OK;
 	std::shared_lock<std::shared_mutex> readlock(deviceReadyPollingMutex);
 	if (deviceReadyWorkerCount.fetch_add(1) == 0) StartDeviceReadyPolling();
 
@@ -453,7 +453,6 @@ uint32_t NikonCamera::DeviceReadyWhileNot(uint32_t whileNotResponseCode, std::st
 	return deviceReadyPollingResponseCode;
 }
 uint32_t NikonCamera::DeviceReadyWhileNot(std::vector<uint32_t> whileNotResponseCodes, std::stop_token stopToken, size_t sleepTimems) {
-	return NikonMtpResponseCode::OK;
 	std::shared_lock<std::shared_mutex> readlock(deviceReadyPollingMutex);
 	if (deviceReadyWorkerCount.fetch_add(1) == 0) StartDeviceReadyPolling();
 
