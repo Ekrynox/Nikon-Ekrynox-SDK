@@ -33,17 +33,6 @@ MtpDevice::MtpDevice(const backend::MtpConnectionInfo& connectionInfo, bool auto
 	if (autoConnect) Connect();
 }
 
-nek::mtp::MtpDevice::MtpDevice(MtpDevice&& other) noexcept {
-	std::lock_guard lock(eventMutex_);
-	backend_ = std::move(other.backend_);
-	backendCallbackId_ = std::nullopt;
-
-	eventCallbacks_ = std::move(other.eventCallbacks_);
-	eventNextId_ = other.eventNextId_;
-
-	if (isConnected()) Connect();
-}
-
 MtpDevice::~MtpDevice() {
 	Disconnect();
 };
@@ -1467,21 +1456,23 @@ std::vector<std::unique_ptr<backend::IMtpTransport>> MtpManager::tryCreateTransp
 	return result;
 }
 
-std::vector<std::pair<backend::MtpConnectionInfo, std::unique_ptr<backend::IMtpTransport>>> MtpManager::listAllDevices() {
-	auto result = std::vector<std::pair<backend::MtpConnectionInfo, std::unique_ptr<backend::IMtpTransport>>>();
+std::vector<backend::MtpConnectionInfo> MtpManager::listAllDevices() {
+	auto result = std::vector<backend::MtpConnectionInfo>();
 	for (auto& b : backends_) {
 		for (auto& d : b->listDevices()) {
-			result.push_back(std::move(d));
+			result.push_back(d);
 		}
 	}
 	return result;
 }
 
-std::vector<std::pair<backend::MtpConnectionInfo, MtpDevice>> MtpManager::getAllDevices() {
-	auto result = std::vector<std::pair<backend::MtpConnectionInfo, MtpDevice>>();
+std::vector<std::tuple<backend::MtpConnectionInfo, MtpDeviceInfoDS, std::unique_ptr<MtpDevice>>> MtpManager::getAllDevices() {
+	auto result = std::vector<std::tuple<backend::MtpConnectionInfo, MtpDeviceInfoDS, std::unique_ptr<MtpDevice>>>();
 	for (auto& b : backends_) {
-		for (auto& d : b->listDevices()) {
-			result.push_back(std::make_pair(d.first, std::move(MtpDevice(std::move(d.second), false))));
+		for (auto& d : b->getDevices()) {
+			auto device = std::make_unique<MtpDevice>(std::move(d.second), true);
+			auto mtp = device->GetDeviceInfo();
+			result.push_back(std::make_tuple(d.first, mtp, std::make_unique<MtpDevice>(std::move(d.second), false)));
 		}
 	}
 	return result;
