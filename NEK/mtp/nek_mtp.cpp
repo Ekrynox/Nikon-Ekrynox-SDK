@@ -12,7 +12,10 @@ using namespace nek::mtp;
 
 #pragma region MtpDevice
 
-MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect) : backend_(std::move(backend)), backendCallbackId_(std::nullopt) {
+MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoConnect) : backend_(std::move(backend)) {
+	backend_->unsubscribe();
+	backendCallbackId_ = std::nullopt;
+
 	std::lock_guard lock(eventMutex_);
 	eventCallbacks_.clear();
 	eventNextId_ = 0;
@@ -22,8 +25,9 @@ MtpDevice::MtpDevice(std::unique_ptr<backend::IMtpTransport> backend, bool autoC
 
 MtpDevice::MtpDevice(const backend::MtpConnectionInfo& connectionInfo, bool autoConnect) {
 	auto backends = MtpManager().tryCreateTransport(connectionInfo);
-	if (backends.size() == 0) throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED); //TODO chnage to a more explicit error
+	if (backends.size() == 0) throw MtpDeviceException(MtpExPhase::DEVICE_NOT_CONNECTED, MtpExCode::DEVICE_DISCONNECTED); //TODO change to a more explicit error
 	backend_ = std::move(backends[0]);
+	backend_->unsubscribe();
 	backendCallbackId_ = std::nullopt;
 
 	std::lock_guard lock(eventMutex_);
@@ -1472,7 +1476,8 @@ std::vector<std::tuple<backend::MtpConnectionInfo, MtpDeviceInfoDS, std::unique_
 		for (auto& d : b->getDevices()) {
 			auto device = std::make_unique<MtpDevice>(std::move(d.second), true);
 			auto mtp = device->GetDeviceInfo();
-			result.push_back(std::make_tuple(d.first, mtp, std::make_unique<MtpDevice>(std::move(d.second), false)));
+			device->Disconnect();
+			result.push_back(std::make_tuple(d.first, mtp, std::move(device)));
 		}
 	}
 	return result;
