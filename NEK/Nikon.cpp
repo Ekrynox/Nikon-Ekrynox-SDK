@@ -397,6 +397,7 @@ void NikonCamera::SetDevicePropValueTypesafe(uint32_t devicePropCode, mtp::MtpDa
 
 
 uint32_t NikonCamera::DeviceReady() {
+	return NikonMtpResponseCode::OK;
 	std::shared_lock<std::shared_mutex> readlock(deviceReadyPollingMutex);
 	if (deviceReadyWorkerCount.fetch_add(1) == 0) StartDeviceReadyPolling();
 
@@ -407,6 +408,7 @@ uint32_t NikonCamera::DeviceReady() {
 	return deviceReadyPollingResponseCode;
 }
 uint32_t NikonCamera::DeviceReadyWhile(uint32_t whileResponseCode, std::stop_token stopToken, size_t sleepTimems) {
+	return NikonMtpResponseCode::OK;
 	std::shared_lock<std::shared_mutex> readlock(deviceReadyPollingMutex);
 	if (deviceReadyWorkerCount.fetch_add(1) == 0) StartDeviceReadyPolling();
 
@@ -421,6 +423,7 @@ uint32_t NikonCamera::DeviceReadyWhile(uint32_t whileResponseCode, std::stop_tok
 	return deviceReadyPollingResponseCode;
 }
 uint32_t NikonCamera::DeviceReadyWhile(std::vector<uint32_t> whileResponseCodes, std::stop_token stopToken, size_t sleepTimems) {
+	return NikonMtpResponseCode::OK;
 	std::shared_lock<std::shared_mutex> readlock(deviceReadyPollingMutex);
 	if (deviceReadyWorkerCount.fetch_add(1) == 0) StartDeviceReadyPolling();
 
@@ -435,6 +438,7 @@ uint32_t NikonCamera::DeviceReadyWhile(std::vector<uint32_t> whileResponseCodes,
 	return deviceReadyPollingResponseCode;
 }
 uint32_t NikonCamera::DeviceReadyWhileNot(uint32_t whileNotResponseCode, std::stop_token stopToken, size_t sleepTimems) {
+	return NikonMtpResponseCode::OK;
 	std::shared_lock<std::shared_mutex> readlock(deviceReadyPollingMutex);
 	if (deviceReadyWorkerCount.fetch_add(1) == 0) StartDeviceReadyPolling();
 
@@ -449,6 +453,7 @@ uint32_t NikonCamera::DeviceReadyWhileNot(uint32_t whileNotResponseCode, std::st
 	return deviceReadyPollingResponseCode;
 }
 uint32_t NikonCamera::DeviceReadyWhileNot(std::vector<uint32_t> whileNotResponseCodes, std::stop_token stopToken, size_t sleepTimems) {
+	return NikonMtpResponseCode::OK;
 	std::shared_lock<std::shared_mutex> readlock(deviceReadyPollingMutex);
 	if (deviceReadyWorkerCount.fetch_add(1) == 0) StartDeviceReadyPolling();
 
@@ -508,15 +513,19 @@ void nek::NikonCamera::StartDeviceReadyPolling() {
 			try {
 				response = SendCommand(NikonMtpOperationCode::DeviceReady, {});
 
-				std::unique_lock<std::shared_mutex> lock(deviceReadyPollingMutex);
-				deviceReadyPollingResponseCode = response.responseCode;
-				deviceReadyPollingException = nullptr;
+				{
+					std::unique_lock<std::shared_mutex> lock(deviceReadyPollingMutex);
+					deviceReadyPollingResponseCode = response.responseCode;
+					deviceReadyPollingException = nullptr;
+				}
 				deviceReadyPollingCv.notify_all();
 			}
 			catch (...) {
-				std::unique_lock<std::shared_mutex> lock(deviceReadyPollingMutex);
-				deviceReadyPollingResponseCode = mtp::MtpResponseCode::Undefined;
-				deviceReadyPollingException = std::current_exception();
+				{
+					std::unique_lock<std::shared_mutex> lock(deviceReadyPollingMutex);
+					deviceReadyPollingResponseCode = mtp::MtpResponseCode::Undefined;
+					deviceReadyPollingException = std::current_exception();
+				}
 				deviceReadyPollingCv.notify_all();
 			}
 
