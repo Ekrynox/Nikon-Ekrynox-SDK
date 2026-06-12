@@ -518,26 +518,19 @@ void nek::NikonCamera::StartDeviceReadyPolling() {
 	deviceReadyPolling = std::jthread([this](std::stop_token stop_token) {
 		mtp::MtpResponse response;
 		while (!stop_token.stop_requested() && this->isConnected()) {
+			std::unique_lock<std::shared_mutex> lock(deviceReadyPollingMutex);
 			try {
 				response = SendCommand(NikonMtpOperationCode::DeviceReady, {});
-
-				{
-					std::unique_lock<std::shared_mutex> lock(deviceReadyPollingMutex);
-					deviceReadyPollingResponseCode = response.responseCode;
-					deviceReadyPollingException = nullptr;
-				}
-				deviceReadyPollingCv.notify_all();
+				deviceReadyPollingResponseCode = response.responseCode;
+				deviceReadyPollingException = nullptr;
 			}
 			catch (...) {
-				{
-					std::unique_lock<std::shared_mutex> lock(deviceReadyPollingMutex);
-					deviceReadyPollingResponseCode = mtp::MtpResponseCode::Undefined;
-					deviceReadyPollingException = std::current_exception();
-				}
-				deviceReadyPollingCv.notify_all();
+				deviceReadyPollingResponseCode = mtp::MtpResponseCode::Undefined;
+				deviceReadyPollingException = std::current_exception();
 			}
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(*deviceReadyPollingSleepTimems.begin()));
+			deviceReadyPollingCv.notify_all();
+			deviceReadyPollingCv.wait_for(lock, stop_token, std::chrono::milliseconds(*deviceReadyPollingSleepTimems.begin()), [stop_token] { return stop_token.stop_requested(); });
 		}
 	});
 }
